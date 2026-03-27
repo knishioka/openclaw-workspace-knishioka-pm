@@ -171,10 +171,10 @@ openclaw agent --agent knishioka-pm --thinking medium --timeout 120 -m \
 > 「PMエージェントがreviewerとstrategistを並列で起動しました。
 > 結果が返ってくるまで少し待ちましょう。」
 
-(yield で非同期になるので、同じセッションにフォローアップ)
+(yield で非同期になるため `completed` とだけ返る。30秒以上待ってからフォローアップ)
 
 ```bash
-# 結果を聞く
+# 30秒待ってから結果を聞く
 openclaw agent --agent knishioka-pm -m "reviewer と strategist の結果をまとめて、PMとして最終判断を出して" --thinking medium
 ```
 
