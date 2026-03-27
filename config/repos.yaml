@@ -1,0 +1,111 @@
+# Target repositories for automated PM
+# Covers: active projects, MCP servers, education tools, and neglected repos
+
+repos:
+  # --- Active (2026-03) ---
+  - owner: knishioka
+    name: kanji-practice
+    language: TypeScript
+    priority: high
+    category: education
+    notes: "Elementary kanji practice sheet generator (A4 PDF)"
+
+  - owner: knishioka
+    name: math-worksheet
+    language: TypeScript
+    priority: high
+    category: education
+    notes: "Math worksheet generator"
+
+  - owner: knishioka
+    name: ib-sec-mcp
+    language: Python
+    priority: high
+    category: mcp
+    notes: "MCP server for Interactive Brokers securities"
+
+  - owner: knishioka
+    name: freee-mcp
+    language: TypeScript
+    priority: high
+    category: mcp
+    notes: "MCP server for freee accounting API"
+
+  - owner: knishioka
+    name: cost-management-mcp
+    language: TypeScript
+    priority: medium
+    category: mcp
+    notes: "Unified cloud cost management MCP server"
+
+  - owner: knishioka
+    name: workflow-engine
+    language: Python
+    priority: medium
+    category: tool
+    notes: "Convert Zapier workflows to Claude Code/Agent SDK/API"
+
+  - owner: knishioka
+    name: household-finance
+    language: Python
+    priority: medium
+    category: fintech
+    notes: "Household finance management and expense analysis"
+
+  # --- Moderately Active (2025-12 ~ 2026-02) ---
+  - owner: knishioka
+    name: simple-bookkeeping
+    language: TypeScript
+    priority: medium
+    category: fintech
+    notes: "Double-entry bookkeeping for Japanese tax filing (blue return)"
+
+  - owner: knishioka
+    name: ut-gymnastics
+    language: TypeScript
+    priority: low
+    category: web
+    notes: "University of Tokyo gymnastics team alumni site"
+
+  - owner: knishioka
+    name: jgrants-app
+    language: TypeScript
+    priority: low
+    category: tool
+    notes: "jGrants API subsidy application support"
+
+  # --- Neglected (2025-06 ~ 2025-08) ---
+  - owner: knishioka
+    name: td-mcp-server
+    language: Python
+    priority: low
+    category: mcp
+    notes: "Treasure Data MCP server -- inactive since 2025-08"
+
+  - owner: knishioka
+    name: line-advisor
+    language: TypeScript
+    priority: low
+    category: tool
+    notes: "LINE conversation improvement bot -- inactive since 2025-07"
+
+  - owner: knishioka
+    name: story-bridge
+    language: TypeScript
+    priority: low
+    category: tool
+    notes: "AI autobiography creation for seniors -- inactive since 2025-06"
+
+  - owner: knishioka
+    name: meditation-chrome-extension
+    language: JavaScript
+    priority: low
+    category: tool
+    notes: "Chrome meditation extension -- inactive since 2025-06"
+
+# Staleness thresholds (days)
+thresholds:
+  abandon_warning: 30
+  abandon_critical: 90
+  issue_stale: 14
+  dependency_check: 30

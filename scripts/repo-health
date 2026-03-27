@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+# repo-health: Health diagnosis for a GitHub repository
+# Usage: repo-health <owner/repo>
+# Output: JSON to stdout
+#
+# Collects: last commit, open issues, open PRs, CI status, dependency info
+# Requires: gh CLI (authenticated)
+
+set -euo pipefail
+
+REPO="${1:?Usage: repo-health <owner/repo>}"
+OWNER="${REPO%%/*}"
+NAME="${REPO##*/}"
+TODAY=$(date -u +%Y-%m-%d)
+
+# --- Collect data via gh CLI ---
+
+# Last commit
+LAST_COMMIT_JSON=$(gh api "repos/${REPO}/commits?per_page=1" --jq '.[0] | {
+  sha: .sha[0:7],
+  date: .commit.committer.date,
+  message: (.commit.message | split("\n") | .[0]),
+  author: .commit.author.name
+}' 2>/dev/null || echo '{"sha":"","date":"","message":"error fetching","author":""}')
+
+LAST_COMMIT_DATE=$(echo "$LAST_COMMIT_JSON" | jq -r '.date // ""' | cut -dT -f1)
+if [ -n "$LAST_COMMIT_DATE" ] && [ "$LAST_COMMIT_DATE" != "null" ]; then
+  DAYS_INACTIVE=$(( ( $(date -u +%s) - $(date -u -jf "%Y-%m-%d" "$LAST_COMMIT_DATE" +%s 2>/dev/null || date -u -d "$LAST_COMMIT_DATE" +%s 2>/dev/null || echo 0) ) / 86400 ))
+else
+  DAYS_INACTIVE=999
+fi
+
+# Open issues (exclude PRs)
+OPEN_ISSUES=$(gh api "repos/${REPO}/issues?state=open&per_page=100" --jq '[.[] | select(.pull_request == null)] | length' 2>/dev/null || echo 0)
+
+# Oldest open issue age
+OLDEST_ISSUE_DATE=$(gh api "repos/${REPO}/issues?state=open&sort=created&direction=asc&per_page=1" --jq '.[0].created_at // ""' 2>/dev/null || echo "")
+if [ -n "$OLDEST_ISSUE_DATE" ] && [ "$OLDEST_ISSUE_DATE" != "null" ]; then
+  OLDEST_ISSUE_AGE=$(( ( $(date -u +%s) - $(date -u -jf "%Y-%m-%dT%H:%M:%SZ" "$OLDEST_ISSUE_DATE" +%s 2>/dev/null || date -u -d "$OLDEST_ISSUE_DATE" +%s 2>/dev/null || echo $(date -u +%s)) ) / 86400 ))
+else
+  OLDEST_ISSUE_AGE=0
+fi
+
+# Open PRs
+OPEN_PRS=$(gh api "repos/${REPO}/pulls?state=open&per_page=100" --jq 'length' 2>/dev/null || echo 0)
+
+# CI status (last workflow run on default branch)
+CI_STATUS=$(gh api "repos/${REPO}/actions/runs?per_page=1" --jq '.workflow_runs[0].conclusion // "none"' 2>/dev/null || echo "none")
+
+# Default branch
+DEFAULT_BRANCH=$(gh api "repos/${REPO}" --jq '.default_branch' 2>/dev/null || echo "main")
+
+# Has README
+if gh api "repos/${REPO}/contents/README.md" --jq '.name' >/dev/null 2>&1; then
+  HAS_README="true"
+else
+  HAS_README="false"
+fi
+
+# Dependabot alerts count (may be disabled/forbidden on some repos)
+DEPENDABOT_ALERTS=$(gh api "repos/${REPO}/dependabot/alerts?state=open&per_page=100" 2>/dev/null | jq 'if type == "array" then length else 0 end' 2>/dev/null || echo 0)
+DEPENDABOT_ALERTS="${DEPENDABOT_ALERTS:-0}"
+# Ensure it's a plain integer
+DEPENDABOT_ALERTS=$(echo "$DEPENDABOT_ALERTS" | tr -dc '0-9')
+DEPENDABOT_ALERTS="${DEPENDABOT_ALERTS:-0}"
+
+# --- Determine status ---
+if [ "$DAYS_INACTIVE" -ge 90 ] || [ "$CI_STATUS" = "failure" ] || [ "$DEPENDABOT_ALERTS" -gt 0 ]; then
+  STATUS="RED"
+elif [ "$DAYS_INACTIVE" -ge 30 ] || [ "$OPEN_ISSUES" -ge 10 ]; then
+  STATUS="YELLOW"
+else
+  STATUS="GREEN"
+fi
+
+# --- Output JSON ---
+jq -n \
+  --arg repo "$REPO" \
+  --arg date "$TODAY" \
+  --arg status "$STATUS" \
+  --argjson days_inactive "$DAYS_INACTIVE" \
+  --arg last_commit_date "$LAST_COMMIT_DATE" \
+  --argjson last_commit "$LAST_COMMIT_JSON" \
+  --argjson open_issues "$OPEN_ISSUES" \
+  --argjson oldest_issue_age "$OLDEST_ISSUE_AGE" \
+  --argjson open_prs "$OPEN_PRS" \
+  --arg ci_status "$CI_STATUS" \
+  --arg default_branch "$DEFAULT_BRANCH" \
+  --arg has_readme "$HAS_README" \
+  --argjson dependabot_alerts "$DEPENDABOT_ALERTS" \
+  '{
+    repo: $repo,
+    checked_at: $date,
+    status: $status,
+    activity: {
+      last_commit_date: $last_commit_date,
+      days_inactive: $days_inactive,
+      last_commit: $last_commit
+    },
+    issues: {
+      open_count: $open_issues,
+      oldest_age_days: $oldest_issue_age
+    },
+    pull_requests: {
+      open_count: $open_prs
+    },
+    ci: {
+      last_status: $ci_status
+    },
+    security: {
+      dependabot_alerts: $dependabot_alerts
+    },
+    docs: {
+      has_readme: ($has_readme == "true"),
+      default_branch: $default_branch
+    }
+  }'

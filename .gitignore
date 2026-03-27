@@ -1,0 +1,26 @@
+# Local session data
+memory/
+MEMORY.md
+
+# Runtime state
+monitoring/repo-state.json
+
+# Report archives
+reports/archive/
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+
+# OpenClaw runtime
+.clawhub/
+.openclaw/
+.runtime-*/
+.config/
+.local/
+*.log
+*.tmp
+tmp/

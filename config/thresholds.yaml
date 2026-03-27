@@ -1,0 +1,28 @@
+# Health scoring thresholds
+
+# Activity (days since last commit)
+activity:
+  green: 7 # Active within a week
+  yellow: 30 # Warning: no activity for a month
+  red: 90 # Critical: abandoned for 3+ months
+
+# Issues
+issues:
+  stale_days: 14 # Issue with no update for 14+ days
+  high_count: 10 # Too many open issues
+
+# Dependencies
+dependencies:
+  check_interval_days: 30 # How often to check for outdated deps
+
+# CI
+ci:
+  failing_is_red: true # Broken CI = red flag
+
+# Overall scoring weights
+weights:
+  activity: 0.35
+  issues: 0.20
+  dependencies: 0.20
+  ci: 0.15
+  docs: 0.10
