@@ -4,11 +4,11 @@
 
 | Repo | Status | Last Commit | Days Inactive | Open Issues | CI | Dependabot |
 |------|--------|-------------|---------------|-------------|----|------------|
+| [remotion-math-education](https://github.com/knishioka/remotion-math-education) | 🔴 RED | 2025-06-17 | 283 | 0 | none | 0 |
+| [meditation-chrome-extension](https://github.com/knishioka/meditation-chrome-extension) | 🔴 RED | 2025-06-30 | 270 | 0 | none | 0 |
+| [td-mcp-server](https://github.com/knishioka/td-mcp-server) | 🔴 RED | 2025-08-03 | 236 | 0 | success | 0 |
 | [cost-management-mcp](https://github.com/knishioka/cost-management-mcp) | 🔴 RED | 2025-11-04 | 143 | 3 | failure | 0 |
 | [ib-sec-mcp](https://github.com/knishioka/ib-sec-mcp) | 🔴 RED | 2026-03-21 | 6 | 1 | failure | 0 |
-| [meditation-chrome-extension](https://github.com/knishioka/meditation-chrome-extension) | 🔴 RED | 2025-06-30 | 270 | 0 | none | 0 |
-| [remotion-math-education](https://github.com/knishioka/remotion-math-education) | 🔴 RED | 2025-06-17 | 283 | 0 | none | 0 |
-| [td-mcp-server](https://github.com/knishioka/td-mcp-server) | 🔴 RED | 2025-08-03 | 236 | 0 | success | 0 |
 | [english-note-maker](https://github.com/knishioka/english-note-maker) | 🟡 YELLOW | 2026-01-01 | 85 | 0 | success | 0 |
 | [simple-bookkeeping](https://github.com/knishioka/simple-bookkeeping) | 🟡 YELLOW | 2026-01-10 | 76 | 36 | success | 0 |
 | [freee-mcp](https://github.com/knishioka/freee-mcp) | 🟢 GREEN | 2026-03-06 | 21 | 1 | success | 0 |
@@ -16,6 +16,39 @@
 | [math-worksheet](https://github.com/knishioka/math-worksheet) | 🟢 GREEN | 2026-03-22 | 5 | 0 | success | 0 |
 
 ## Details
+
+### remotion-math-education
+
+- **Status**: RED
+- **Last commit**: 2025-06-17 (283 days ago)
+- **Last commit message**: Update .gitignore to explicitly exclude all video file formats
+- **Open issues**: 0
+- **Open PRs**: 0
+- **CI**: none
+- **Dependabot alerts**: 0
+- **Has README**: true
+
+### meditation-chrome-extension
+
+- **Status**: RED
+- **Last commit**: 2025-06-30 (270 days ago)
+- **Last commit message**: feat: Convert to fully offline Chrome extension with local audio
+- **Open issues**: 0
+- **Open PRs**: 0
+- **CI**: none
+- **Dependabot alerts**: 0
+- **Has README**: true
+
+### td-mcp-server
+
+- **Status**: RED
+- **Last commit**: 2025-08-03 (236 days ago)
+- **Last commit message**: Fix test expectations for new tool count
+- **Open issues**: 0
+- **Open PRs**: 2
+- **CI**: success
+- **Dependabot alerts**: 0
+- **Has README**: true
 
 ### cost-management-mcp
 
@@ -36,39 +69,6 @@
 - **Open issues**: 1
 - **Open PRs**: 4
 - **CI**: failure
-- **Dependabot alerts**: 0
-- **Has README**: true
-
-### meditation-chrome-extension
-
-- **Status**: RED
-- **Last commit**: 2025-06-30 (270 days ago)
-- **Last commit message**: feat: Convert to fully offline Chrome extension with local audio
-- **Open issues**: 0
-- **Open PRs**: 0
-- **CI**: none
-- **Dependabot alerts**: 0
-- **Has README**: true
-
-### remotion-math-education
-
-- **Status**: RED
-- **Last commit**: 2025-06-17 (283 days ago)
-- **Last commit message**: Update .gitignore to explicitly exclude all video file formats
-- **Open issues**: 0
-- **Open PRs**: 0
-- **CI**: none
-- **Dependabot alerts**: 0
-- **Has README**: true
-
-### td-mcp-server
-
-- **Status**: RED
-- **Last commit**: 2025-08-03 (236 days ago)
-- **Last commit message**: Fix test expectations for new tool count
-- **Open issues**: 0
-- **Open PRs**: 2
-- **CI**: success
 - **Dependabot alerts**: 0
 - **Has README**: true
 

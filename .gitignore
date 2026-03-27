@@ -4,6 +4,11 @@ MEMORY.md
 
 # Runtime state
 monitoring/repo-state.json
+monitoring/latest-health.json
+monitoring/latest-health.jsonl
+
+# Local report diffs
+reports/.latest-health.prev.md
 
 # Report archives
 reports/archive/
