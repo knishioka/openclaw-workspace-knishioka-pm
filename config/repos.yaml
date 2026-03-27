@@ -1,5 +1,5 @@
 # Target repositories for automated PM
-# Covers: active projects, MCP servers, education tools, and neglected repos
+# Public repos only (this workspace is a public demo)
 
 repos:
   # --- Active (2026-03) ---
@@ -38,21 +38,7 @@ repos:
     category: mcp
     notes: "Unified cloud cost management MCP server"
 
-  - owner: knishioka
-    name: workflow-engine
-    language: Python
-    priority: medium
-    category: tool
-    notes: "Convert Zapier workflows to Claude Code/Agent SDK/API"
-
-  - owner: knishioka
-    name: household-finance
-    language: Python
-    priority: medium
-    category: fintech
-    notes: "Household finance management and expense analysis"
-
-  # --- Moderately Active (2025-12 ~ 2026-02) ---
+  # --- Moderately Active (2025-12 ~ 2026-01) ---
   - owner: knishioka
     name: simple-bookkeeping
     language: TypeScript
@@ -61,18 +47,11 @@ repos:
     notes: "Double-entry bookkeeping for Japanese tax filing (blue return)"
 
   - owner: knishioka
-    name: ut-gymnastics
-    language: TypeScript
+    name: english-note-maker
+    language: JavaScript
     priority: low
-    category: web
-    notes: "University of Tokyo gymnastics team alumni site"
-
-  - owner: knishioka
-    name: jgrants-app
-    language: TypeScript
-    priority: low
-    category: tool
-    notes: "jGrants API subsidy application support"
+    category: education
+    notes: "English lined notebook creator web app"
 
   # --- Neglected (2025-06 ~ 2025-08) ---
   - owner: knishioka
@@ -83,25 +62,18 @@ repos:
     notes: "Treasure Data MCP server -- inactive since 2025-08"
 
   - owner: knishioka
-    name: line-advisor
-    language: TypeScript
-    priority: low
-    category: tool
-    notes: "LINE conversation improvement bot -- inactive since 2025-07"
-
-  - owner: knishioka
-    name: story-bridge
-    language: TypeScript
-    priority: low
-    category: tool
-    notes: "AI autobiography creation for seniors -- inactive since 2025-06"
-
-  - owner: knishioka
     name: meditation-chrome-extension
     language: JavaScript
     priority: low
     category: tool
     notes: "Chrome meditation extension -- inactive since 2025-06"
+
+  - owner: knishioka
+    name: remotion-math-education
+    language: TypeScript
+    priority: low
+    category: education
+    notes: "Math education video generator with Remotion -- inactive since 2025-06"
 
 # Staleness thresholds (days)
 thresholds:
