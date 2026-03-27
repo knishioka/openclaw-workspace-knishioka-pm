@@ -1,132 +1,25 @@
-# Repo Health Report (2026-03-27)
+As of: 2026-03-28 07:08 +08
+Summary: RED 5 / YELLOW 2 / GREEN 3
 
-## Summary
+>> Risks / Blockers:
+  （トレンド）悪化したリポなし（前回と同じステータス）
+  ib-sec-mcp  CI failure
+  cost-management-mcp  CI failure / 放置143日
+  remotion-math-education  放置283日
+  meditation-chrome-extension  放置270日
+  td-mcp-server  放置236日
 
-| Repo | Status | Last Commit | Days Inactive | Open Issues | CI | Dependabot |
-|------|--------|-------------|---------------|-------------|----|------------|
-| [remotion-math-education](https://github.com/knishioka/remotion-math-education) | 🔴 RED | 2025-06-17 | 283 | 0 | none | 0 |
-| [meditation-chrome-extension](https://github.com/knishioka/meditation-chrome-extension) | 🔴 RED | 2025-06-30 | 270 | 0 | none | 0 |
-| [td-mcp-server](https://github.com/knishioka/td-mcp-server) | 🔴 RED | 2025-08-03 | 236 | 0 | success | 0 |
-| [cost-management-mcp](https://github.com/knishioka/cost-management-mcp) | 🔴 RED | 2025-11-04 | 143 | 3 | failure | 0 |
-| [ib-sec-mcp](https://github.com/knishioka/ib-sec-mcp) | 🔴 RED | 2026-03-21 | 6 | 1 | failure | 0 |
-| [english-note-maker](https://github.com/knishioka/english-note-maker) | 🟡 YELLOW | 2026-01-01 | 85 | 0 | success | 0 |
-| [simple-bookkeeping](https://github.com/knishioka/simple-bookkeeping) | 🟡 YELLOW | 2026-01-10 | 76 | 36 | success | 0 |
-| [freee-mcp](https://github.com/knishioka/freee-mcp) | 🟢 GREEN | 2026-03-06 | 21 | 1 | success | 0 |
-| [kanji-practice](https://github.com/knishioka/kanji-practice) | 🟢 GREEN | 2026-03-22 | 5 | 0 | success | 0 |
-| [math-worksheet](https://github.com/knishioka/math-worksheet) | 🟢 GREEN | 2026-03-22 | 5 | 0 | success | 0 |
+>> Next actions:
+  ib-sec-mcp: CI失敗を最優先で修復（Actionsの直近失敗ジョブを特定→原因切り分け）
+  ib-sec-mcp: 未処理PR 4件を整理（必要ならrebase/close）
+  cost-management-mcp: CI失敗を最優先で修復（Actionsの直近失敗ジョブを特定→原因切り分け）
+  cost-management-mcp: 未処理PR 3件を整理（必要ならrebase/close）
+  remotion-math-education: 放置283日: いったん ‘maintenance only / archive検討’ をREADMEに明記（またはアーカイブ）
+  meditation-chrome-extension: 放置270日: いったん ‘maintenance only / archive検討’ をREADMEに明記（またはアーカイブ）
+  td-mcp-server: 放置236日: いったん ‘maintenance only / archive検討’ をREADMEに明記（またはアーカイブ）
+  simple-bookkeeping: open issues 36件をトリアージ（上位5件に優先度/ラベル付け）
 
-## Details
-
-### remotion-math-education
-
-- **Status**: RED
-- **Last commit**: 2025-06-17 (283 days ago)
-- **Last commit message**: Update .gitignore to explicitly exclude all video file formats
-- **Open issues**: 0
-- **Open PRs**: 0
-- **CI**: none
-- **Dependabot alerts**: 0
-- **Has README**: true
-
-### meditation-chrome-extension
-
-- **Status**: RED
-- **Last commit**: 2025-06-30 (270 days ago)
-- **Last commit message**: feat: Convert to fully offline Chrome extension with local audio
-- **Open issues**: 0
-- **Open PRs**: 0
-- **CI**: none
-- **Dependabot alerts**: 0
-- **Has README**: true
-
-### td-mcp-server
-
-- **Status**: RED
-- **Last commit**: 2025-08-03 (236 days ago)
-- **Last commit message**: Fix test expectations for new tool count
-- **Open issues**: 0
-- **Open PRs**: 2
-- **CI**: success
-- **Dependabot alerts**: 0
-- **Has README**: true
-
-### cost-management-mcp
-
-- **Status**: RED
-- **Last commit**: 2025-11-04 (143 days ago)
-- **Last commit message**: Upgrade Zod to v4 and update schema handling (#140)
-- **Open issues**: 3
-- **Open PRs**: 3
-- **CI**: failure
-- **Dependabot alerts**: 0
-- **Has README**: true
-
-### ib-sec-mcp
-
-- **Status**: RED
-- **Last commit**: 2026-03-21 (6 days ago)
-- **Last commit message**: test: add integration test suite for Client Portal API with Paper Trading (#102)
-- **Open issues**: 1
-- **Open PRs**: 4
-- **CI**: failure
-- **Dependabot alerts**: 0
-- **Has README**: true
-
-### english-note-maker
-
-- **Status**: YELLOW
-- **Last commit**: 2026-01-01 (85 days ago)
-- **Last commit message**: feat: add data management system and expand phrase content
-- **Open issues**: 0
-- **Open PRs**: 0
-- **CI**: success
-- **Dependabot alerts**: 0
-- **Has README**: true
-
-### simple-bookkeeping
-
-- **Status**: YELLOW
-- **Last commit**: 2026-01-10 (76 days ago)
-- **Last commit message**: refactor: simplify auth context and extract common supabase validation (#585)
-- **Open issues**: 36
-- **Open PRs**: 8
-- **CI**: success
-- **Dependabot alerts**: 0
-- **Has README**: true
-
-### freee-mcp
-
-- **Status**: GREEN
-- **Last commit**: 2026-03-06 (21 days ago)
-- **Last commit message**: fix(kpi+cost): fix KPI and cost analysis calculations using real freee API structure
-- **Open issues**: 1
-- **Open PRs**: 15
-- **CI**: success
-- **Dependabot alerts**: 0
-- **Has README**: true
-
-### kanji-practice
-
-- **Status**: GREEN
-- **Last commit**: 2026-03-22 (5 days ago)
-- **Last commit message**: fix: ふりがなフォールバックの送りがな・熟語コンテキスト改善 (#19)
-- **Open issues**: 0
-- **Open PRs**: 0
-- **CI**: success
-- **Dependabot alerts**: 0
-- **Has README**: true
-
-### math-worksheet
-
-- **Status**: GREEN
-- **Last commit**: 2026-03-22 (5 days ago)
-- **Last commit message**: feat: 1年生向け入門計算パターン5種を追加 (#46)
-- **Open issues**: 0
-- **Open PRs**: 1
-- **CI**: success
-- **Dependabot alerts**: 0
-- **Has README**: true
-
----
-
-*Generated by [openclaw-workspace-knishioka-pm](https://github.com/knishioka/openclaw-workspace-knishioka-pm) on 2026-03-27*
+>> Confirmed:
+  freee-mcp  最終更新21日前 GREEN
+  math-worksheet  最終更新5日前 GREEN
+  kanji-practice  最終更新4日前 GREEN
