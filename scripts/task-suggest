@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# task-suggest: Analyze a GitHub repo and suggest actionable tasks
+# Usage: task-suggest <owner/repo>
+# Output: JSON array of suggestions to stdout
+#
+# Checks: security advisories, CI status, stale issues, missing files,
+#          outdated dependencies, test coverage indicators
+# Requires: gh CLI (authenticated)
+
+set -euo pipefail
+
+REPO="${1:?Usage: task-suggest <owner/repo>}"
+OWNER="${REPO%%/*}"
+NAME="${REPO##*/}"
+TODAY=$(date -u +%Y-%m-%d)
+
+suggestions='[]'
+
+add_suggestion() {
+  local priority="$1" category="$2" title="$3" reason="$4"
+  suggestions=$(echo "$suggestions" | jq \
+    --arg p "$priority" --arg c "$category" --arg t "$title" --arg r "$reason" \
+    '. + [{"priority": $p, "category": $c, "title": $t, "reason": $r}]')
+}
+
+# --- 1. CI Status ---
+CI_STATUS=$(gh api "repos/${REPO}/actions/runs?per_page=1" --jq '.workflow_runs[0].conclusion // "none"' 2>/dev/null || echo "none")
+if [ "$CI_STATUS" = "failure" ]; then
+  WORKFLOW_NAME=$(gh api "repos/${REPO}/actions/runs?per_page=1" --jq '.workflow_runs[0].name // "CI"' 2>/dev/null || echo "CI")
+  add_suggestion "high" "ci" "Fix failing CI: $WORKFLOW_NAME" "Last workflow run failed"
+elif [ "$CI_STATUS" = "none" ]; then
+  add_suggestion "medium" "ci" "Add CI/CD workflow" "No GitHub Actions workflows found"
+fi
+
+# --- 2. Dependabot / Security ---
+DEPENDABOT_ALERTS=$(gh api "repos/${REPO}/dependabot/alerts?state=open&per_page=100" 2>/dev/null | jq 'if type == "array" then length else 0 end' 2>/dev/null || echo 0)
+DEPENDABOT_ALERTS=$(echo "$DEPENDABOT_ALERTS" | tr -dc '0-9')
+DEPENDABOT_ALERTS="${DEPENDABOT_ALERTS:-0}"
+if [ "$DEPENDABOT_ALERTS" -gt 0 ]; then
+  add_suggestion "high" "security" "Resolve $DEPENDABOT_ALERTS Dependabot alerts" "Open security vulnerabilities in dependencies"
+fi
+
+# --- 3. Stale Issues ---
+STALE_ISSUES=$(gh api "repos/${REPO}/issues?state=open&sort=updated&direction=asc&per_page=10" \
+  --jq '[.[] | select(.pull_request == null) | select(
+    (now - (.updated_at | fromdateiso8601)) > (14 * 86400)
+  )] | length' 2>/dev/null || echo 0)
+if [ "$STALE_ISSUES" -gt 0 ]; then
+  add_suggestion "medium" "issues" "Triage $STALE_ISSUES stale issues" "Issues not updated in 14+ days"
+fi
+
+# --- 4. Open PRs ---
+OPEN_PRS=$(gh api "repos/${REPO}/pulls?state=open&per_page=10" --jq 'length' 2>/dev/null || echo 0)
+if [ "$OPEN_PRS" -gt 0 ]; then
+  add_suggestion "medium" "pr" "Review $OPEN_PRS open pull requests" "Unmerged PRs may contain useful work"
+fi
+
+# --- 5. Missing common files ---
+for file in LICENSE CONTRIBUTING.md; do
+  if ! gh api "repos/${REPO}/contents/$file" --jq '.name' >/dev/null 2>&1; then
+    add_suggestion "low" "docs" "Add $file" "Standard open-source file missing"
+  fi
+done
+
+# --- 6. Activity check ---
+LAST_COMMIT_DATE=$(gh api "repos/${REPO}/commits?per_page=1" --jq '.[0].commit.committer.date // ""' 2>/dev/null | cut -dT -f1)
+if [ -n "$LAST_COMMIT_DATE" ] && [ "$LAST_COMMIT_DATE" != "null" ]; then
+  DAYS_INACTIVE=$(( ( $(date -u +%s) - $(date -u -jf "%Y-%m-%d" "$LAST_COMMIT_DATE" +%s 2>/dev/null || date -u -d "$LAST_COMMIT_DATE" +%s 2>/dev/null || echo 0) ) / 86400 ))
+  if [ "$DAYS_INACTIVE" -ge 90 ]; then
+    add_suggestion "medium" "activity" "Review project status: ${DAYS_INACTIVE} days inactive" "Consider archiving or planning revival"
+  fi
+fi
+
+# --- Output ---
+echo "$suggestions" | jq --arg repo "$REPO" --arg date "$TODAY" \
+  '{repo: $repo, checked_at: $date, suggestions: .}'

@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+# knowledge-collect: Extract knowledge from a GitHub repo's history
+# Usage: knowledge-collect <owner/repo>
+# Output: JSON with extracted knowledge to stdout
+#
+# Sources: recent commits, merged PRs, README, package config
+# Requires: gh CLI (authenticated)
+
+set -euo pipefail
+
+REPO="${1:?Usage: knowledge-collect <owner/repo>}"
+OWNER="${REPO%%/*}"
+NAME="${REPO##*/}"
+TODAY=$(date -u +%Y-%m-%d)
+
+# --- 1. Repo metadata ---
+REPO_META=$(gh api "repos/${REPO}" --jq '{
+  description: .description,
+  language: .language,
+  topics: .topics,
+  license: (.license.spdx_id // "none"),
+  default_branch: .default_branch,
+  created_at: .created_at,
+  updated_at: .updated_at
+}' 2>/dev/null || echo '{}')
+
+# --- 2. Recent commits (last 30) ---
+COMMITS=$(gh api "repos/${REPO}/commits?per_page=30" --jq '[.[] | {
+  sha: .sha[0:7],
+  date: .commit.committer.date,
+  message: (.commit.message | split("\n") | .[0]),
+  author: .commit.author.name
+}]' 2>/dev/null || echo '[]')
+
+# --- 3. Recent merged PRs (last 20) ---
+MERGED_PRS=$(gh pr list -R "$REPO" --state merged --limit 20 \
+  --json number,title,body,mergedAt,labels,author \
+  --jq '[.[] | {
+    number: .number,
+    title: .title,
+    body: (.body // "" | if length > 500 then .[0:500] + "..." else . end),
+    merged_at: .mergedAt,
+    labels: [.labels[].name],
+    author: .author.login
+  }]' 2>/dev/null || echo '[]')
+
+# --- 4. Package/dependency info ---
+# Try package.json
+PACKAGE_JSON=$(gh api "repos/${REPO}/contents/package.json" --jq '.content' 2>/dev/null | base64 -d 2>/dev/null | jq '{
+  dependencies: (.dependencies // {} | keys),
+  devDependencies: (.devDependencies // {} | keys),
+  scripts: (.scripts // {} | keys)
+}' 2>/dev/null || echo 'null')
+
+# Try pyproject.toml (just check existence)
+HAS_PYPROJECT=$(gh api "repos/${REPO}/contents/pyproject.toml" --jq '.name' >/dev/null 2>&1&& echo true || echo false)
+
+# Try requirements.txt
+HAS_REQUIREMENTS=$(gh api "repos/${REPO}/contents/requirements.txt" --jq '.name' >/dev/null 2>&1 && echo true || echo false)
+
+# --- 5. README excerpt (first 1000 chars) ---
+README_EXCERPT=$(gh api "repos/${REPO}/contents/README.md" --jq '.content' 2>/dev/null | base64 -d 2>/dev/null | head -c 1000 || echo "")
+
+# --- Output ---
+jq -n \
+  --arg repo "$REPO" \
+  --arg date "$TODAY" \
+  --argjson meta "$REPO_META" \
+  --argjson commits "$COMMITS" \
+  --argjson merged_prs "$MERGED_PRS" \
+  --argjson package_json "${PACKAGE_JSON:-null}" \
+  --argjson has_pyproject "$HAS_PYPROJECT" \
+  --argjson has_requirements "$HAS_REQUIREMENTS" \
+  --arg readme_excerpt "$README_EXCERPT" \
+  '{
+    repo: $repo,
+    collected_at: $date,
+    metadata: $meta,
+    recent_commits: $commits,
+    merged_prs: $merged_prs,
+    tech_stack: {
+      package_json: $package_json,
+      has_pyproject: $has_pyproject,
+      has_requirements: $has_requirements
+    },
+    readme_excerpt: $readme_excerpt
+  }'
