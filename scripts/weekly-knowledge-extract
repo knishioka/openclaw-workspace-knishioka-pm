@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# Weekly knowledge extraction runner.
+#
+# Steps:
+#  - read config/repos.yaml
+#  - for each repo, run scripts/knowledge-collect
+#  - render knowledge markdown via scripts/knowledge-render.js
+#  - update monitoring/repo-state.json
+#
+# Outputs a concise summary to stdout.
+
+set -euo pipefail
+
+ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+cd "$ROOT_DIR"
+
+NOW_UTC=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+TODAY_UTC=$(date -u +%Y-%m-%d)
+
+mkdir -p monitoring
+
+REPOS=$(ruby -ryaml -e 'YAML.load_file("config/repos.yaml")["repos"].each { |r| puts "#{r["owner"]}/#{r["name"]}" }')
+
+STATE_FILE="monitoring/repo-state.json"
+
+if [[ -f "$STATE_FILE" ]]; then
+  STATE_JSON=$(cat "$STATE_FILE")
+else
+  STATE_JSON='{}'
+fi
+
+# Ensure base structure.
+STATE_JSON=$(node -e 'const fs=require("fs");const x=JSON.parse(process.argv[1]);x.knowledge_extract=x.knowledge_extract||{};x.updated_at_utc=process.argv[2];process.stdout.write(JSON.stringify(x,null,2));' "$STATE_JSON" "$NOW_UTC")
+
+tmpdir=$(mktemp -d)
+trap 'rm -rf "$tmpdir"' EXIT
+
+updated_files=0
+repos_done=0
+notes=()
+
+for repo in $REPOS; do
+  repos_done=$((repos_done+1))
+  injson="$tmpdir/${repo//\//__}.json"
+  ./scripts/knowledge-collect "$repo" > "$injson"
+
+  render_out=$(node ./scripts/knowledge-render.js --in "$injson" --out knowledge --repo "$repo")
+
+  # Update state per repo
+  STATE_JSON=$(node -e '
+    const state=JSON.parse(process.argv[1]);
+    const repo=process.argv[2];
+    const today=process.argv[3];
+    state.knowledge_extract=state.knowledge_extract||{};
+    state.knowledge_extract[repo]=Object.assign(state.knowledge_extract[repo]||{}, { last_collected_at: today });
+    process.stdout.write(JSON.stringify(state));
+  ' "$STATE_JSON" "$repo" "$TODAY_UTC")
+
+  # Collect summary
+  decAdded=$(node -e 'const o=JSON.parse(process.argv[1]); process.stdout.write(String(o.decisionsAdded||0));' "$render_out")
+  disc=$(node -e 'const o=JSON.parse(process.argv[1]); process.stdout.write((o.discoveries||[]).slice(0,2).join(" | "));' "$render_out")
+
+  notes+=("- ${repo}: decisions+${decAdded}${disc:+ — ${disc}}")
+done
+
+# Pretty print + write state
+STATE_PRETTY=$(node -e 'const s=JSON.parse(process.argv[1]); s.updated_at_utc=process.argv[2]; process.stdout.write(JSON.stringify(s,null,2)+"\n");' "$STATE_JSON" "$NOW_UTC")
+
+echo "$STATE_PRETTY" > "$STATE_FILE"
+
+# Summarize changed files
+changed=$(git status --porcelain=v1 | wc -l | tr -d ' ')
+
+cat <<EOF
+Weekly knowledge extraction completed.
+- repos processed: $repos_done
+- git changed entries: $changed
+
+Notes:
+${notes[*]}
+EOF
