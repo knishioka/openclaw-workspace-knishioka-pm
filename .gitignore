@@ -10,6 +10,7 @@ monitoring/health-trend.jsonl
 monitoring/last-suggested.json
 monitoring/active-session.json
 monitoring/private-health.json
+monitoring/issue-tracker.jsonl
 
 # Local report diffs
 reports/.latest-health.prev.md

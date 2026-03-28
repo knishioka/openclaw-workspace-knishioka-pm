@@ -143,6 +143,85 @@ focus-task 実行時、Issue 作成と同時に既存 Issue の整理も行う:
 - PM 作成 Issue で PR マージ済み → close を提案（Ken の承認待ち）
 - 重複 Issue → 片方にコメントで統合を提案
 
+## Issue Frequency Control
+
+**週次の上限:**
+
+- focus-task (Mon+Thu): 最大2件/回 × 2回 = **週4件まで**
+- エスカレーション (Wed): 最大1件
+- 合計: **週5件を超えない**
+
+**制御ルール:**
+
+- `monitoring/issue-tracker.jsonl` で作成した Issue を追跡（append-only）:
+  `{"repo":"...","issue":N,"type":"maintenance","created":"YYYY-MM-DD","status":"open"}`
+- 同一リポに対して open な PM作成 Issue が2件以上ある場合、新規作成しない（先に既存を片付ける）
+- Ken が1週間以内にレビューしなかった Issue が3件以上溜まったら、次の focus-task は Issue 作成を一時停止し、溜まっている Issue のサマリーを WhatsApp で送る
+
+**キャパシティ適応:**
+
+- 月次レトロスペクティブで実際のスループットを測定し、頻度を自動調整
+- resolve 率が 50% 以下 → 週2件に削減（Thu の focus-task を提案のみに）
+- resolve 率が 80% 以上 → 現状維持 or feature Issue の比率を上げる
+
+## Issue Retrospective
+
+PM が作成した Issue の事後検証を行い、次の Issue 作成品質を向上させる。
+
+### 追跡データ
+
+`monitoring/issue-tracker.jsonl` に以下を記録:
+
+```json
+{
+  "repo": "knishioka/cost-management-mcp",
+  "issue": 146,
+  "type": "maintenance",
+  "created": "2026-03-28",
+  "status": "merged",
+  "pr": 147,
+  "resolved_at": "2026-03-28",
+  "days_to_resolve": 0,
+  "issue_modified": false,
+  "quality_score": "A"
+}
+```
+
+### Quality Score 判定
+
+| Score | 条件                                                                   | 意味                          |
+| ----- | ---------------------------------------------------------------------- | ----------------------------- |
+| A     | PR マージ済み + Issue 本文の修正なし                                   | Issue の品質が十分だった      |
+| B     | PR マージ済み + Issue 本文に軽微な修正あり                             | おおむね良いが改善余地あり    |
+| C     | PR マージ済み + Issue 本文に大幅修正 or resolve-issue が途中で質問した | 情報不足だった                |
+| D     | Issue close (won't fix / duplicate / invalid)                          | 不要な Issue を作ってしまった |
+| -     | Open (未着手)                                                          | 評価待ち                      |
+
+### 検証タイミング
+
+**weekly-repo-health (日曜) の中で実施:**
+
+1. `monitoring/issue-tracker.jsonl` の open Issue を `gh issue view` で確認
+2. close / merge された Issue の status を更新
+3. Issue 本文が作成時から変更されているか diff を取得
+4. Quality Score を判定して記録
+
+**monthly-portfolio-review で集計:**
+
+- 今月の Issue 作成数 / resolve 数 / 平均 days_to_resolve
+- Quality Score 分布 (A/B/C/D)
+- Score C/D が多い Issue タイプ → そのタイプの Issue Creation Standards を見直す
+- reports/monthly-portfolio-{YYYY-MM}.md に PM Retrospective セクションとして出力
+
+### フィードバックループ
+
+検証結果を次の Issue 作成に反映:
+
+- Score D が出たリポ/タイプ → 次回は Issue 作成前に対話で Ken に確認
+- Score C が多いパターン → Issue テンプレートの該当セクションを強化
+- days_to_resolve が長いリポ → priority を下げるか on-hold を検討
+- 特定リポの resolve 率が高い → そのリポの feature Issue 比率を上げる
+
 ## Feature Discovery
 
 新機能の発見・提案は以下のソースから行う:
@@ -264,10 +343,10 @@ Follow knowledge/STRATEGY.md:
 
 ## Cron Jobs
 
-| Job                      | Schedule (KL)  | 配信                    | 目的                                |
-| ------------------------ | -------------- | ----------------------- | ----------------------------------- |
-| weekly-repo-health       | Sun 20:00      | WhatsApp (変化時のみ)   | トレンド対応ヘルスレポート          |
-| focus-task               | Mon+Thu 8:30   | Issue 作成 + commit     | メンテ/新機能 Issue 自動作成        |
-| weekly-knowledge-extract | Fri 19:00      | commit                  | ナレッジ + 競合リサーチ + changelog |
-| monthly-portfolio-review | 第1日曜 19:00  | WhatsApp                | ポートフォリオ俯瞰 + 新機能提案     |
-| private-repo-check       | 隔週水曜 20:00 | gitignored + Issue 作成 | private リポ監視 + Issue 作成       |
+| Job                      | Schedule (KL)  | 配信                    | 目的                                      |
+| ------------------------ | -------------- | ----------------------- | ----------------------------------------- |
+| weekly-repo-health       | Sun 20:00      | WhatsApp (変化時のみ)   | ヘルスレポート + Issue レトロスペクティブ |
+| focus-task               | Mon+Thu 8:30   | Issue 作成 + commit     | メンテ/新機能 Issue 自動作成（週4件上限） |
+| weekly-knowledge-extract | Fri 19:00      | commit                  | ナレッジ + 競合リサーチ + changelog       |
+| monthly-portfolio-review | 第1日曜 19:00  | WhatsApp                | ポートフォリオ俯瞰 + PM Retrospective     |
+| private-repo-check       | 隔週水曜 20:00 | gitignored + Issue 作成 | private リポ監視 + Issue 作成             |
