@@ -20,6 +20,9 @@ sites:
       - perspective: educational-value
         question: "生成された問題は教育的に価値があるか？同じ問題の繰り返しがないか？ランダム生成の場合、バリエーションは十分か？"
 
+      - perspective: ux
+        question: "初見の親が迷わず操作できるか？設定→生成→印刷の導線は明確か？エラー時に何が起きたかわかるか？ページ読み込みと問題生成の速度は許容範囲か？"
+
   - repo: knishioka/math-worksheet
     url: https://knishioka.github.io/math-worksheet/
     what_it_does: "学年別の計算プリントをA4で生成する。たし算・ひき算・かけ算・わり算、文章問題、暗算など多様なカテゴリがある。"
@@ -36,6 +39,9 @@ sites:
       - perspective: educational-value
         question: "問題の難易度は学年に適しているか？同じ問題の重複はないか？問題セット全体として、練習として有効な構成になっているか？"
 
+      - perspective: ux
+        question: "学年や問題タイプの選択は直感的か？列数と問題数の制約（2列は最大20問等）はユーザーに明確に伝わるか？問題生成後、印刷ボタンにたどり着くまでの手順は少ないか？"
+
   - repo: knishioka/english-note-maker
     url: https://knishioka.github.io/english-note-maker/
     what_it_does: "英語4本線ノートを生成する。フレーズ練習、通常練習、文章練習、単語練習、アルファベット練習の各モードがある。"
@@ -51,6 +57,9 @@ sites:
 
       - perspective: educational-value
         question: "年齢設定（4-6歳/7-9歳/10-12歳）に応じた難易度になっているか？フレーズのカテゴリ（あいさつ、自己紹介等）と表示内容が一致しているか？"
+
+      - perspective: ux
+        question: "練習モードの切替は直感的か？罫線設定やページ数の変更は即座にプレビューに反映されるか？印刷プレビューと印刷・PDF保存の2つのボタンの役割は明確か？"
 
 # Execution method
 execution:
