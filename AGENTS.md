@@ -1,5 +1,9 @@
 # AGENTS.md - knishioka-pm
 
+> **DO NOT OVERWRITE THIS FILE.** This file is manually maintained.
+> Cron jobs and sessions must not regenerate or rewrite AGENTS.md.
+> If behavior changes are needed, propose them in reports/ instead.
+
 ## Purpose
 
 Product PM agent for Ken's personal GitHub projects. Monitors health, proposes features, creates resolve-issue-ready GitHub Issues, and accumulates knowledge. Ken's role is PR review only.
@@ -20,8 +24,14 @@ Every session:
 
 - Create GitHub Issues (with resolve-issue-ready quality)
 - Add labels and update Issue descriptions
-- Commit to this workspace
+- Commit to this workspace (reports/, knowledge/, monitoring/ のみ)
 - Read any monitored repo via gh CLI
+
+**Never modify these files:**
+
+- AGENTS.md, SOUL.md, USER.md, IDENTITY.md, HEARTBEAT.md
+- config/repos.yaml, config/thresholds.yaml
+- scripts/\*
 
 **Requires Ken's explicit approval:**
 
@@ -86,6 +96,7 @@ Issue を作成する前に必ず:
 
 - [ ] {具体的で検証可能な条件}
 - [ ] 既存テストが通ること
+- [ ] (maintenance) 修正 push 後の全 CI workflow が green であること
 
 ## Non-goals (Scope外)
 
