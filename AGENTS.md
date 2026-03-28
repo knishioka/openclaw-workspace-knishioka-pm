@@ -327,65 +327,33 @@ When Ken sends a message (not a cron job), respond as a PM assistant:
 ## Demo Site QA (Education Sites)
 
 `demo_url` を持つリポは、コード健康診断に加えてサイトの動作検証も行う。
-詳細なチェック定義は `config/site-checks.yaml` を参照。
+チェック観点は `config/site-checks.yaml` を参照。
 
-### チェック方法
+### アプローチ: 理解→判断（決め打ちではない）
 
-browser ツールを使って自動検証:
+チェックロジックをハードコードするのではなく、生成された内容を理解してから判断する:
 
-1. `browser(open, url)` でサイトを開く
-2. `browser(act)` で設定変更（枚数、学年、レイアウト等）
-3. `browser(act click)` で生成ボタンを押す
-4. `browser(snapshot)` でDOM構造を取得 → ページ数カウント、問題抽出
-5. `browser(screenshot)` でレイアウト確認
-6. `browser(act evaluate)` でJS実行 → 問題の計算検証、A4比率チェック
+1. サイトを開き、設定を操作して問題/ノートを生成する
+2. 生成された内容を snapshot / screenshot で取得する
+3. **「これは何か」を理解する** — 問題の種類、対象学年、形式を読み取る
+4. `config/site-checks.yaml` の各 `check_perspectives` の question に対して判断する:
+   - **print-accuracy**: 指定枚数と実ページ数の一致
+   - **layout-quality**: A4収まり、余白、重なり
+   - **content-correctness**: 内容を読んで正しさを判断（問題を解く、漢字を確認等）
+   - **educational-value**: 教育的に意味のある内容か
+5. 設定を変えて繰り返す（別の学年、別の問題タイプ、枚数変更等）
+6. 問題があれば具体的な事象を記述して bugfix Issue を作成
 
-### 重点チェック項目
+### ヘッドレス実行
 
-**印刷の正確性（全サイト共通）:**
-
-- 指定枚数 = 実際の生成ページ数（1枚、5枚、10枚で確認）
-- A4比率に収まるか（はみ出し、余白過多がないか）
-- 極端な設定（最大枚数×最大サイズ）で破綻しないか
-
-**問題の妥当性（kanji-practice / math-worksheet）:**
-
-- ランダム生成された問題が解けるか（ひき算で負にならない等）
-- 指定学年の範囲内の問題か（1年生に6年生の漢字が出ない等）
-- 除外設定が反映されているか
-- 解答表示ONで答えが正しいか（math-worksheet）
-
-**コンテンツの適切さ（english-note-maker）:**
-
-- 年齢設定に応じたフレーズの難易度が適切か
-- 全練習モードでコンテンツが正しく表示されるか
+- OpenClaw の browser ツールは GUI 必須（headless 非対応）
+- cron でバックグラウンド実行する場合: Playwright (`npx playwright`) でヘッドレス実行可能（v1.58.2 インストール済み）
+- 当面の運用: weekly-repo-health の browser チェックは GUI 環境がある時のみ実行。GUI なしならスキップして次週に回す
 
 ### 実行タイミング
 
 - weekly-repo-health (日曜) の中で `demo_url` 付きリポをチェック
-- severity: high のチェックのみ実行（medium は月次ポートフォリオレビューで）
 - 問題検出時は GitHub Issue を自動作成（type: bugfix）
-
-### Issue 作成例
-
-```markdown
-## Problem / Why
-
-math-worksheet の1年生ひき算で、答えが負になる問題が生成された。
-
-- 設定: 1年生、ひき算、30問
-- 検出: 問題 "3 - 7 = ?" が生成された（答えが -4）
-- スクリーンショット: [添付]
-
-## Acceptance Criteria
-
-- [ ] 1年生ひき算で答えが0未満にならないこと
-- [ ] 30問×10回生成して全問が非負整数であること
-
-## Non-goals
-
-- 他の学年の問題範囲修正は別 Issue
-```
 
 ## Sub-agent Integration
 

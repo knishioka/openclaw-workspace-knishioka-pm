@@ -1,166 +1,74 @@
 # Demo site QA checks
-# Used by weekly-repo-health or dedicated site-check cron to verify
-# that education sites produce correct, printable output.
+# Defines WHAT to observe, not HOW to validate.
+# The agent reads the generated content, understands what it is,
+# then judges whether it's correct and appropriate.
 
 sites:
   - repo: knishioka/kanji-practice
     url: https://knishioka.github.io/kanji-practice/
-    checks:
-      # --- ページ数の正確性 ---
-      - name: page-count-exact
-        description: "指定枚数と実際の生成ページ数が一致するか"
-        steps:
-          - "ページ数スライダーを 1 / 5 / 10 に設定"
-          - "「問題を生成」をクリック"
-          - "生成されたページ数をDOMから数える（.page クラス等）"
-        expect: "設定値と生成ページ数が完全一致"
-        severity: high
+    what_it_does: "学年別の漢字練習プリントをA4で生成する。読み・書き・画数・書き順・例文など複数の問題タイプがある。"
+    check_perspectives:
+      - perspective: print-accuracy
+        question: "指定した枚数（1, 5, 10枚）と実際に生成されたページ数は一致しているか？余分なページや不足はないか？"
 
-      # --- 印刷レイアウト ---
-      - name: print-layout-no-overflow
-        description: "A4に収まるか、余白が大きすぎないか"
-        steps:
-          - "10ページ生成"
-          - "browser(screenshot, fullPage=true) で全体を撮影"
-          - "各ページの高さが A4 比率（297/210）に収まるか確認"
-          - "余白が全体の30%を超えていないか確認"
-        expect: "はみ出しなし、余白適正"
-        severity: high
+      - perspective: layout-quality
+        question: "A4に収まっているか？余白が大きすぎないか？マス同士の重なりやはみ出しはないか？設定（マス数、マスサイズ）の組み合わせで破綻するパターンはないか？"
 
-      # --- ランダム問題の妥当性 ---
-      - name: kanji-validity
-        description: "生成された漢字が指定学年の範囲内か"
-        steps:
-          - "1年生を選択、ランダム出題ON"
-          - "問題を生成"
-          - "生成された漢字をDOM/snapshotから抽出"
-          - "1年生配当漢字（80字）に含まれるか検証"
-        expect: "全て指定学年の漢字であること"
-        severity: high
+      - perspective: content-correctness
+        question: "生成された問題の内容を読み取り、その問題タイプとして適切か判断せよ。例えば、読み問題なら漢字に対して正しい読みが問われているか。書き問題なら読みに対して正しい漢字が期待されているか。指定学年の範囲外の漢字が混入していないか。"
 
-      # --- 除外漢字の反映 ---
-      - name: excluded-kanji
-        description: "除外設定した漢字が問題に出ないか"
-        steps:
-          - "除外漢字を数個設定"
-          - "10ページ生成（ランダム）"
-          - "除外漢字が1つも含まれないことを確認"
-        expect: "除外漢字が0件"
-        severity: medium
-
-      # --- 設定組み合わせの破綻 ---
-      - name: extreme-settings
-        description: "マス数最大(10) + マスサイズ最大(25mm) + 10ページで破綻しないか"
-        steps:
-          - "マス数10、マスサイズ25mm、ページ数10に設定"
-          - "生成→スクリーンショット"
-        expect: "レイアウト破綻なし（はみ出し、重なり、空白ページなし）"
-        severity: medium
+      - perspective: educational-value
+        question: "生成された問題は教育的に価値があるか？同じ問題の繰り返しがないか？ランダム生成の場合、バリエーションは十分か？"
 
   - repo: knishioka/math-worksheet
     url: https://knishioka.github.io/math-worksheet/
-    checks:
-      # --- ページ数の正確性 ---
-      - name: page-count-exact
-        description: "問題数から期待されるページ数と実際が一致するか"
-        steps:
-          - "30問、2列レイアウトを選択"
-          - "プレビュー生成"
-          - "実際のページ数を確認（印刷プレビューのページ数）"
-        expect: "問題が欠けず、余分なページもない"
-        severity: high
+    what_it_does: "学年別の計算プリントをA4で生成する。たし算・ひき算・かけ算・わり算、文章問題、暗算など多様なカテゴリがある。"
+    check_perspectives:
+      - perspective: print-accuracy
+        question: "指定した問題数に対して、全問がページ内に収まっているか？問題が途中で切れたり、余分な空白ページが生まれていないか？"
 
-      # --- 計算問題の正当性 ---
-      - name: math-solvability
-        description: "生成された計算問題が解けるか（負の数にならない等）"
-        steps:
-          - "1年生、ひき算を選択"
-          - "30問生成"
-          - "各問題をDOMから抽出してパース"
-          - "全問が非負整数の答えになることを検証"
-        expect: "1年生のひき算で答えが負にならない"
-        severity: high
+      - perspective: layout-quality
+        question: "1列/2列/3列のレイアウト切替で表示が崩れないか？問題番号と式と回答欄の位置関係は正しいか？"
 
-      # --- 学年と難易度の整合 ---
-      - name: grade-difficulty-match
-        description: "学年に応じた数の範囲が適切か"
-        steps:
-          - "1年生: 数が1-20の範囲か"
-          - "3年生: 3桁以上の計算が含まれるか"
-          - "各学年で問題をサンプリング"
-        expect: "学年の学習指導要領に沿った範囲"
-        severity: medium
+      - perspective: content-correctness
+        question: "生成された問題を実際に解いて、答えが妥当か判断せよ。問題の種類（たし算、ひき算等）を理解した上で、その学年の児童が解ける範囲の問題か？答えが負の数になったり、割り切れない割り算が出たりしていないか？解答表示がONの場合、表示されている答えは正しいか？"
 
-      # --- レイアウト別の印刷 ---
-      - name: column-layout-print
-        description: "1列/2列/3列それぞれで印刷が崩れないか"
-        steps:
-          - "各列レイアウトで30問生成"
-          - "スクリーンショット撮影"
-          - "問題が重なっていないか、切れていないか確認"
-        expect: "全レイアウトでクリーンな出力"
-        severity: high
-
-      # --- 解答表示 ---
-      - name: answer-display
-        description: "解答表示ONで答えが正しいか"
-        steps:
-          - "解答表示ON、30問生成"
-          - "問題と解答をペアで抽出"
-          - "各問題を計算して解答と一致するか検証"
-        expect: "全問正答"
-        severity: high
+      - perspective: educational-value
+        question: "問題の難易度は学年に適しているか？同じ問題の重複はないか？問題セット全体として、練習として有効な構成になっているか？"
 
   - repo: knishioka/english-note-maker
     url: https://knishioka.github.io/english-note-maker/
-    checks:
-      # --- ページ数の正確性 ---
-      - name: page-count-exact
-        description: "設定ページ数と生成ページ数が一致するか"
-        steps:
-          - "ページ数を 1 / 3 / 5 に設定"
-          - "印刷プレビューで実際のページ数を確認"
-        expect: "設定値と一致"
-        severity: high
+    what_it_does: "英語4本線ノートを生成する。フレーズ練習、通常練習、文章練習、単語練習、アルファベット練習の各モードがある。"
+    check_perspectives:
+      - perspective: print-accuracy
+        question: "指定ページ数と実際の生成ページ数は一致しているか？"
 
-      # --- 罫線品質 ---
-      - name: line-quality
-        description: "罫線の高さ(8/10/12mm)が正しく反映されるか"
-        steps:
-          - "各罫線高さで生成"
-          - "スクリーンショット撮影"
-          - "罫線間隔がCSS指定値と一致するか確認"
-        expect: "指定値通りの罫線高さ"
-        severity: medium
+      - perspective: layout-quality
+        question: "罫線の間隔は設定（8/10/12mm）通りか？4本線が均等に表示されているか？余白のバランスは適切か？"
 
-      # --- 練習モード切替 ---
-      - name: mode-switching
-        description: "全練習モードでコンテンツが正しく切り替わるか"
-        steps:
-          - "各モード（フレーズ/通常/文章/単語/アルファベット）を選択"
-          - "snapshotでコンテンツを確認"
-          - "モードに応じた要素が表示されていること"
-        expect: "全モードでコンテンツ表示、空ページなし"
-        severity: high
+      - perspective: content-correctness
+        question: "表示されているフレーズや単語を読み取り、文法的に正しいか、スペルが正しいか判断せよ。練習モードに応じた内容が表示されているか？"
 
-      # --- 年齢別の適切さ ---
-      - name: age-appropriateness
-        description: "年齢設定に応じたフレーズの難易度が適切か"
-        steps:
-          - "4-6歳: 短い簡単なフレーズか"
-          - "10-12歳: より複雑な文構造か"
-          - "フレーズをDOMから抽出して文字数・語数を比較"
-        expect: "年齢が上がるほど文が長く/複雑になる"
-        severity: medium
+      - perspective: educational-value
+        question: "年齢設定（4-6歳/7-9歳/10-12歳）に応じた難易度になっているか？フレーズのカテゴリ（あいさつ、自己紹介等）と表示内容が一致しているか？"
 
-# Check frequency and method
-schedule:
-  # Run as part of weekly-repo-health (Sunday)
-  # OR dedicated cron job if checks are heavy
-  method: browser
-  tools_used:
-    - "browser(navigate) → ページを開く"
-    - "browser(act click/type) → 設定変更・ボタンクリック"
-    - "browser(snapshot) → DOM構造を取得、要素カウント"
-    - "browser(screenshot) → レイアウト確認用画像"
-    - "browser(act evaluate) → JS実行でページ数・問題データ抽出"
+# Execution method
+execution:
+  # Primary: OpenClaw browser tool (requires GUI)
+  # Fallback: Playwright headless script (for cron without display)
+  method: browser-tool
+  fallback: playwright-headless
+  notes: |
+    browser ツールは headless 非対応のため、GUI が必要。
+    cron でバックグラウンド実行する場合は scripts/site-check (Playwright) を使う。
+    Playwright は npx playwright でヘッドレス実行可能（インストール済み）。
+
+# How the agent should use this file
+instructions: |
+  1. サイトを開き、デフォルト設定で問題/ノートを生成する
+  2. 生成された内容を snapshot/screenshot で取得する
+  3. 内容を読み取り、what_it_does を参考に「これが何か」を理解する
+  4. 各 check_perspectives の question に対して、自分の判断で回答する
+  5. 問題があれば具体的に何が問題かを記述し、bugfix Issue を作成する
+  6. 問題がなければ "OK" と記録する
+  7. 設定を変えて（枚数を増やす、別の問題タイプにする等）繰り返す
