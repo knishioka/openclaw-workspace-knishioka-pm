@@ -1,0 +1,166 @@
+# Demo site QA checks
+# Used by weekly-repo-health or dedicated site-check cron to verify
+# that education sites produce correct, printable output.
+
+sites:
+  - repo: knishioka/kanji-practice
+    url: https://knishioka.github.io/kanji-practice/
+    checks:
+      # --- ページ数の正確性 ---
+      - name: page-count-exact
+        description: "指定枚数と実際の生成ページ数が一致するか"
+        steps:
+          - "ページ数スライダーを 1 / 5 / 10 に設定"
+          - "「問題を生成」をクリック"
+          - "生成されたページ数をDOMから数える（.page クラス等）"
+        expect: "設定値と生成ページ数が完全一致"
+        severity: high
+
+      # --- 印刷レイアウト ---
+      - name: print-layout-no-overflow
+        description: "A4に収まるか、余白が大きすぎないか"
+        steps:
+          - "10ページ生成"
+          - "browser(screenshot, fullPage=true) で全体を撮影"
+          - "各ページの高さが A4 比率（297/210）に収まるか確認"
+          - "余白が全体の30%を超えていないか確認"
+        expect: "はみ出しなし、余白適正"
+        severity: high
+
+      # --- ランダム問題の妥当性 ---
+      - name: kanji-validity
+        description: "生成された漢字が指定学年の範囲内か"
+        steps:
+          - "1年生を選択、ランダム出題ON"
+          - "問題を生成"
+          - "生成された漢字をDOM/snapshotから抽出"
+          - "1年生配当漢字（80字）に含まれるか検証"
+        expect: "全て指定学年の漢字であること"
+        severity: high
+
+      # --- 除外漢字の反映 ---
+      - name: excluded-kanji
+        description: "除外設定した漢字が問題に出ないか"
+        steps:
+          - "除外漢字を数個設定"
+          - "10ページ生成（ランダム）"
+          - "除外漢字が1つも含まれないことを確認"
+        expect: "除外漢字が0件"
+        severity: medium
+
+      # --- 設定組み合わせの破綻 ---
+      - name: extreme-settings
+        description: "マス数最大(10) + マスサイズ最大(25mm) + 10ページで破綻しないか"
+        steps:
+          - "マス数10、マスサイズ25mm、ページ数10に設定"
+          - "生成→スクリーンショット"
+        expect: "レイアウト破綻なし（はみ出し、重なり、空白ページなし）"
+        severity: medium
+
+  - repo: knishioka/math-worksheet
+    url: https://knishioka.github.io/math-worksheet/
+    checks:
+      # --- ページ数の正確性 ---
+      - name: page-count-exact
+        description: "問題数から期待されるページ数と実際が一致するか"
+        steps:
+          - "30問、2列レイアウトを選択"
+          - "プレビュー生成"
+          - "実際のページ数を確認（印刷プレビューのページ数）"
+        expect: "問題が欠けず、余分なページもない"
+        severity: high
+
+      # --- 計算問題の正当性 ---
+      - name: math-solvability
+        description: "生成された計算問題が解けるか（負の数にならない等）"
+        steps:
+          - "1年生、ひき算を選択"
+          - "30問生成"
+          - "各問題をDOMから抽出してパース"
+          - "全問が非負整数の答えになることを検証"
+        expect: "1年生のひき算で答えが負にならない"
+        severity: high
+
+      # --- 学年と難易度の整合 ---
+      - name: grade-difficulty-match
+        description: "学年に応じた数の範囲が適切か"
+        steps:
+          - "1年生: 数が1-20の範囲か"
+          - "3年生: 3桁以上の計算が含まれるか"
+          - "各学年で問題をサンプリング"
+        expect: "学年の学習指導要領に沿った範囲"
+        severity: medium
+
+      # --- レイアウト別の印刷 ---
+      - name: column-layout-print
+        description: "1列/2列/3列それぞれで印刷が崩れないか"
+        steps:
+          - "各列レイアウトで30問生成"
+          - "スクリーンショット撮影"
+          - "問題が重なっていないか、切れていないか確認"
+        expect: "全レイアウトでクリーンな出力"
+        severity: high
+
+      # --- 解答表示 ---
+      - name: answer-display
+        description: "解答表示ONで答えが正しいか"
+        steps:
+          - "解答表示ON、30問生成"
+          - "問題と解答をペアで抽出"
+          - "各問題を計算して解答と一致するか検証"
+        expect: "全問正答"
+        severity: high
+
+  - repo: knishioka/english-note-maker
+    url: https://knishioka.github.io/english-note-maker/
+    checks:
+      # --- ページ数の正確性 ---
+      - name: page-count-exact
+        description: "設定ページ数と生成ページ数が一致するか"
+        steps:
+          - "ページ数を 1 / 3 / 5 に設定"
+          - "印刷プレビューで実際のページ数を確認"
+        expect: "設定値と一致"
+        severity: high
+
+      # --- 罫線品質 ---
+      - name: line-quality
+        description: "罫線の高さ(8/10/12mm)が正しく反映されるか"
+        steps:
+          - "各罫線高さで生成"
+          - "スクリーンショット撮影"
+          - "罫線間隔がCSS指定値と一致するか確認"
+        expect: "指定値通りの罫線高さ"
+        severity: medium
+
+      # --- 練習モード切替 ---
+      - name: mode-switching
+        description: "全練習モードでコンテンツが正しく切り替わるか"
+        steps:
+          - "各モード（フレーズ/通常/文章/単語/アルファベット）を選択"
+          - "snapshotでコンテンツを確認"
+          - "モードに応じた要素が表示されていること"
+        expect: "全モードでコンテンツ表示、空ページなし"
+        severity: high
+
+      # --- 年齢別の適切さ ---
+      - name: age-appropriateness
+        description: "年齢設定に応じたフレーズの難易度が適切か"
+        steps:
+          - "4-6歳: 短い簡単なフレーズか"
+          - "10-12歳: より複雑な文構造か"
+          - "フレーズをDOMから抽出して文字数・語数を比較"
+        expect: "年齢が上がるほど文が長く/複雑になる"
+        severity: medium
+
+# Check frequency and method
+schedule:
+  # Run as part of weekly-repo-health (Sunday)
+  # OR dedicated cron job if checks are heavy
+  method: browser
+  tools_used:
+    - "browser(navigate) → ページを開く"
+    - "browser(act click/type) → 設定変更・ボタンクリック"
+    - "browser(snapshot) → DOM構造を取得、要素カウント"
+    - "browser(screenshot) → レイアウト確認用画像"
+    - "browser(act evaluate) → JS実行でページ数・問題データ抽出"

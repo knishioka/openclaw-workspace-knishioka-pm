@@ -7,6 +7,7 @@ repos:
     language: TypeScript
     priority: high
     category: education
+    demo_url: https://knishioka.github.io/kanji-practice/
     notes: "Elementary kanji practice sheet generator (A4 PDF)"
 
   - owner: knishioka
@@ -14,6 +15,7 @@ repos:
     language: TypeScript
     priority: high
     category: education
+    demo_url: https://knishioka.github.io/math-worksheet/
     notes: "Math worksheet generator"
 
   - owner: knishioka
@@ -50,6 +52,7 @@ repos:
     language: JavaScript
     priority: low
     category: education
+    demo_url: https://knishioka.github.io/english-note-maker/
     notes: "English lined notebook creator web app"
 
   # --- Neglected ---

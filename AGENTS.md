@@ -324,6 +324,69 @@ When Ken sends a message (not a cron job), respond as a PM assistant:
 - 推奨アクションは具体的に
 - 日本語で回答（Kenが日本語で聞いた場合）
 
+## Demo Site QA (Education Sites)
+
+`demo_url` を持つリポは、コード健康診断に加えてサイトの動作検証も行う。
+詳細なチェック定義は `config/site-checks.yaml` を参照。
+
+### チェック方法
+
+browser ツールを使って自動検証:
+
+1. `browser(open, url)` でサイトを開く
+2. `browser(act)` で設定変更（枚数、学年、レイアウト等）
+3. `browser(act click)` で生成ボタンを押す
+4. `browser(snapshot)` でDOM構造を取得 → ページ数カウント、問題抽出
+5. `browser(screenshot)` でレイアウト確認
+6. `browser(act evaluate)` でJS実行 → 問題の計算検証、A4比率チェック
+
+### 重点チェック項目
+
+**印刷の正確性（全サイト共通）:**
+
+- 指定枚数 = 実際の生成ページ数（1枚、5枚、10枚で確認）
+- A4比率に収まるか（はみ出し、余白過多がないか）
+- 極端な設定（最大枚数×最大サイズ）で破綻しないか
+
+**問題の妥当性（kanji-practice / math-worksheet）:**
+
+- ランダム生成された問題が解けるか（ひき算で負にならない等）
+- 指定学年の範囲内の問題か（1年生に6年生の漢字が出ない等）
+- 除外設定が反映されているか
+- 解答表示ONで答えが正しいか（math-worksheet）
+
+**コンテンツの適切さ（english-note-maker）:**
+
+- 年齢設定に応じたフレーズの難易度が適切か
+- 全練習モードでコンテンツが正しく表示されるか
+
+### 実行タイミング
+
+- weekly-repo-health (日曜) の中で `demo_url` 付きリポをチェック
+- severity: high のチェックのみ実行（medium は月次ポートフォリオレビューで）
+- 問題検出時は GitHub Issue を自動作成（type: bugfix）
+
+### Issue 作成例
+
+```markdown
+## Problem / Why
+
+math-worksheet の1年生ひき算で、答えが負になる問題が生成された。
+
+- 設定: 1年生、ひき算、30問
+- 検出: 問題 "3 - 7 = ?" が生成された（答えが -4）
+- スクリーンショット: [添付]
+
+## Acceptance Criteria
+
+- [ ] 1年生ひき算で答えが0未満にならないこと
+- [ ] 30問×10回生成して全問が非負整数であること
+
+## Non-goals
+
+- 他の学年の問題範囲修正は別 Issue
+```
+
 ## Sub-agent Integration
 
 reviewer / strategist の結果を統合するときも Output Format に従う:
@@ -354,10 +417,10 @@ Follow knowledge/STRATEGY.md:
 
 ## Cron Jobs
 
-| Job                      | Schedule (KL)  | 配信                    | 目的                                      |
-| ------------------------ | -------------- | ----------------------- | ----------------------------------------- |
-| weekly-repo-health       | Sun 20:00      | WhatsApp (変化時のみ)   | ヘルスレポート + Issue レトロスペクティブ |
-| focus-task               | Mon+Thu 8:30   | Issue 作成 + commit     | メンテ/新機能 Issue 自動作成（週4件上限） |
-| weekly-knowledge-extract | Fri 19:00      | commit                  | ナレッジ + 競合リサーチ + changelog       |
-| monthly-portfolio-review | 第1日曜 19:00  | WhatsApp                | ポートフォリオ俯瞰 + PM Retrospective     |
-| private-repo-check       | 隔週水曜 20:00 | gitignored + Issue 作成 | private リポ監視 + Issue 作成             |
+| Job                      | Schedule (KL)  | 配信                    | 目的                                           |
+| ------------------------ | -------------- | ----------------------- | ---------------------------------------------- |
+| weekly-repo-health       | Sun 20:00      | WhatsApp (変化時のみ)   | ヘルスレポート + サイトQA + レトロスペクティブ |
+| focus-task               | Mon+Thu 8:30   | Issue 作成 + commit     | メンテ/新機能 Issue 自動作成（週4件上限）      |
+| weekly-knowledge-extract | Fri 19:00      | commit                  | ナレッジ + 競合リサーチ + changelog            |
+| monthly-portfolio-review | 第1日曜 19:00  | WhatsApp                | ポートフォリオ俯瞰 + PM Retrospective          |
+| private-repo-check       | 隔週水曜 20:00 | gitignored + Issue 作成 | private リポ監視 + Issue 作成                  |
