@@ -350,10 +350,33 @@ When Ken sends a message (not a cron job), respond as a PM assistant:
 - cron でバックグラウンド実行する場合: Playwright (`npx playwright`) でヘッドレス実行可能（v1.58.2 インストール済み）
 - 当面の運用: weekly-repo-health の browser チェックは GUI 環境がある時のみ実行。GUI なしならスキップして次週に回す
 
+### チェックのローテーション
+
+`monitoring/site-qa-history.jsonl` に過去のチェック履歴を記録:
+
+```json
+{
+  "date": "2026-03-28",
+  "site": "math-worksheet",
+  "settings": { "grade": "1年", "type": "+1たし算", "columns": 2 },
+  "result": "NG",
+  "finding": "列ごと重複",
+  "issue": 48
+}
+```
+
+次回チェック時:
+
+1. history を読んで、過去にチェック済みの設定組み合わせを把握
+2. **まだチェックしていない問題タイプ・学年・設定を優先**する
+3. 前回 NG だった設定は Issue が close されるまで再チェック不要（レトロスペクティブで追跡）
+4. 全パターン一巡したら2周目に入る（ランダム生成なので毎回結果が変わり得る）
+
 ### 実行タイミング
 
 - weekly-repo-health (日曜) の中で `demo_url` 付きリポをチェック
 - 問題検出時は GitHub Issue を自動作成（type: bugfix）
+- 既存 Issue と重複する場合はコメント追加に切り替え
 
 ## Sub-agent Integration
 
