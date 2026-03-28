@@ -66,57 +66,82 @@ Summary: RED N / YELLOW N / GREEN N
 
 PM が作成する Issue は `/resolve-issue` で自動解決できる品質を満たすこと。
 
-### 必須セクション
+### Pre-creation Checks
+
+Issue を作成する前に必ず:
+
+1. `gh issue list -R {owner}/{repo} --state open` で既存 Issue を確認
+2. 重複する Issue がないか title + body をチェック
+3. 関連する既存 Issue があれば、新規作成ではなくコメント追加を検討
+4. 古い stale Issue が同じ内容であれば、そちらを更新して再利用
+
+### Issue テンプレート
 
 ```markdown
-## 概要
+## Problem / Why
 
-{1-2文で何をするか}
+{なぜこの変更が必要か。データで裏付ける}
 
-## 背景・動機
+## Acceptance Criteria
 
-{なぜこの変更が必要か。PM が検出した問題やリサーチ結果を記載}
+- [ ] {具体的で検証可能な条件}
+- [ ] 既存テストが通ること
 
-## 受け入れ条件
+## Non-goals (Scope外)
 
-- [ ] {具体的で検証可能な条件1}
-- [ ] {具体的で検証可能な条件2}
-- [ ] テストが通ること
+- {この Issue では対応しないこと}
+  {1 Issue = 1 PR で完結できるサイズに保つ}
 
-## 技術的アプローチ（推奨）
+## Constraints
 
-{実装の方向性。影響ファイル、使うべきライブラリ等}
+- {守るべき技術的制約: 既存APIを壊さない等}
+- {依存関係: 先に解決すべき Issue}
 
-## 影響範囲
+## Tasks
+
+- [ ] {実装ステップ: 具体的なファイルパスや関数名を含む}
+- [ ] {テスト追加}
+
+## References
 
 - 影響ファイル: {パスの一覧}
-- 依存関係: {他 Issue との関連}
+- 関連 Issue: #{N}
 
-## Issue タイプ
+---
 
-{maintenance / feature / bugfix / refactor}
+Type: {maintenance / feature / bugfix / refactor}
+Priority: {high / medium / low}
+Created by: knishioka-pm (automated)
 ```
 
-### Issue タイプ別の情報密度
+### Issue タイプ別の留意点
 
-**maintenance** (CI修復、依存関係更新、stale issue整理):
+**maintenance** (CI修復、依存関係更新):
 
-- CI のエラーログ抜粋（`gh run view` で取得）
-- 具体的な修正箇所（ファイルパス + 行番号可能なら）
-- 修正後の期待動作
+- Problem に CI エラーログ抜粋（`gh run view` で取得）
+- Tasks に具体的な修正箇所（ファイルパス + 行番号）
+- Non-goals: 「このPRでは機能追加しない」を明記
 
 **feature** (新機能提案):
 
-- ユーザーストーリー or ユースケース
-- 競合/類似ツールでの実装例（web_search で調査）
-- 技術的実現可能性の評価
-- MVP スコープの定義（最小限で価値が出る範囲）
+- Problem にユーザーストーリー + 競合調査結果
+- Acceptance Criteria に MVP スコープを反映
+- Non-goals で「将来的な拡張」を明確に分離
+- Constraints に既存APIとの互換性
 
 **bugfix** (バグ修正):
 
-- 再現手順
-- 期待動作 vs 実際の動作
-- 影響範囲
+- Problem に再現手順 + 期待動作 vs 実際の動作
+- Constraints に「既存の正常動作を壊さない」
+
+### Issue Hygiene
+
+focus-task 実行時、Issue 作成と同時に既存 Issue の整理も行う:
+
+- `gh issue list -R {owner}/{repo} --state open` で全 open Issue を取得
+- 90日以上更新のない Issue → `stale` ラベルを付与
+- PM 作成 Issue で PR マージ済み → close を提案（Ken の承認待ち）
+- 重複 Issue → 片方にコメントで統合を提案
 
 ## Feature Discovery
 
