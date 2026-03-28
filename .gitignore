@@ -6,6 +6,10 @@ MEMORY.md
 monitoring/repo-state.json
 monitoring/latest-health.json
 monitoring/latest-health.jsonl
+monitoring/health-trend.jsonl
+monitoring/last-suggested.json
+monitoring/active-session.json
+monitoring/private-health.json
 
 # Local report diffs
 reports/.latest-health.prev.md

@@ -1,5 +1,4 @@
 # Target repositories for automated PM
-# Public repos only (this workspace is a public demo)
 
 repos:
   # --- Active (2026-03) ---
@@ -38,7 +37,7 @@ repos:
     category: mcp
     notes: "Unified cloud cost management MCP server"
 
-  # --- Moderately Active (2025-12 ~ 2026-01) ---
+  # --- Moderately Active ---
   - owner: knishioka
     name: simple-bookkeeping
     language: TypeScript
@@ -53,7 +52,7 @@ repos:
     category: education
     notes: "English lined notebook creator web app"
 
-  # --- Neglected (2025-06 ~ 2025-08) ---
+  # --- Neglected ---
   - owner: knishioka
     name: td-mcp-server
     language: Python
@@ -74,6 +73,59 @@ repos:
     priority: low
     category: education
     notes: "Math education video generator with Remotion -- inactive since 2025-06"
+
+# Private repos (output goes to gitignored files only, never committed)
+private_repos:
+  - owner: knishioka
+    name: market-lens-studio
+    language: Python
+    priority: high
+    category: tool
+    notes: "Market analysis studio"
+
+  - owner: knishioka
+    name: workflow-engine
+    language: Python
+    priority: medium
+    category: tool
+    notes: "Convert Zapier workflows to Claude Code/Agent SDK/API"
+
+  - owner: knishioka
+    name: household-finance
+    language: Python
+    priority: medium
+    category: fintech
+    notes: "Household finance management and expense analysis"
+
+  - owner: knishioka
+    name: ut-gymnastics
+    language: TypeScript
+    priority: low
+    category: web
+    notes: "University of Tokyo gymnastics team alumni site"
+
+  - owner: knishioka
+    name: jgrants-app
+    language: TypeScript
+    priority: low
+    category: tool
+    notes: "jGrants API subsidy application support"
+
+  - owner: knishioka
+    name: line-advisor
+    language: TypeScript
+    priority: low
+    category: tool
+    status: on-hold
+    notes: "LINE conversation improvement bot -- on hold"
+
+  - owner: knishioka
+    name: story-bridge
+    language: TypeScript
+    priority: low
+    category: tool
+    status: on-hold
+    notes: "AI autobiography creation for seniors -- on hold"
 
 # Staleness thresholds (days)
 thresholds:

@@ -1,19 +1,39 @@
 # Monitoring Overview
 
-## State Tracking
+## State Files
 
-- `repo-state.json` -- Last check timestamps per repo (gitignored, local only)
+| File                  | Purpose                                               | Gitignored |
+| --------------------- | ----------------------------------------------------- | ---------- |
+| `repo-state.json`     | Last knowledge extraction timestamps per repo         | Yes        |
+| `health-trend.jsonl`  | Weekly health snapshots with trend data (append-only) | Yes        |
+| `last-suggested.json` | Last repo suggested by focus-task (avoid repeats)     | Yes        |
+| `active-session.json` | Current session's active repo (heartbeat)             | Yes        |
+| `private-health.json` | Private repo health data (never committed)            | Yes        |
+| `latest-health.json`  | Raw JSON from last health run                         | Yes        |
 
 ## Cron Jobs
 
-| Job                      | Agent        | Schedule (KL) | Purpose              |
-| ------------------------ | ------------ | ------------- | -------------------- |
-| weekly-repo-health       | knishioka-pm | Sun 20:00     | Full health report   |
-| daily-task-suggest       | knishioka-pm | Weekdays 8:30 | Task suggestions     |
-| weekly-knowledge-extract | knishioka-pm | Fri 19:00     | Knowledge extraction |
+| Job                      | Agent        | Schedule (KL)  | 配信                  | Purpose                    |
+| ------------------------ | ------------ | -------------- | --------------------- | -------------------------- |
+| weekly-repo-health       | knishioka-pm | Sun 20:00      | WhatsApp (変化時のみ) | トレンド対応ヘルスレポート |
+| focus-task               | knishioka-pm | Mon+Thu 8:30   | commit のみ           | 1リポ1タスク集中提案       |
+| weekly-knowledge-extract | knishioka-pm | Fri 19:00      | commit                | ナレッジ抽出 + CHANGELOG   |
+| monthly-portfolio-review | knishioka-pm | 第1日曜 19:00  | WhatsApp              | ポートフォリオ全体俯瞰     |
+| private-repo-check       | knishioka-pm | 隔週水曜 20:00 | gitignored only       | Private リポ監視           |
+
+## Heartbeat
+
+30分間隔（セッションアクティブ時のみ）。サイレントでコンテキスト追跡。CI failure 検出時のみ発言。
 
 ## Reports
 
-- `reports/latest-health.md` -- Most recent health report (committed)
-- `reports/latest-tasks.md` -- Most recent task suggestions (committed)
-- `reports/archive/` -- Historical reports (gitignored)
+| File                                     | Content                               | Committed |
+| ---------------------------------------- | ------------------------------------- | --------- |
+| `reports/latest-health.md`               | Public repo health report             | Yes       |
+| `reports/latest-focus.md`                | Today's focus task (1 repo, 1 action) | Yes       |
+| `reports/monthly-portfolio-{YYYY-MM}.md` | Monthly portfolio review              | Yes       |
+
+## Escalation Tiers
+
+Silent → Inform → Nudge → Escalate → Archive
+(Details in AGENTS.md)
