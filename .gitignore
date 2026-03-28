@@ -14,6 +14,13 @@ monitoring/private-health.json
 # Local report diffs
 reports/.latest-health.prev.md
 
+# Raw snapshots (generated, not committed)
+monitoring/health-*.jsonl
+reports/health-raw-*.jsonl
+
+# Temp working dirs (generated)
+tmp-*/
+
 # Report archives
 reports/archive/
 
