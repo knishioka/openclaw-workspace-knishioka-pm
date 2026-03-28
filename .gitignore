@@ -13,6 +13,9 @@ monitoring/private-health.json
 monitoring/issue-tracker.jsonl
 monitoring/site-qa-history.jsonl
 
+# Learner context (private)
+config/learner-context.yaml
+
 # Local report diffs
 reports/.latest-health.prev.md
 
