@@ -63,14 +63,13 @@ sites:
 
 # Execution method
 execution:
-  # Primary: OpenClaw browser tool (requires GUI)
-  # Fallback: Playwright headless script (for cron without display)
-  method: browser-tool
-  fallback: playwright-headless
+  method: playwright-headless
   notes: |
-    browser ツールは headless 非対応のため、GUI が必要。
-    cron でバックグラウンド実行する場合は scripts/site-check (Playwright) を使う。
-    Playwright は npx playwright でヘッドレス実行可能（インストール済み）。
+    exec ツールから Playwright CLI / Node.js ワンライナーを直接実行する。
+    GUI 不要。cron でバックグラウンド実行可能。
+    - スクリーンショット: npx playwright screenshot --full-page "URL" /tmp/out.png
+    - DOM操作・テキスト抽出: node -e "const {chromium}=require('playwright'); ..."
+    - PDF生成は不可（印刷はネイティブダイアログ依存のため）
 
 # How the agent should use this file
 instructions: |

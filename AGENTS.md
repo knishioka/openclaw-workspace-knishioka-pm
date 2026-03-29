@@ -456,11 +456,44 @@ When Ken sends a message (not a cron job), respond as a PM assistant:
 5. 設定を変えて繰り返す（別の学年、別の問題タイプ、枚数変更等）
 6. 問題があれば具体的な事象を記述して bugfix Issue を作成
 
-### ヘッドレス実行
+### 実行方法: Playwright ヘッドレス（exec ツール経由）
 
-- OpenClaw の browser ツールは GUI 必須（headless 非対応）
-- cron でバックグラウンド実行する場合: Playwright (`npx playwright`) でヘッドレス実行可能（v1.58.2 インストール済み）
-- 当面の運用: weekly-repo-health の browser チェックは GUI 環境がある時のみ実行。GUI なしならスキップして次週に回す
+browser ツールではなく、exec ツールで Playwright CLI / Node.js を直接実行する:
+
+```bash
+# スクリーンショット
+npx playwright screenshot --full-page "URL" /tmp/site-qa.png
+
+# DOM テキスト抽出・操作（Node.js ワンライナー）
+node -e "
+const {chromium}=require('playwright');
+(async()=>{
+  const b=await chromium.launch();
+  const p=await b.newPage();
+  await p.goto('URL');
+  // 設定変更: セレクタでクリック・入力
+  await p.click('selector');
+  // テキスト抽出
+  const text=await p.textContent('selector');
+  console.log(JSON.stringify({problems: text}));
+  await b.close();
+})()
+"
+```
+
+**できること:**
+
+- スクリーンショット → read ツールで画像確認
+- DOM テキスト抽出 → 問題文を取得して検算
+- クリック・入力 → 設定変更、生成ボタン押下
+- 重複チェック、答え合わせ → 抽出データを JSON で出力して検証
+
+**制約:**
+
+- `npx playwright pdf` は印刷用DOM が取れないため使えない（ネイティブダイアログ依存）
+- 印刷レイアウトの検証はスクリーンショット + DOM 構造で代替する
+
+GUI 不要。cron でバックグラウンド実行可能。
 
 ### チェックのローテーション
 
