@@ -1,5 +1,11 @@
 # freee-mcp Design Decisions
 
+## 2026-03-31: fix(security): pin axios to 1.14.0 to avoid compromised 1.14.1
+
+- **What**: Pin axios to an exact safe version (avoid caret range) due to upstream supply-chain incident in axios 1.14.1.
+- **Why**: Prevents `^` auto-resolution to a known-compromised release; reduces dependency risk for an auth/API integration server.
+- **Source**: PR #173
+
 ## 2026-03-06: feat(analysis): add freee_partner_analysis tool
 
 - **What**: feat(analysis): add freee_partner_analysis tool

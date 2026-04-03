@@ -1,5 +1,29 @@
 # math-worksheet Design Decisions
 
+## 2026-03-30: feat: Add Singapore Math problems for Grade 4-6 (Primary 4-6)
+
+- **What**: Add Grade 4-6 Singapore Math word-problem generators (10 patterns).
+- **Why**: Expand upper-grade curriculum coverage while keeping generator conventions + validation consistent.
+- **Source**: PR #53
+
+## 2026-03-29: feat: Add automated verification layer for math problem generators
+
+- **What**: Introduce runtime assertions + property-based tests + broadened Playwright verification across generator combinations.
+- **Why**: Catch generator correctness/consistency bugs at generation time, not after printing; provides regression protection as pattern count grows.
+- **Source**: PR #52
+
+## 2026-03-29: fix: 1年生+1/+2たし算の2列レイアウトで列ごとに問題が重複するバグを修正
+
+- **What**: Prevent 2-column layouts from producing identical column sets when the problem pool is exhausted.
+- **Why**: Modulo-based pool reuse (`i % pool.length`) caused same shuffled order to repeat; reshuffle-on-exhaust removes structural duplicates and adds regression tests.
+- **Source**: PR #51
+
+## 2026-03-28: feat: add Singapore Math word problem patterns
+
+- **What**: Add Singapore Math categories/patterns for Grade 1-6 + verification tooling/tests.
+- **Why**: Introduce a new problem family with automated validation (Playwright screenshots + category classification tests) to keep print correctness stable.
+- **Source**: PR #47
+
 ## 2026-03-22: feat: 1年生向け入門計算パターン5種を追加
 
 - **What**: feat: 1年生向け入門計算パターン5種を追加

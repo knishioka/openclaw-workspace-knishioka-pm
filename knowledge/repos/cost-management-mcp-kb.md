@@ -27,6 +27,7 @@
 
 ## Tech Decisions (from PRs/commits)
 
+- [2026-03-28] fix(ci): fix schedule workflows (close-stale-dependency-prs / trufflehog) -- Fix scheduled GitHub Actions failures (duplicate `core` declaration in github-script; TruffleHog schedule scan mode). (source: PR #147)
 - [2025-11-04] Upgrade Zod to v4 and update schema handling -- ## Summary - bump the Zod dependency to v4.1.12 and refresh the lockfile - adjust environment and tool schemas for the Zod v4 API changes - tighten Anthropic usage handling by replacing the loose any cast with typed helpers (source: PR #140)
 - [2025-11-03] docs: add AGENTS handbook for repository operations -- ## Summary - add repository-wide AGENTS guide outlining project overview, setup, operational commands, and governance rules for future agents (source: PR #136)
 - [2025-11-01] Add protocol-level MCP handler tests -- ## Summary - add coverage for the MCP ListTools handler to confirm exported metadata is returned - verify CallTool requests invoke registered tool handlers with the provider registry - assert tool failures are converted into structured MCP  (source: PR #135)

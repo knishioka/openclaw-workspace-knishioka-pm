@@ -24,6 +24,20 @@
 
 - React/Next.js UI
 
+## Competitive Landscape (notes)
+
+- [2026-04-03] Similar worksheet generators / practice resources:
+  - Kakikata Generator (かきかたプリントメーカー): printable Japanese writing practice PDFs (ref: https://kakikata.maripo.org/)
+  - Kanji.sh: free printable kanji practice sheets, filtering by JLPT/grade/etc (ref: https://kanji.sh/write)
+  - MichiKanji: JLPT kanji practice PDFs incl. stroke order diagrams (ref: https://www.michikanji.com/free-resources)
+  - TestMaker (漢字テストメーカー): furigana +穴埋め等のプリント作成/配布 (ref: https://www.test-maker.app/lp/kanji-test)
+  - Canva: ふりがな（ルビ）機能で教材をデザインできる（プリント生成は別途） (ref: https://www.canva.com/ja_jp/features/furigana/)
+
+Potential feature candidates for this repo:
+- Custom vocabulary import (user word list) + shareable URLs per set.
+- Optional JLPT/漢検タグでの出題フィルタ（学年以外の切り口）。
+- 「間違えた漢字だけ再生成」など復習導線（弱点ベース）を追加。
+
 ## Tech Decisions (from PRs/commits)
 
 - [2026-03-22] fix: ふりがなフォールバックの送りがな・熟語コンテキスト改善 -- - フォールバック時に辞書形の送りがな込み読みがそのまま付く問題を修正（例: 速く→速(はやい)を速(はや)に） - `okuriganaExamples` の語幹データを活用して送りがな部分を除去 - 隣接する未割り当て漢字がある場合、音読みを優先する熟語コンテキスト判定を追加 - 不足していた例語データ（気持ち、試合、田植え）を追加 (source: PR #19)

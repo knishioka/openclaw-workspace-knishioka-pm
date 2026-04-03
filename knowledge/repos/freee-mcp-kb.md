@@ -26,6 +26,15 @@
 - Runtime schema validation
 - CLI-style usage
 
+## Competitive Landscape (notes)
+
+- [2026-04-03] MCP TypeScript SDK: `@modelcontextprotocol/sdk` latest is **1.29.0** (source: `npm view @modelcontextprotocol/sdk version`). Consider tracking v2 migration notes when they become stable. (ref: https://github.com/modelcontextprotocol/typescript-sdk)
+- [2026-04-03] MCP spec changelog highlights include OAuth2.1-based auth framework + Streamable HTTP transport + metadata enhancements (icons/annotations/tasks). (ref: https://modelcontextprotocol.io/specification/2025-11-25/changelog)
+
+Potential feature candidates for this repo:
+- Add **Streamable HTTP transport** option (in addition to stdio) for easier remote hosting.
+- Ensure auth flows align with recent spec guidance (discovery / incremental consent).
+
 ## Tech Decisions (from PRs/commits)
 
 - [2026-03-06] feat(analysis): add freee_partner_analysis tool -- - Add `freee_partner_analysis` MCP tool for partner-level revenue/expense analysis with concentration risk assessment - Aggregates deals by partner using auto-pagination, computes top N rankings with share %, monthly breakdown, and concentr (source: PR #172)

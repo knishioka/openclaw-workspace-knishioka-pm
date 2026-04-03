@@ -1,5 +1,11 @@
 # cost-management-mcp Design Decisions
 
+## 2026-03-28: fix(ci): fix schedule workflows (close-stale-dependency-prs / trufflehog)
+
+- **What**: Repair scheduled GitHub Actions workflows for stale-dependency PR closing and secret scanning.
+- **Why**: Prevent schedule-only CI failures (github-script already provides `core`; TruffleHog schedule needs full filesystem scan rather than diff scan).
+- **Source**: PR #147
+
 ## 2025-11-04: Upgrade Zod to v4 and update schema handling
 
 - **What**: Upgrade Zod to v4 and update schema handling
