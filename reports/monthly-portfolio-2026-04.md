@@ -1,125 +1,165 @@
 # Monthly Portfolio Review (2026-04)
 
-As of: 2026-04-03 (Asia/Kuala_Lumpur)
+As of: 2026-04-04
+Summary: RED 5 / YELLOW 2 / GREEN 3
 
-## Summary
+>> Changes this month:
+  cost-management-mcp: Dormant級の停滞 → Active 復帰（2026-03-28 にコミット再開、days_inactive 143→0）
+  math-worksheet: Active を維持しつつ 2026-03-29〜03-31 に連続改善（重複バグ修正、検証層追加、Singapore Math拡張）
+  english-note-maker: YELLOW維持だったが、活動分類では Abandoned に移行（最終 push 2026-01-01）
 
-- Activity classification (public): **Active 5 / Dormant 1 / Abandoned 4**
-- Activity classification (private): **Active 4 / Dormant 0 / Abandoned 3**（※うち **on-hold 2**）
-- Health trend (last 30 days): `monitoring/health-trend.jsonl` は **2026-03-27〜2026-03-29 の3点のみ**（月次傾向の解像度は低い）
-  - この3点では **GREEN 3 / YELLOW 2 / RED 5 で横ばい**
-  - ただし `cost-management-mcp` は **days_inactive 143 → 0** に急変（コミット再開の影響）
-- PM Issue throughput (last 30 days, from `monitoring/issue-tracker.jsonl`): **Created 7 / Merged 2 / Open 5 / Avg days_to_resolve 0.5 / Quality A=2**
+>> Risks / Blockers:
+  ib-sec-mcp  CI failure 継続 + open PR 4 で手戻りコスト高
+  freee-mcp  open PR 15 でレビュー/マージ待ち滞留
+  simple-bookkeeping  open issue 37 / open PR 8、かつ Dormant で再開コスト高
+  td-mcp-server  8か月停止、再開トリガー不明
 
----
+>> Next actions:
+  MCP群: freee-mcp / cost-management-mcp を先行対象に schema・tool metadata・error normalization の共通基盤メモを作る → pending
+  Education群: kanji-practice / math-worksheet / english-note-maker で A4印刷レイアウト検証を共通化 → pending
+  Abandoned群: archive候補を整理し、復活条件が弱いものは月内に方針決定 → pending
 
-## 1) Repo activity classification (by last push)
-
-### Public
-
-| Repo | Last push (KL) | Class |
-|---|---:|---|
-| knishioka/math-worksheet | 2026-04-01 | Active |
-| knishioka/freee-mcp | 2026-03-31 | Active |
-| knishioka/cost-management-mcp | 2026-03-28 | Active |
-| knishioka/kanji-practice | 2026-03-22 | Active |
-| knishioka/ib-sec-mcp | 2026-03-21 | Active |
-| knishioka/simple-bookkeeping | 2026-01-26 | Dormant |
-| knishioka/english-note-maker | 2026-01-01 | Abandoned |
-| knishioka/td-mcp-server | 2025-08-03 | Abandoned |
-| knishioka/meditation-chrome-extension | 2025-06-30 | Abandoned |
-| knishioka/remotion-math-education | 2025-06-18 | Abandoned |
-
-### Private（reports では詳細禁止のため、分類のみ）
-
-| Repo | Class | Notes |
-|---|---|---|
-| knishioka/workflow-engine | Active |  |
-| knishioka/market-lens-studio | Active |  |
-| knishioka/household-finance | Active |  |
-| knishioka/ut-gymnastics | Active |  |
-| knishioka/jgrants-app | Abandoned |  |
-| knishioka/line-advisor | Abandoned | on-hold |
-| knishioka/story-bridge | Abandoned | on-hold |
+>> Confirmed:
+  kanji-practice  最終更新13日前 GREEN
+  math-worksheet  最終更新4日前 GREEN
+  freee-mcp  最終更新4日前 GREEN
 
 ---
 
-## 2) Cross-repo analysis (from knowledge/repos/*.md)
+## 1) Portfolio activity classification (last push 기준)
 
-### A. MCP servers: 共通基盤化の余地が大きい
+### Public repos
 
-対象: `freee-mcp` (TS), `cost-management-mcp` (TS), `ib-sec-mcp` (Py), `td-mcp-server` (Py)
+**Active (<=30d)**
+- knishioka/math-worksheet — 2026-03-31
+- knishioka/freee-mcp — 2026-03-31
+- knishioka/cost-management-mcp — 2026-03-28
+- knishioka/kanji-practice — 2026-03-22
+- knishioka/ib-sec-mcp — 2026-03-21
 
-KBから見える共通点:
-- MCP tool 定義・登録・メタデータ返却、CallTool の routing
-- 入力バリデーション（TSは **zod** が強い共通項）
-- ページング / リトライ / rate-limit / auth（freeeの auto-pagination、IBは外部Gateway依存）
-- テストの型（TSは handler/unit、IBは integration-heavy）
+**Dormant (30–90d)**
+- knishioka/simple-bookkeeping — 2026-01-25
 
-統合機会（提案）:
-- TS MCP向けに `@knishioka/mcp-toolkit`（または mono-repo内 `packages/mcp-kit`）を用意し、以下を集約
-  - zod schema → tool metadata 変換
-  - pagination helpers / error normalization
-  - 共通の logger・debug フラグ・env 読み込み
-  - プロトコルテスト fixture（ListTools/CallTool）
-- Py MCPは `ib-sec-mcp` の外部依存（Client Portal Gateway）を前提に、**integration テスト雛形**の共有だけでも価値あり
+**Abandoned (90d+)**
+- knishioka/english-note-maker — 2026-01-01
+- knishioka/td-mcp-server — 2025-08-03
+- knishioka/meditation-chrome-extension — 2025-06-30
+- knishioka/remotion-math-education — 2025-06-17
 
-### B. Education apps: A4印刷・レイアウト保証の共通基盤化
+### Private repos (name + classification only)
 
-対象: `kanji-practice`, `math-worksheet`, `english-note-maker`
+**Active (<=30d)**
+- knishioka/workflow-engine
+- knishioka/market-lens-studio
+- knishioka/household-finance
+- knishioka/ut-gymnastics
 
-KBから見える共通点:
-- ブラウザで生成 → **A4印刷/PDF** が主価値
-- レイアウトのバグは頻出（A4はみ出し、ページング、余白、行高）
-- Playwright を「印刷品質の自動検査」に使う流れが強い（特に math-worksheet / english-note-maker）
+**Dormant (30–90d)**
+- none
 
-統合機会（提案）:
-- `print-layout-check` の共通ユーティリティ（A4高さpx、overflow検出、ページカウント検算、余白/フォントのガード）
-- 設定のURLエンコード（math-worksheetが先行）を kanji/english に横展開 → 再現性・共有が上がる
+**Abandoned (90d+)**
+- knishioka/jgrants-app
+- knishioka/line-advisor *(on-hold)*
+- knishioka/story-bridge *(on-hold)*
 
-### C. 「過剰工数」兆候（Issue/PR が多すぎる）
+## 2) Repo health trend (last month)
 
-直近 health-trend（2026-03-29 時点）から:
-- `freee-mcp`: **open PR 15**（レビュー/マージ待ち滞留のリスク）
-- `simple-bookkeeping`: **open issue 36 / open PR 8**（Dormantなのに backlog が厚い＝再開コストが高い）
-- `ib-sec-mcp`: open PR 4 + CI failure 継続（失敗が長期化すると摩耗する）
+- `monitoring/health-trend.jsonl` has only **3 snapshots** in the last month: 2026-03-27 / 03-28 / 03-29.
+- Across those snapshots, portfolio health stayed **flat at GREEN 3 / YELLOW 2 / RED 5**.
+- Meaningful movement inside the flat summary:
+  - `cost-management-mcp` reactivated sharply (`days_inactive` 143 → 0 on 2026-03-28) but was still RED because CI remained broken at that point.
+  - `math-worksheet` moved to `days_inactive` 0 on 2026-03-29 and then shipped multiple follow-up changes by 2026-03-31.
+  - `ib-sec-mcp` stayed RED across all recorded snapshots, so this is the clearest persistent execution risk.
+- Conclusion: the portfolio is **not worsening overall**, but RED repos are not being burned down yet; the main change is selective reactivation rather than broad stabilization.
 
----
+## 3) Cross-repo analysis (knowledge/repos/*.md)
 
-## 3) Abandoned repos: アーカイブ推奨 or 復活条件
+### Common technologies / integration opportunities
 
-### Public
+**A. MCP server cluster**
+- Repos: `freee-mcp`, `cost-management-mcp`, `ib-sec-mcp`, `td-mcp-server`
+- Shared patterns seen in KBs:
+  - MCP tool registration / routing
+  - schema validation (especially Zod in TypeScript repos)
+  - external API auth / pagination / error normalization
+  - protocol and integration test scaffolding
+- Best integration opportunity:
+  - Create a small shared MCP toolkit for the TypeScript servers first (`freee-mcp`, `cost-management-mcp`), focused on:
+    - schema → tool metadata wiring
+    - shared pagination helpers
+    - normalized error formatting
+    - ListTools / CallTool test fixtures
+- Why this matters:
+  - `freee-mcp` is adding many tools quickly
+  - `cost-management-mcp` already centralized provider definitions and handler routing
+  - there is enough repetition now that copy-paste cost is likely higher than extraction cost
 
-- knishioka/english-note-maker（Abandoned: last push 2026-01-01）
-  - 推奨: **Archive候補（またはメンテ最小）**
-  - 復活条件: A4レイアウト系の共通基盤化（上記B）が走るなら、その検証先として復帰価値あり
+**B. Education print apps**
+- Repos: `kanji-practice`, `math-worksheet`, `english-note-maker`
+- Shared patterns seen in KBs:
+  - browser-generated worksheets / notebooks
+  - A4 print layout correctness as core product value
+  - repeated bugs around overflow, pagination, and fit-to-page behavior
+  - Playwright-based verification already exists in parts of the portfolio
+- Best integration opportunity:
+  - Extract a shared print-layout verification utility or script set:
+    - A4 overflow detection
+    - page count validation
+    - layout margin checks
+    - scenario-based regression capture via Playwright
+- Why this matters:
+  - this is the same class of failure recurring in all three repos
+  - solving it once should reduce PM noise and bugfix churn
 
-- knishioka/td-mcp-server（Abandoned: last push 2025-08-03）
-  - 推奨: **Archive候補**（再着手の見込みが立つまで）
-  - 復活条件: Treasure Data を業務で再度使う／`workflow-engine` 連携の具体案件が出たら再始動
+### Repos showing excessive workload / queue pressure
 
-- knishioka/meditation-chrome-extension（Abandoned: last push 2025-06-30）
-  - 推奨: **Archive推奨**（プロダクト化/公開予定がないなら保守コストの割に価値が薄い）
-  - 復活条件: Chrome Web Store 公開や音声/楽曲の権利整理など「公開の前提」が整った時
+Using the latest public repo signals available:
+- `freee-mcp`: **open PR 15**
+  - Fast feature throughput, but review queue is clearly piling up.
+- `simple-bookkeeping`: **open issue 37 / open PR 8**
+  - Biggest backlog in the portfolio while already Dormant.
+  - This is the strongest sign of over-commitment versus available maintenance bandwidth.
+- `ib-sec-mcp`: **open PR 4 + persistent RED health**
+  - Not huge by count, but risky because CI failure compounds merge friction.
 
-- knishioka/remotion-math-education（Abandoned: last push 2025-06-18）
-  - 推奨: **Archive推奨**（プロトタイプのまま）
-  - 復活条件: 動画教材の配信要件（媒体、単元、制作フロー）が固まったら再開
+## 4) Abandoned repos: archive recommendation or revival condition
 
-### Private（詳細禁止のため方針だけ）
+### Public repos
 
-- knishioka/jgrants-app: Archive候補（復活は案件発生時）
-- knishioka/line-advisor: on-hold のため現状維持（Archiveは判断保留）
-- knishioka/story-bridge: on-hold のため現状維持（Archiveは判断保留）
+- **knishioka/english-note-maker**
+  - Recommendation: **keep only if it becomes part of the shared education print platform; otherwise archive candidate**.
+  - Revival condition: reuse as a proving ground for common A4/print QA tooling or add a clearly differentiated learner workflow.
 
----
+- **knishioka/td-mcp-server**
+  - Recommendation: **archive candidate**.
+  - Revival condition: a real Treasure Data use-case returns, with the first milestone being CI/type-check recovery rather than feature work.
 
-## 4) Next actions (proposal)
+- **knishioka/meditation-chrome-extension**
+  - Recommendation: **archive recommended**.
+  - Revival condition: a concrete publish/usage plan exists (Chrome Web Store release, personal daily use, or distribution target).
 
-- MCP:
-  - freee-mcp / cost-management-mcp で共通化できる最小単位（schema/metadata, error normalization, pagination）を切り出す設計メモを作る
-- Education:
-  - A4レイアウト自動検査（Playwright）を3リポ横断で再利用できる形に寄せる（共通スクリプト or 小ライブラリ）
-- Backlog pressure:
-  - freee-mcp: open PR 15 → 「マージ基準の一本化（ラベル/優先度/CI必須）」だけでも滞留が減る
-  - simple-bookkeeping: Dormantなのに open issue 36 → 優先度の再スコープ（close提案はKen承認が必要）
+- **knishioka/remotion-math-education**
+  - Recommendation: **archive recommended**.
+  - Revival condition: a specific video-based learning workflow is prioritized over printable worksheets, with one end-to-end production path defined.
+
+### Private repos (detail withheld by policy)
+
+- **knishioka/jgrants-app** — archive candidate; revive only if a subsidy-application use case returns.
+- **knishioka/line-advisor** — on-hold; keep parked unless priority changes.
+- **knishioka/story-bridge** — on-hold; keep parked unless priority changes.
+
+## 5) PM retrospective (last 30 days)
+
+From `monitoring/issue-tracker.jsonl`:
+- Created: **7**
+- Merged: **2**
+- Open: **5**
+- Avg days to resolve (merged only): **0.5 days**
+- Quality score: **A = 2**
+
+Interpretation:
+- When work gets picked up, issue quality is good enough for fast resolution.
+- The constraint is not issue clarity; it is **attention bandwidth** on the remaining open queue.
+- For April, the PM bias should be:
+  - fewer new issues in already-loaded repos
+  - more consolidation / backlog reduction / shared-foundation work
