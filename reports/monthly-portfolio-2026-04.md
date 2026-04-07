@@ -1,87 +1,203 @@
-As of: 2026-04-06
+# Monthly Portfolio Review (2026-04)
+
+As of: 2026-04-07
 Summary: RED 5 / YELLOW 1 / GREEN 4
 
 >> Changes this month:
-  cost-management-mcp: RED → GREEN (2026-03-28 に CI 修復、更新再開)
-  english-note-maker: YELLOW → RED (94日 inactive で Abandoned 入り)
-  math-worksheet: GREEN 維持 (3月末に Singapore Math + 検証層追加)
-  freee-mcp: GREEN 維持 (3月末時点で 5日 inactive、分析系ツール群を拡張)
+- cost-management-mcp: RED → GREEN（143日停滞から復帰、2026-03-28 に修復PR #147が即日マージ）
+- english-note-maker: YELLOW → RED（95日無更新で Abandoned 域に到達）
+- math-worksheet: GREEN 維持（2026-03-29〜31 に検証強化 + Singapore Math 拡張）
+- freee-mcp: GREEN 維持（2026-03-06 以降の分析系ツール群を維持、ただし open PR 15件で滞留）
 
 >> Risks / Blockers:
-  ib-sec-mcp  CI failure 継続、RED 4週連続、open PR 4件
-  simple-bookkeeping  85日 inactive だが open issue 37件 / open PR 8件 で過剰工数
-  freee-mcp  active だが open PR 15件 でレビュー待ち滞留リスク
-  english-note-maker  94日 inactive、単独維持だと投資対効果が低い
-  td-mcp-server  245日 inactive、MCP群の中で最も長期停止
-  meditation-chrome-extension  279日 inactive、直近需要の裏付けなし
-  remotion-math-education  292日 inactive、単独プロダクトとして停止状態
+- ib-sec-mcp  CI failure が継続、RED 維持。直近16日以内に開発はあるが品質ゲート未回復。
+- simple-bookkeeping  71日無更新 + open issue 37件 / open PR 8件で過剰WIP。再始動前に棚卸しが必要。
+- english-note-maker  95日無更新。教育系ポートフォリオ内で役割が kanji-practice / math-worksheet と重複し始めている。
+- td-mcp-server  247日無更新。Treasure Data 需要が明確でない限り保守コストに見合いにくい。
+- meditation-chrome-extension / remotion-math-education  280日超無更新。用途が限定的で、現ポートフォリオの主戦場から外れている。
 
 >> Next actions:
-  Portfolio: TypeScript MCP共通基盤の切り出しを検討（freee-mcp / cost-management-mcp の schema validation・tool registry・transport 対応）
-  Portfolio: 教育系共通基盤の切り出しを検討（kanji-practice / math-worksheet / english-note-maker の印刷レイアウト検証・問題生成QA・URL設定共有）
-  ib-sec-mcp: CI failure 解消を最優先、PR滞留を先に減らす
-  simple-bookkeeping: 新規開発より backlog 圧縮を優先、Issue/PR の棚卸しが必要
-  freee-mcp: 15 PR をテーマ別にまとめてレビューし、未着手PRの期限ルールを決める
-  td-mcp-server: Archive 候補。復活条件は Treasure Data 利用再開 or Python MCP共通基盤化の対象になること
-  meditation-chrome-extension: Archive 候補。復活条件は Chrome拡張再開ニーズ or offline音声資産の再利用先が明確になること
-  remotion-math-education: Archive 候補。復活条件は教育動画配信ニーズの再発生 or worksheet系との連携要件が出ること
-  english-note-maker: 即archiveまでは不要。maintenance-only 扱いにし、復活条件は家庭学習ニーズ再発生 or worksheet family 統合時
+- Portfolio横断: 教育系3リポ（kanji-practice / math-worksheet / english-note-maker）の共通A4印刷QA・設定共有・URL永続化を共通基盤候補として整理する
+- MCP横断: freee-mcp / cost-management-mcp / ib-sec-mcp / td-mcp-server で、tool metadata・transport・認証・テスト方針を共通化できるか検討する
+- freee-mcp: 新規機能追加より先に open PR 15件の整理を優先する
+- simple-bookkeeping: Issue/PR を棚卸しし、メンテ継続か凍結かを判断する
+- Abandoned public repos: 下記の復活条件を満たさなければ段階的に archive 候補へ
 
 >> Confirmed:
-  kanji-practice  15日前更新 GREEN
-  math-worksheet  6日前更新 GREEN
-  freee-mcp  6日前更新 GREEN
-  cost-management-mcp  9日前更新 GREEN
-  market-lens-studio  Active
-  workflow-engine  Active
-  household-finance  Active
-  ut-gymnastics  Active
-  jgrants-app  Abandoned
-  line-advisor  Abandoned (on-hold)
-  story-bridge  Abandoned (on-hold)
+- kanji-practice  最終更新16日前 GREEN
+- math-worksheet  最終更新6日前 GREEN
+- freee-mcp  最終更新6日前 GREEN
+- cost-management-mcp  最終更新10日前 GREEN
 
-## Portfolio classification
+## 1. Portfolio classification
 
 ### Public repos
-- Active (<=30 days): kanji-practice, math-worksheet, ib-sec-mcp, freee-mcp, cost-management-mcp
-- Dormant (31-90 days): simple-bookkeeping
-- Abandoned (90+ days): english-note-maker, td-mcp-server, meditation-chrome-extension, remotion-math-education
+
+#### Active (30日以内にコミットあり)
+- knishioka/kanji-practice — 16日
+- knishioka/math-worksheet — 6日
+- knishioka/ib-sec-mcp — 16日
+- knishioka/freee-mcp — 6日
+- knishioka/cost-management-mcp — 10日
+
+#### Dormant (30-90日)
+- knishioka/simple-bookkeeping — 71日
+
+#### Abandoned (90日+)
+- knishioka/english-note-maker — 95日
+- knishioka/td-mcp-server — 247日
+- knishioka/meditation-chrome-extension — 281日
+- knishioka/remotion-math-education — 293日
 
 ### Private repos
-- Active (<=30 days): market-lens-studio, workflow-engine, household-finance, ut-gymnastics
-- Dormant (31-90 days): none
-- Abandoned (90+ days): jgrants-app, line-advisor, story-bridge
 
-## Cross-repo analysis
+> Private repos are listed by name + classification only.
 
-### 共通技術・統合機会
-1. MCP server 共通基盤
-   - freee-mcp / cost-management-mcp は TypeScript + MCP + zod + tool registry という共通構成。
-   - 共通化候補: tool metadata 定義、runtime schema validation、stdio/HTTP transport、認証設定、CIテンプレート。
-   - ib-sec-mcp / td-mcp-server を含めて「MCP server playbook」を docs/テンプレート化すると、新規MCP立ち上げと保守の再利用性が高い。
+- knishioka/market-lens-studio — Active
+- knishioka/workflow-engine — Active
+- knishioka/household-finance — Active
+- knishioka/ut-gymnastics — Active
+- knishioka/jgrants-app — Abandoned
 
-2. 教育系 worksheet 共通基盤
-   - kanji-practice / math-worksheet / english-note-maker はいずれも印刷前提の Web UI で、A4収まり・ページング・問題生成品質が主要リスク。
-   - 共通化候補: print layout checker、Playwright QA harness、URL/state schema、共有 UI controls、テンプレート別ページ計測。
-   - math-worksheet の automated verification layer は他教育系にも移植価値が高い。
+### On-hold (excluded from recommendations / notifications)
+- knishioka/line-advisor — on-hold
+- knishioka/story-bridge — on-hold
 
-3. 検証文化の横展開
-   - math-worksheet は property-based / Playwright 検証を先行導入。
-   - kanji-practice は回帰テスト強化が進んでいる。
-   - この2つのやり方を freee-mcp / cost-management-mcp の tool-level regression に横展開すると、MCP群の品質が安定しやすい。
+## 2. Past-month trend (from monitoring/health-trend.jsonl)
 
-### 過剰工数のリポ
-- simple-bookkeeping: open issue 37 / open PR 8 に対して 85日 inactive。保守負債が最も重い。
-- freee-mcp: open PR 15。開発は活発だがレビュー滞留が大きい。
-- ib-sec-mcp: open PR 4 + CI failure 継続。実装速度に対して安定化が追いついていない。
+- Public portfolio status moved from **GREEN 3 / YELLOW 2 / RED 5** (2026-03-27) to **GREEN 4 / YELLOW 1 / RED 5** (2026-04-05)
+- Biggest positive change: **cost-management-mcp** recovered from long inactivity + CI failure to GREEN after PR #147
+- Biggest negative change: **english-note-maker** crossed from YELLOW to RED as inactivity reached 94-95 days
+- Persistent RED through the month: **ib-sec-mcp, td-mcp-server, meditation-chrome-extension, remotion-math-education**
+- Persistent load concentration: **simple-bookkeeping** remained YELLOW while backlog stayed very large
 
-## Abandoned repo recommendations
-- english-note-maker: Archive ではなく maintenance-only 推奨。kanji/math と統合できる時だけ再投資。
-- td-mcp-server: Archive 推奨。Treasure Data 利用再開か、Python MCP共通化の実験台が必要になったら復活。
-- meditation-chrome-extension: Archive 推奨。瞑想体験を再開する明確な個人需要が出た時のみ復活。
-- remotion-math-education: Archive 推奨。動画教材を本気でやる段階まで凍結でよい。
+## 3. Cross-repo analysis
 
-## Monthly PM retrospective
-- 今月の正の変化は、cost-management-mcp の CI復旧と、math-worksheet / kanji-practice の教育品質改善。
-- 今月の構造問題は、MCP群と教育系で似た基盤を個別実装していること、そして simple-bookkeeping / freee-mcp の backlog 圧力。
-- 来月は「新規着手を増やす」より「共通基盤化と backlog 圧縮」に寄せた方が、ポートフォリオ全体の効率が上がる。
+### 3.1 Common technology / integration opportunities
+
+#### A. MCP server common foundation
+Target repos:
+- freee-mcp
+- cost-management-mcp
+- ib-sec-mcp
+- td-mcp-server
+
+Observed commonality:
+- All four are MCP servers
+- freee-mcp / cost-management-mcp already share TypeScript + schema-driven tool patterns
+- ib-sec-mcp / td-mcp-server share Python MCP/server patterns
+- Recent KB entries show repeated work around tool exposure, validation, testing, and transport expectations
+
+Integration opportunity:
+- Shared MCP checklist/template covering:
+  - tool metadata conventions
+  - auth/config schema validation
+  - transport options (stdio now, Streamable HTTP later where useful)
+  - common CI/test matrix
+  - release / docs / agent-operability conventions
+
+Expected payoff:
+- Less repeated setup work across new MCP repos
+- Easier maintenance when MCP spec evolves
+- Faster issue creation because acceptance criteria can point to a common standard
+
+#### B. Education print-app common foundation
+Target repos:
+- kanji-practice
+- math-worksheet
+- english-note-maker
+- remotion-math-education（adjacent only）
+
+Observed commonality:
+- Repeated A4 print-layout concerns
+- Repeated generator correctness / content-validation work
+- Browser-based printable learning material generation
+- Recent KBs show duplicated investment in layout fitting, regression checks, and generation controls
+
+Integration opportunity:
+- Shared “worksheet core” candidate:
+  - print layout QA harness
+  - common page-size / overflow checks
+  - shared URL-based settings model
+  - reusable print preview / export utilities
+
+Expected payoff:
+- Reduces repeated CSS/layout debugging
+- Makes future education tools easier to spin up
+- Creates a clearer portfolio story than separate standalone mini-apps
+
+### 3.2 Repos with likely over-investment / excessive work-in-progress
+
+- **freee-mcp**: open PR 15件。機能密度は高いが、レビュー待ち/統合待ちの滞留コストが大きい。
+- **simple-bookkeeping**: open issue 37件 / open PR 8件。最も backlog pressure が高い。
+- **ib-sec-mcp**: open PR 4件 + CI failure。新機能速度に対して安定化が追いついていない。
+
+Recommendation:
+- 4月は「新規着手」より「WIP圧縮」を優先する
+- 目安: open PR > 10 または open issue > 30 のリポは feature 拡張より整理を優先
+
+## 4. Abandoned public repos: archive recommendation / revival conditions
+
+### knishioka/english-note-maker
+Recommendation:
+- **即archiveはしない**。教育系ポートフォリオとのシナジーがまだあるため、Q2中は復活判断を保留。
+
+Revival conditions:
+- kanji-practice / math-worksheet と共通化できる印刷基盤の切り出し先として使う
+- 罫線ノート需要が再確認される
+- 既存 open issue を起点に 1PR で改善できる明確テーマがある
+
+Archive trigger:
+- 2026-Q2 末までに再開がなければ archive 候補
+
+### knishioka/td-mcp-server
+Recommendation:
+- **archive 寄り**。需要再確認が取れない限り保守優先度は低い。
+
+Revival conditions:
+- Treasure Data を使う明確な業務/個人ユースケースが再発生
+- 他MCPリポと共通基盤化する実験対象として意味がある
+
+Archive trigger:
+- 次回月次レビュー時点でも用途が不明なら archive 推奨
+
+### knishioka/meditation-chrome-extension
+Recommendation:
+- **archive 推奨**。現ポートフォリオの中核テーマから外れている。
+
+Revival conditions:
+- 個人利用が継続しており、オフライン拡張として再開する明確理由がある
+- Chrome拡張の学習/実験枠として再定義する
+
+### knishioka/remotion-math-education
+Recommendation:
+- **archive 寄り**。教育テーマとの接続はあるが、現行の印刷教材群と開発トラックが分かれている。
+
+Revival conditions:
+- 動画教材を配布する明確な教育戦略が立つ
+- worksheet系から派生する動画生成ニーズが確認される
+
+## 5. PM retrospective (issue quality loop)
+
+Source: monitoring/issue-tracker.jsonl
+
+- 4月レビュー時点の resolved PM issues: 2件
+  - cost-management-mcp #146 → merged same day, score A
+  - math-worksheet #48 → merged in 1 day, score A
+- open PM issues still pending: ib-sec-mcp #103, kanji-practice #20/#21, english-note-maker #19
+
+Takeaway:
+- maintenance / bugfix 系は resolve-issue-ready 品質が高い
+- 4月は backlog の多い repo で新規 Issue を増やすより、既存 PM issue の処理率を優先した方がよい
+
+## 6. Overall judgment
+
+- Public portfolioの主戦場は **教育アプリ群** と **MCPサーバ群** に収束している
+- 4月の戦略は「新規分散」ではなく **共通基盤化 + WIP圧縮 + abandoned整理** が妥当
+- archive 候補を明確にしたことで、注力対象は次の6本に絞れる:
+  - kanji-practice
+  - math-worksheet
+  - freee-mcp
+  - cost-management-mcp
+  - ib-sec-mcp
+  - simple-bookkeeping
