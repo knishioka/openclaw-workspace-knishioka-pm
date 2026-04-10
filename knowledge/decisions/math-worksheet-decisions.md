@@ -2,60 +2,36 @@
 
 ## 2026-03-30: feat: Add Singapore Math problems for Grade 4-6 (Primary 4-6)
 
-- **What**: Add Grade 4-6 Singapore Math word-problem generators (10 patterns).
-- **Why**: Expand upper-grade curriculum coverage while keeping generator conventions + validation consistent.
+- **What**: feat: Add Singapore Math problems for Grade 4-6 (Primary 4-6)
+- **Why**: ## Summary - Add 10 new Singapore Math problem patterns covering Grade 4-6 (Primary 4-6) curriculum - Grade 4: fraction-of-a-set, decimal word problems - Grade 5: ratio, percentage, speed/distance/time, volume - Grade 6: algebra, advanced ratio, circle (π=3.14…
 - **Source**: PR #53
 
 ## 2026-03-29: feat: Add automated verification layer for math problem generators
 
-- **What**: Introduce runtime assertions + property-based tests + broadened Playwright verification across generator combinations.
-- **Why**: Catch generator correctness/consistency bugs at generation time, not after printing; provides regression protection as pattern count grows.
+- **What**: feat: Add automated verification layer for math problem generators
+- **Why**: ## Summary - Add runtime assertions (`assertValidAnswer`, `assertNoDuplicateNames`, `assertNonEmptyText`) that catch bugs at generation time - Add 110 property-based tests generating 200+ samples per generator/grade — verifying name uniqueness, mathematical co…
 - **Source**: PR #52
 
 ## 2026-03-29: fix: 1年生+1/+2たし算の2列レイアウトで列ごとに問題が重複するバグを修正
 
-- **What**: Prevent 2-column layouts from producing identical column sets when the problem pool is exhausted.
-- **Why**: Modulo-based pool reuse (`i % pool.length`) caused same shuffled order to repeat; reshuffle-on-exhaust removes structural duplicates and adds regression tests.
+- **What**: fix: 1年生+1/+2たし算の2列レイアウトで列ごとに問題が重複するバグを修正
+- **Why**: ## Summary - `generateAddPlusN`で問題数がプール（0〜9の10通り）を超えた場合、同じシャッフル順で巡回するため2列目が1列目の丸コピーになっていたバグを修正 - プール使い切り時に再シャッフルすることで、列ごとの構造的重複を防止 - 同じパターンを持つ`generateAddTo10`も併せて修正 ## Changes - `src/lib/generators/patterns/grade1.ts`: プール巡回時の再シャッフルロジック追加 - `src/lib/generator…
 - **Source**: PR #51
 
 ## 2026-03-28: feat: add Singapore Math word problem patterns
 
-- **What**: Add Singapore Math categories/patterns for Grade 1-6 + verification tooling/tests.
-- **Why**: Introduce a new problem family with automated validation (Playwright screenshots + category classification tests) to keep print correctness stable.
+- **What**: feat: add Singapore Math word problem patterns
+- **Why**: ## 概要 - Singapore Mathの問題タイプ4種をGrade 1-6に追加 ## 変更内容 - `.gitignore` - `artifacts/` と `eng.traineddata` を除外対象に追加 - `scripts/verify-singapore-playwright.mjs` - Grade 1-3 のSingaporeパターンをPlaywrightで自動検証し、解答ON/OFFスクリーンショットを取得する検証スクリプトを追加 - `src/components/Math/WordP…
 - **Source**: PR #47
 
 ## 2026-03-22: feat: 1年生向け入門計算パターン5種を追加
 
 - **What**: feat: 1年生向け入門計算パターン5種を追加
-- **Why**: ## Summary - 小さい子向けのより簡単な計算問題パターン5種を1年生に追加 - **+1のたし算** / **+2のたし算**: 固定値を足すシンプルな計算 - **かずをかぞえよう**: ○や★などのシンボルを数える問題 - **○をつかったたし算**: 2グループのシンボルを合わせる - **○をつかったひき算**: シンボルから取り除いた残りを答える - シンボルは20px・5個ごとに改行で視認性を確保 - `PATTERN_COUNT_OVERRIDES`で 
+- **Why**: ## Summary - 小さい子向けのより簡単な計算問題パターン5種を1年生に追加 - **+1のたし算** / **+2のたし算**: 固定値を足すシンプルな計算 - **かずをかぞえよう**: ○や★などのシンボルを数える問題 - **○をつかったたし算**: 2グループのシンボルを合わせる - **○をつかったひき算**: シンボルから取り除いた残りを答える - シンボルは20px・5個ごとに改行で視認性を確保 - `PATTERN_COUNT_OVERRIDES`でパターン固有の推奨問題数を設定し、A4印…
 - **Source**: PR #46
 
-## 2026-03-07: refactor: pattern-generators.ts を学年・カテゴリ別ファイルに分割
+## 2026-03-07: chore: PR #38マージ後のlocalStorageクリーンアップ
 
-- **What**: refactor: pattern-generators.ts を学年・カテゴリ別ファイルに分割
-- **Why**: - `src/lib/generators/pattern-generators.ts` (2,776行) を10ファイルに分割 - `src/lib/generators/patterns/` ディレクトリを新設 - 公開インターフェースは変更なし（`index.ts` の import 2行のみ変更） 
-- **Source**: PR #44
-
-## 2026-03-07: chore: Playwright MCPを復活させ playwright-cli の使い分けを整理する
-
-- **What**: chore: Playwright MCPを復活させ playwright-cli の使い分けを整理する
-- **Why**: - Playwright MCP は `.mcp.json` に既に設定済みであることを確認 - `scripts/check-print-layout.mjs` は CI/ローカル向け自動チェックとして維持 - CLAUDE.md の「Playwright CLIによるレイアウト確認」セクションを「レイアウト確認」に改名し、2ツールの使い分けを明記 
-- **Source**: PR #43
-
-## 2026-03-07: feat(url): URLで問題設定を直接指定できるようにする
-
-- **What**: feat(url): URLで問題設定を直接指定できるようにする
-- **Why**: - URLクエリパラメータで問題設定を直接指定可能に（`?grade=4&type=basic&pattern=add-single-digit&cols=2&count=10`） - Zustand `persist` ミドルウェア（localStorage）を削除し、URLを唯一の状態源に変更 - 不正なURLパラメータはデフォルト値にフォールバック、`problemCount`はテンプレート上限でクランプ 
-- **Source**: PR #38
-
-## 2026-03-06: fix(anzan): add anzan print template to prevent PDF overflow
-
-- **What**: fix(anzan): add anzan print template to prevent PDF overflow
-- **Why**: - **Root cause**: `anzan-pair-sum` and other anzan patterns used the `basic` template (`minProblemHeight: 40px`), causing PDFs to render as 2 pages (measured 1489px vs A4's 1123px) - Add `'anzan'` ProblemType with dedicated print template ( 
-- **Source**: PR #34
-
-## 2026-03-06: feat(anzan): implement sequential calculation and mixed mental math patterns
-
-- **What**: feat(anzan): implement sequential calculation and mixed mental math patterns
-- **Why**: ## Summary - Implement 3 new anzan (mental math) patterns: pair-sum, reorder, and mixed - Extend `BasicProblem` type with multi-operand support - Update rendering for multi-operand expressions 
-- **Source**: PR #33
+- **What**: chore: PR #38マージ後のlocalStorageクリーンアップ
+- **Why**: ## Summary - Add `localStorage.removeItem('math-worksheet-settings')` to the mount `useEffect` in `App.tsx` to clean up legacy persisted data from pre-URL-state migration (PR #38) - Note: The duplicate `getOperationFromPattern` function mentioned in #41 was al…
+- **Source**: PR #45
