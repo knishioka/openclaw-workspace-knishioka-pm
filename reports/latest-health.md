@@ -1,54 +1,56 @@
-As of: 2026-04-05
-Summary: RED 5 / YELLOW 1 / GREEN 4
+As of: 2026-04-12
+Summary: RED 4 / YELLOW 0 / GREEN 6
 
 >> Changes this week:
-  cost-management-mcp: RED → GREEN (schedule-only CI failure fixed in PR #147; latest CI success, 8日 inactive)
-  english-note-maker: YELLOW → RED (94日 inactive で critical threshold超過)
+  ib-sec-mcp: RED → GREEN (CI failure解消、Issue #103 / PR #104 反映後に success)
+  english-note-maker: RED → GREEN (Issue #19 / PR #20 反映後、最終更新1日前)
+  simple-bookkeeping: YELLOW → RED (92日 inactive で critical threshold超過)
 
 >> Risks / Blockers:
-  ib-sec-mcp  Security workflow failure継続、open PR 4、Issue #103 open [RED 2週連続]
-  english-note-maker  94日放置で RED 化、open Issue #19 のみで実装進捗なし [RED 1週目]
-  td-mcp-server  245日放置、open PR 2 のまま [RED 2週連続]
-  meditation-chrome-extension  279日放置、CI なし [RED 2週連続]
-  remotion-math-education  292日放置、CI なし [RED 2週連続]
+  simple-bookkeeping  92日放置、open issue 37 / open PR 8、dormant repo [RED 1週連続]
+  td-mcp-server  252日放置、open PR 2、abandoned repo [RED 3週連続]
+  meditation-chrome-extension  286日放置、CI なし、abandoned repo [RED 3週連続]
+  remotion-math-education  299日放置、CI なし、abandoned repo [RED 3週連続]
 
 >> Next actions:
-  ib-sec-mcp: Issue #103 のまま security workflow 修復を優先（gitleaks schedule false-positive対処） → pending
-  english-note-maker: 既存 feature Issue #19 を維持、追加 Issue はまだ不要 → pending
-  kanji-practice: サイトQAでページ数 5枚生成は live で再現せず。Issue #20 は現行 GitHub Pages 上では再確認が必要 → pending close proposal
-  cost-management-mcp: CI 修復後の安定監視を継続 → confirmed
+  simple-bookkeeping: dormant前提で新規Issueは増やさず、月次レビューで扱いを再確認 → pending
+  td-mcp-server: abandoned前提で archive 候補として月次レビュー送り → pending
+  meditation-chrome-extension: abandoned前提で archive 候補として月次レビュー送り → pending
+  remotion-math-education: abandoned前提で archive 候補として月次レビュー送り → pending
 
 >> Confirmed:
-  kanji-practice  最終更新14日前 GREEN
-  math-worksheet  最終更新5日前 GREEN
-  freee-mcp  最終更新5日前 GREEN
-  cost-management-mcp  最終更新8日前 GREEN
-  simple-bookkeeping  最終更新85日前 YELLOW
+  kanji-practice  最終更新0日前 GREEN
+  math-worksheet  最終更新0日前 GREEN
+  ib-sec-mcp  最終更新1日前 GREEN
+  freee-mcp  最終更新12日前 GREEN
+  cost-management-mcp  最終更新15日前 GREEN
+  english-note-maker  最終更新1日前 GREEN
 
 ## Demo Site QA
 
 - kanji-practice: OK
-  - `.a4-page` count: 5枚指定 → 5ページ生成を確認
-  - A4レイアウト維持、プレビュー崩れなし
-  - 既存 Issue #20 の症状（5/10枚が 1枚へ戻る）は current site では非再現
+  - 5枚指定で `1/5` ... `5/5`、10枚指定で `1/10` ... `10/10` を確認
+  - 2026-03-28 の Issue #20 症状（ページ数リセット）は現行 site で非再現
+  - 1年生サンプル内容に明らかな学年逸脱は見当たらず、A4プレビュー崩れなし
 - math-worksheet: OK
-  - `+1のたし算` 30問 / 3列レイアウトで 1ページに収まり、番号 1-30 を確認
-  - 生成値サンプルは 0-9 の範囲で、+1 なので負数なし
-  - 3列レイアウト崩れなし
+  - `+1のたし算` 30問 / 3列、20問 / 2列で問題数とプレビュー一致
+  - `1桁のひき算（繰り下がりなし）` サンプルで負数なし
+  - 2026-03-28 の列重複 Issue #48 の再発は見えず、レイアウト崩れなし
 - english-note-maker: OK
-  - ページ数 5 を入力 → `.note-page` 5ページ生成を確認
-  - Phrase Practice のページ見出し `(1/5)`, `(2/5)` を確認
-  - 表示文言・和訳に明らかな誤りなし
+  - 5ページ指定で `Phrase Practice - あいさつ (1/5)` ... `(5/5)` を確認
+  - 直近修正後も 1ページ / 5ページともページ生成は正常
+  - 表示フレーズ、和訳、用途ラベルに明らかな誤りなし
 
 ## Knowledge context
 
-- math-worksheet: 先週、property-based tests と Playwright 検証層を追加済み。今回 QA 安定と整合的。
-- cost-management-mcp: PR #147 で schedule CI failure 修復済み。今回 RED→GREEN を確認。
-- freee-mcp: axios 1.14.0 pin と MCP spec 動向メモあり。CI は安定継続。
-- kanji-practice: 競合調査メモあり。今週の QA では feature/UX 検討よりも既存品質は安定。
+- math-worksheet: 今週は Bar Model overflow 修正と幼児向け数字なぞり書き機能追加があり、教育系拡張が継続。
+- ib-sec-mcp: 今週の競合調査では read-only portfolio/risk summary と paper/live 安全表示が差別化候補。
+- freee-mcp: axios pin 済みで CI は安定継続。
 
 ## Issue Tracker
 
-- Open tracked issues checked: #103 (ib-sec-mcp), #20/#21 (kanji-practice), #19 (english-note-maker)
+- Tracked issues total: 6
+- Open tracked issues checked this run: 0
+- Quality score summary: A 6 / B 0 / C 0 / D 0
 - Status changes this run: なし
-- Notable: kanji-practice Issue #20 は live site で非再現。close 提案候補だが、GitHub status はまだ OPEN
+- Notable: 追跡中 Issue は全件 merged 済み。今回の retrospective 更新対象はなし
