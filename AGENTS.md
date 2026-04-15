@@ -26,6 +26,7 @@ Every session:
 - Add labels and update Issue descriptions
 - Commit to this workspace (reports/, knowledge/, monitoring/ のみ)
 - Read any monitored repo via gh CLI
+- Create **draft** Pull Requests via `codex exec` (see Auto-Resolve section)
 
 **Never modify these files:**
 
@@ -36,7 +37,8 @@ Every session:
 **Requires Ken's explicit approval:**
 
 - Close GitHub Issues
-- Merge or create Pull Requests
+- Merge Pull Requests (draft → ready → merge)
+- Create non-draft (ready for review) Pull Requests
 - Delete files, branches, or repos
 - Archive repos
 - Send messages to external surfaces (except approved cron delivery)
@@ -168,12 +170,15 @@ focus-task 実行時、Issue 作成と同時に既存 Issue の整理も行う:
   `{"repo":"...","issue":N,"type":"maintenance","created":"YYYY-MM-DD","status":"open"}`
 - 同一リポに対して open な PM作成 Issue が2件以上ある場合、新規作成しない（先に既存を片付ける）
 - Ken が1週間以内にレビューしなかった Issue が3件以上溜まったら、次の focus-task は Issue 作成を一時停止し、溜まっている Issue のサマリーを WhatsApp で送る
+- `config/repos.yaml` で `status: abandoned` または `status: dormant` のリポは Issue 作成対象から除外（ただし RED 2週連続+high のエスカレーション対象は除外しない）
 
-**キャパシティ適応:**
+**キャパシティ適応（focus-task 実行時に毎回判定）:**
 
-- 月次レトロスペクティブで実際のスループットを測定し、頻度を自動調整
-- resolve 率が 50% 以下 → 週2件に削減（Thu の focus-task を提案のみに）
-- resolve 率が 80% 以上 → 現状維持 or feature Issue の比率を上げる
+- `monitoring/issue-tracker.jsonl` の直近30日データから resolve 率を算出
+- resolve 率 50% 未満 → Issue 作成せず、既存 open Issue の優先順位レビューのみ
+- resolve 率 50-80% → 最大1 Issue/回に制限
+- resolve 率 80% 以上 → 通常運転（最大2 Issue/回）、feature Issue の比率を上げる
+- 直近4回の focus-task で feature Issue が0件 → 次回は feature を優先的に検討
 
 ## Issue Retrospective
 
@@ -551,12 +556,68 @@ Follow knowledge/STRATEGY.md:
 - Focus on: tech decisions, architecture patterns, design rationale, competitive landscape
 - knowledge/CHANGELOG.md: 今週の新しい発見のみ記載
 
+## Auto-Resolve via Codex
+
+Issue 作成後、Codex CLI の `resolve-issue` スキルを使って自動的に draft PR を作成する。
+
+### ローカルリポパス
+
+repos.yaml のリポ名からローカルパスを解決する:
+
+- Public repos: `/Users/ken/Developer/private/{name}`
+- Private repos: `/Users/ken/Developer/private/{name}`
+
+### 実行フロー
+
+```bash
+# 1. ローカルリポを最新に同期
+cd /Users/ken/Developer/private/{repo_name}
+git fetch origin
+git checkout main && git pull origin main
+
+# 2. Codex で Issue を解決（draft PR を作成）
+codex exec -C /Users/ken/Developer/private/{repo_name} \
+  --full-auto \
+  "/resolve-issue #{issue_number}"
+
+# 3. PR が作成されたら gh で draft に変換（resolve-issue が通常PRを作る場合）
+pr_number=$(gh pr list -R {owner}/{name} --head "$(git branch --show-current)" --json number --jq '.[0].number')
+if [ -n "$pr_number" ]; then
+  gh pr ready --undo -R {owner}/{name} "$pr_number" 2>/dev/null || true
+fi
+```
+
+### 制約
+
+- **1 Issue ずつ逐次処理**（並列実行しない）
+- codex が AGENTS.md を見つけられない場合、CLAUDE.md をプロジェクトコンテキストとして使用する（codex は自動的に読む）
+- codex exec のタイムアウト: 15分（`--timeout 900` 相当）
+- 失敗した場合: issue-tracker.jsonl に `"auto_resolve": "failed"` を記録し、次の Issue に進む
+- PR 作成後: issue-tracker.jsonl に `"auto_resolve": "draft_pr_created", "pr": N` を記録
+
+### issue-tracker.jsonl 拡張フィールド
+
+```json
+{
+  "repo": "knishioka/math-worksheet",
+  "issue": 48,
+  "type": "bugfix",
+  "created": "2026-03-28",
+  "status": "open",
+  "auto_resolve": "draft_pr_created",
+  "pr": 51,
+  "codex_duration_sec": 342
+}
+```
+
+`auto_resolve` の値: `"pending"` | `"in_progress"` | `"draft_pr_created"` | `"failed"` | `"skipped"`
+
 ## Cron Jobs
 
-| Job                      | Schedule (KL)  | 配信                    | 目的                                           |
-| ------------------------ | -------------- | ----------------------- | ---------------------------------------------- |
-| weekly-repo-health       | Sun 20:00      | WhatsApp (変化時のみ)   | ヘルスレポート + サイトQA + レトロスペクティブ |
-| focus-task               | Mon+Thu 8:30   | Issue 作成 + commit     | メンテ/新機能 Issue 自動作成（週4件上限）      |
-| weekly-knowledge-extract | Fri 19:00      | commit                  | ナレッジ + 競合リサーチ + changelog            |
-| monthly-portfolio-review | 第1日曜 19:00  | WhatsApp                | ポートフォリオ俯瞰 + PM Retrospective          |
-| private-repo-check       | 隔週水曜 20:00 | gitignored + Issue 作成 | private リポ監視 + Issue 作成                  |
+| Job                      | Schedule (KL)  | 配信                    | 目的                                                 |
+| ------------------------ | -------------- | ----------------------- | ---------------------------------------------------- |
+| weekly-repo-health       | Sun 20:00      | WhatsApp (変化時のみ)   | ヘルスレポート + サイトQA + レトロスペクティブ       |
+| focus-task               | Mon+Thu 8:30   | Issue 作成 + resolve    | Issue 自動作成 → Codex で draft PR 作成（週4件上限） |
+| weekly-knowledge-extract | Fri 19:00      | commit                  | ナレッジ + 競合リサーチ + changelog                  |
+| monthly-portfolio-review | 第1日曜 19:00  | WhatsApp                | ポートフォリオ俯瞰 + PM Retrospective                |
+| private-repo-check       | 隔週水曜 20:00 | gitignored + Issue 作成 | private リポ監視 + Issue 作成                        |

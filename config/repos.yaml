@@ -45,6 +45,7 @@ repos:
     language: TypeScript
     priority: medium
     category: fintech
+    status: dormant
     notes: "Double-entry bookkeeping for Japanese tax filing (blue return)"
 
   - owner: knishioka
@@ -61,6 +62,7 @@ repos:
     language: Python
     priority: low
     category: mcp
+    status: abandoned
     notes: "Treasure Data MCP server -- inactive since 2025-08"
 
   - owner: knishioka
@@ -68,6 +70,7 @@ repos:
     language: JavaScript
     priority: low
     category: tool
+    status: abandoned
     notes: "Chrome meditation extension -- inactive since 2025-06"
 
   - owner: knishioka
@@ -75,6 +78,7 @@ repos:
     language: TypeScript
     priority: low
     category: education
+    status: abandoned
     notes: "Math education video generator with Remotion -- inactive since 2025-06"
 
 # Private repos (output goes to gitignored files only, never committed)
