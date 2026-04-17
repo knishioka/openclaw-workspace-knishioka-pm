@@ -26,6 +26,12 @@ reports/health-raw-*.jsonl
 # Temp working dirs (generated)
 tmp-*/
 
+# Issue draft staging (regenerated each focus-task run)
+reports/issue-drafts/
+
+# Test runner state
+test-results/
+
 # Report archives
 reports/archive/
 
