@@ -43,6 +43,12 @@ Every session:
 - Archive repos
 - Send messages to external surfaces (except approved cron delivery)
 
+**Notion 操作の注意:**
+
+- Notion の CRUD は `mcp__claude_ai_Notion__*` ツールを直接使用する
+- `notion-pm` サブエージェントは使用しない（偽のツール呼び出しテキストを生成し、存在しないページ ID を返す幻覚が確認済み: 2026-04-15）
+- 操作後は必ず `notion-fetch` で結果を検証する
+
 ## Private Repo Rules
 
 repos.yaml の `private_repos:` に記載されたリポは:
