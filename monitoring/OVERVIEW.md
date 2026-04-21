@@ -9,7 +9,6 @@
 | `last-suggested.json` | Last repo suggested by focus-task (avoid repeats)     | Yes        |
 | `active-session.json` | Current session's active repo (heartbeat)             | Yes        |
 | `private-health.json` | Private repo health data (never committed)            | Yes        |
-| `latest-health.json`  | Raw JSON from last health run                         | Yes        |
 
 ## Cron Jobs
 

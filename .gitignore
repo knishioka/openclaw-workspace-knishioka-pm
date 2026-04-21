@@ -21,7 +21,7 @@ reports/.latest-health.prev.md
 
 # Raw snapshots (generated, not committed)
 monitoring/health-*.jsonl
-reports/health-raw-*.jsonl
+reports/health-raw-*
 
 # Temp working dirs (generated)
 tmp-*/
