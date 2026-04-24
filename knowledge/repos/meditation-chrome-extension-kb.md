@@ -11,7 +11,7 @@
 - Default branch: main
 - Created: 2025-06-12
 - Updated: 2025-06-30
-- Collected: 2026-04-17
+- Collected: 2026-04-24
 
 ## Tech Stack
 
@@ -21,7 +21,7 @@
 - npm scripts (keys): build, dev, format, format:check, lint, lint:fix, test, test:coverage, test:watch
 - pyproject.toml: not found
 - requirements.txt: not found
-- README signal: # 🧘 Meditation Chrome Extension A privacy-focused Chrome extension that provides guided meditation sessions with soothing background music and voice guidance in English and Japanese. Works completely offline with no external dependencies. ![Chrome Web Store](…
+- README signal: 🧘 Meditation Chrome Extension A privacy-focused Chrome extension that provides guided meditation sessions with soothing background music and voice guidance in English and Japanese. Works completely offline with no external dependencies. ✨ Features - **🌐 Bilingual Support**: Full support for English and Japanese meditat…
 
 ## Architecture / Patterns
 

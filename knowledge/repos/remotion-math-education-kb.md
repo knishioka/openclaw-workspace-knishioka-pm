@@ -11,7 +11,7 @@
 - Default branch: main
 - Created: 2025-06-17
 - Updated: 2025-06-17
-- Collected: 2026-04-17
+- Collected: 2026-04-24
 
 ## Tech Stack
 
@@ -21,7 +21,7 @@
 - npm scripts (keys): build, dev, render, upgrade
 - pyproject.toml: not found
 - requirements.txt: not found
-- README signal: # 🧮 Remotion Math Education Video Generator Remotionを使用した高品質な筆算教育動画生成システム ## ✨ 特徴 - **4K対応**: 3840x2160の超高解像度動画 - **プロ品質**: 60fps、h264コーデック、CRF18の高品質設定 - **React製**: TypeScriptとReactを使用したモダンな開発環境 - **カスタマイズ可能**: 任意の数字で問題を生成 - **段階的アニメーション**: 筆算の各ステップを視覚的に表現 -…
+- README signal: 🧮 Remotion Math Education Video Generator Remotionを使用した高品質な筆算教育動画生成システム ✨ 特徴 - **4K対応**: 3840x2160の超高解像度動画 - **プロ品質**: 60fps、h264コーデック、CRF18の高品質設定 - **React製**: TypeScriptとReactを使用したモダンな開発環境 - **カスタマイズ可能**: 任意の数字で問題を生成 - **段階的アニメーション**: 筆算の各ステップを視覚的に表現 - **音声ナレーション対応**: 教育的な音声ガイド付き 🚀 セットアップ 📁 プロジェクト構造 ``` src/ ├── comp…
 
 ## Architecture / Patterns
 
