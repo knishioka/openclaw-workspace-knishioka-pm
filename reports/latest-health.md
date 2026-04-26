@@ -1,30 +1,39 @@
-As of: 2026-04-19
+As of: 2026-04-26
 Summary: RED 4 / YELLOW 0 / GREEN 6
 
 >> Changes this week:
-  変化なし。先週比で 6 GREEN / 4 RED を維持。
+  変化なし（全10リポのステータス遷移なし）
 
 >> Risks / Blockers:
-  knishioka/simple-bookkeeping  99日更新なし, open issue 37件, open PR 8件 [RED 2週連続]
-  knishioka/td-mcp-server  259日更新なし, abandoned, open PR 2件 [RED 6週連続]
-  knishioka/meditation-chrome-extension  293日更新なし, CI未設定 [RED 6週連続]
-  knishioka/remotion-math-education  306日更新なし, CI未設定 [RED 6週連続]
+  knishioka/kanji-practice  production preview に Debug ボタンが露出。site QA で確認し bugfix Issue #31 を作成
+  knishioka/simple-bookkeeping  106日更新なし、open issue 37件、RED 4週連続
+  knishioka/td-mcp-server  266日更新なし、RED 4週連続（abandoned）
+  knishioka/meditation-chrome-extension  300日更新なし、CI未設定、RED 4週連続（abandoned）
+  knishioka/remotion-math-education  313日更新なし、CI未設定、RED 4週連続（abandoned）
 
 >> Next actions:
-  kanji-practice: demo QA 実施, 1/5/10ページ生成とA4プレビュー確認 → 問題なし
-  math-worksheet: demo QA 実施, 20問/30問プレビューで件数一致・負数なし確認 → 問題なし
-  english-note-maker: demo QA 実施, 1/5/10ページ生成と印刷プレビュー確認 → 問題なし
+  knishioka/kanji-practice: 本番UIから Debug 導線を隠す → Issue #31 created
+  knishioka/simple-bookkeeping: dormant のため新規Issueは作らず、月次レビューで扱い方を再判断 → pending
+  knishioka/ib-sec-mcp: 先週作成の maintenance Issue #111 は同日解決済み、retrospective反映 → done
+  knishioka/kanji-practice: 先週作成の feature Issue #25 は同日解決済み、retrospective反映 → done
 
 >> Confirmed:
-  knishioka/kanji-practice  最終更新7日前 GREEN
-  knishioka/math-worksheet  最終更新3日前 GREEN
-  knishioka/ib-sec-mcp  最終更新8日前 GREEN
-  knishioka/freee-mcp  最終更新3日前 GREEN
-  knishioka/cost-management-mcp  最終更新22日前 GREEN
-  knishioka/english-note-maker  最終更新3日前 GREEN
+  knishioka/kanji-practice  最終更新1日前 GREEN
+  knishioka/math-worksheet  最終更新1日前 GREEN
+  knishioka/ib-sec-mcp  最終更新6日前 GREEN
+  knishioka/freee-mcp  最終更新10日前 GREEN
+  knishioka/cost-management-mcp  最終更新29日前 GREEN
+  knishioka/english-note-maker  最終更新1日前 GREEN
+
+## QA Notes
+
+- Demo site QA は browser(host) が github.io への hostname navigation を制限したため、Playwright screenshot fallback で実施
+- kanji-practice: NG, production preview に Debug ボタン露出
+- math-worksheet: OK, 3列30問プレビューに崩れなし
+- english-note-maker: OK, phrase practice 1ページプレビューに崩れなし
 
 ## Issue Tracker
 
-- knishioka/english-note-maker #22 → PR #23 merged, Quality Score A, 0日で解決
-- knishioka/freee-mcp #174 → PR #176 merged, Quality Score A, 0日で解決
-- 累計: merged 8件 / open 0件, Quality Score A 8件
+- Updated: knishioka/kanji-practice #25 → merged (PR #26, 2026-04-20), Quality A
+- Updated: knishioka/ib-sec-mcp #111 → merged (PR #112, 2026-04-20), Quality A
+- New: knishioka/kanji-practice #31 bugfix open (site QA)
