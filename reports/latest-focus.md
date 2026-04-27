@@ -1,48 +1,41 @@
-As of: 2026-04-20
-Summary: RED 5 / YELLOW 2 / GREEN 3
+As of: 2026-04-27
+Summary: RED 4 / YELLOW 0 / GREEN 6
 
 >> Changes this week:
-  knishioka/kanji-practice: GREEN → ACTION (learner-context に沿う学習プリセット MVP を feature として起票, Issue #25 / draft PR #26)
-  knishioka/ib-sec-mcp: YELLOW → ACTION (FastMCP 3 追従が maintenance 課題として確定, Issue #111 / draft PR #112)
+  knishioka/freee-mcp: GREEN → ACTION (MCP structured output PoC を tech-adoption として起票, Issue #177 / draft PR #178)
 
 >> Risks / Blockers:
-  Dynamic frequency check: open_pm_issues=0, last30_total=8, last30_resolved=8, resolve_rate=1.00 → Issue creation allowed, max 2 this run
-  Perspective balance before selection: PM:Dev = 3:1 over the last 4 focus-task issues, so this run forced a 1 PM + 1 Dev split
-  kanji-practice main worktree had local modifications, so auto-resolve was isolated in /tmp/kanji-practice-issue-25
-  ib-sec-mcp main worktree also had local state, so auto-resolve was isolated in /tmp/ib-sec-mcp-issue-111
+  Dynamic frequency check: open_pm_issues=1, last30_total=11, last30_resolved=10, resolve_rate=0.91 → Issue creation allowed, max 2 this run
+  Perspective balance before selection: PM:Dev = 2:2 over the last 4 focus-task issues
+  Tech-adoption balance: last 4 focus-task issues で tech-adoption=0 のため、今回は Developer視点の tech-adoption を優先
+  freee-mcp main worktree had untracked `.mcp.json`, so auto-resolve was isolated in /tmp/freee-mcp-issue-177
 
 >> Next actions:
-  knishioka/kanji-practice: feat: 学習プリセット（9級読み・9級書き取り・8級先取り）を追加 → Issue #25 created, draft PR #26 created
-  knishioka/ib-sec-mcp: maintenance: FastMCP 3系へ追従し内部API依存テストを解消する → Issue #111 created, draft PR #112 created
-  knishioka/kanji-practice: verify draft PR #26 in review, especially preset wording, localStorage compatibility, and print layout
-  knishioka/ib-sec-mcp: verify draft PR #112 in review, especially FastMCP 3 public API compatibility and warning noise left outside this scope
+  knishioka/freee-mcp: tech-adoption: freee_kpi_dashboard に structured output を PoC 導入する → Issue #177 created, draft PR #178 created
+  knishioka/freee-mcp: review draft PR #178, especially structuredContent shape, SDK 1.29.0 compatibility, and downstream client expectations
 
 >> Confirmed:
-  knishioka/kanji-practice  npm run test:unit / build / check 通過, draft PR #26 open
-  knishioka/ib-sec-mcp  uv run pytest 890 passed, coverage 55.97%, draft PR #112 open
+  knishioka/freee-mcp  CI pass, PR Labeler pass, draft PR #178 open
 
 ## Created this run
-- knishioka/kanji-practice Issue #25, draft PR #26
-  - perspective: pm
-  - subtype: feature
-  - title: feat: 学習プリセット（9級読み・9級書き取り・8級先取り）を追加
-- knishioka/ib-sec-mcp Issue #111, draft PR #112
+- knishioka/freee-mcp Issue #177, draft PR #178
   - perspective: dev
-  - subtype: maintenance
-  - title: maintenance: FastMCP 3系へ追従し内部API依存テストを解消する
+  - subtype: tech-adoption
+  - title: tech-adoption: freee_kpi_dashboard に structured output を PoC 導入する
 
 ## Dynamic frequency decision
-- open PM issues: 0
-- last 30 days created: 8
-- last 30 days resolved: 8
-- resolve rate: 1.00
+- open PM issues: 1
+- last 30 days created: 11
+- last 30 days resolved: 10
+- resolve rate: 0.91
 - decision: normal capacity, up to 2 issues
 
 ## Perspective ratio
-- recent 4 focus-task issues before this run: PM:Dev = 3:1
-- this run selection: PM 1 + Dev 1
+- recent 4 focus-task issues before this run: PM:Dev = 2:2
+- this run selection: PM 0 + Dev 1
 
 ## Tech Radar notes
-- FastMCP 3 is mature enough to adopt now, and removing test dependence on private internals materially lowers future MCP upgrade risk
-- GitHub Actions runner support is deprecating Node 20, so MCP and CI repos should keep runtime and action versions under periodic review
-- Astral's uv GitHub Actions integration is increasingly the default Python workflow path, but this run kept scope on FastMCP compatibility only
+- MCP spec 2025-06-18 で structured tool output, resource links, `_meta`, `title`, HTTP protocol-version header が明確化され、MCP server repo は追従価値が高い
+- `@modelcontextprotocol/sdk` latest は 1.29.0。freee-mcp は今回このラインまで引き上げた
+- TypeScript 6.0.3 は出ているが、今回は MCP structured output PoC に絞って未採用
+- Frontend 側では Vite 8.0.10 / Vitest 4.1.5 が進んでいるため、english-note-maker / math-worksheet 系の次回候補になりうる
