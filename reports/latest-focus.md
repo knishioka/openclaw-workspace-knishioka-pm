@@ -1,41 +1,64 @@
-As of: 2026-04-27
-Summary: RED 4 / YELLOW 0 / GREEN 6
+# Focus Task Report — 2026-04-30 (Thu)
 
->> Changes this week:
-  knishioka/freee-mcp: GREEN → ACTION (MCP structured output PoC を tech-adoption として起票, Issue #177 / draft PR #178)
+## 作成した Issue + PR
 
->> Risks / Blockers:
-  Dynamic frequency check: open_pm_issues=1, last30_total=11, last30_resolved=10, resolve_rate=0.91 → Issue creation allowed, max 2 this run
-  Perspective balance before selection: PM:Dev = 2:2 over the last 4 focus-task issues
-  Tech-adoption balance: last 4 focus-task issues で tech-adoption=0 のため、今回は Developer視点の tech-adoption を優先
-  freee-mcp main worktree had untracked `.mcp.json`, so auto-resolve was isolated in /tmp/freee-mcp-issue-177
+| Repo | Issue | PR | Type | Perspective | Subtype | Status |
+|------|-------|----|------|-------------|---------|--------|
+| knishioka/ib-sec-mcp | [#114](https://github.com/knishioka/ib-sec-mcp/issues/114) feat: 保有銘柄の決算・配当カレンダーツールを追加 | [#115](https://github.com/knishioka/ib-sec-mcp/pull/115) | feature | pm | feature | draft_pr_created ✅ |
 
->> Next actions:
-  knishioka/freee-mcp: tech-adoption: freee_kpi_dashboard に structured output を PoC 導入する → Issue #177 created, draft PR #178 created
-  knishioka/freee-mcp: review draft PR #178, especially structuredContent shape, SDK 1.29.0 compatibility, and downstream client expectations
+## Pre-check 判定結果
 
->> Confirmed:
-  knishioka/freee-mcp  CI pass, PR Labeler pass, draft PR #178 open
+| 項目 | 判定 | 詳細 |
+|------|------|------|
+| Open PM Issues | 2件 (OK) | kanji-practice #31, freee-mcp #177 |
+| 直近30日 resolve率 | **66.7%** (4/6) | 50-80% → 最大 1 Issue/回 |
+| Feature count (直近4回) | 2件 | 優先フラグなし |
+| 直近4回 perspective | PM 3 : Dev 3 | バランス良好 |
 
-## Created this run
-- knishioka/freee-mcp Issue #177, draft PR #178
-  - perspective: dev
-  - subtype: tech-adoption
-  - title: tech-adoption: freee_kpi_dashboard に structured output を PoC 導入する
+→ 今回: PM perspective / feature 1件 作成
 
-## Dynamic frequency decision
-- open PM issues: 1
-- last 30 days created: 11
-- last 30 days resolved: 10
-- resolve rate: 0.91
-- decision: normal capacity, up to 2 issues
+## 直近4回の Perspective 比率
 
-## Perspective ratio
-- recent 4 focus-task issues before this run: PM:Dev = 2:2
-- this run selection: PM 0 + Dev 1
+| 日付 | Repo | Perspective | Subtype |
+|------|------|-------------|---------|
+| 2026-04-30 | ib-sec-mcp | **pm** | feature |
+| 2026-04-27 | freee-mcp | dev | tech-adoption |
+| 2026-04-26 | kanji-practice | qa | bugfix |
+| 2026-04-20 | kanji-practice | pm | feature |
+| 2026-04-20 | ib-sec-mcp | dev | maintenance |
 
-## Tech Radar notes
-- MCP spec 2025-06-18 で structured tool output, resource links, `_meta`, `title`, HTTP protocol-version header が明確化され、MCP server repo は追従価値が高い
-- `@modelcontextprotocol/sdk` latest は 1.29.0。freee-mcp は今回このラインまで引き上げた
-- TypeScript 6.0.3 は出ているが、今回は MCP structured output PoC に絞って未採用
-- Frontend 側では Vite 8.0.10 / Vitest 4.1.5 が進んでいるため、english-note-maker / math-worksheet 系の次回候補になりうる
+直近4回 PM:Dev = 3:3 → バランス維持
+
+## Tech Radar スキャン結果（今回採用せず、次回以降検討）
+
+### 今週の重要トピック
+
+1. **FastMCP 3** — ib-sec-mcp で 2026-04-20 に採用済み ✅
+2. **yfinance `>=2.0` 対応** — ib-sec-mcp の dependabot PR #113 で `<2.0` 制約が更新待ち。`earnings_calendar.py` のコードは yfinance 2.x API の calendar dict 形式に対応させて実装。
+3. **MCP Streaming Responses** — MCP spec v0.6 で partial streaming が議論中。FastMCP 3 側のサポート状況を継続観察。
+4. **Python 3.13** — ib-sec-mcp はすでに Python 3.13 対応済み (pyproject.toml の `python_requires >= 3.12`, CI は 3.13 で動作確認)
+5. **actions/checkout v4→v6** — dependabot PR #70 が open。2メジャーバージョン飛び越し。次回 focus-task で maintenance Issue 候補。
+6. **astral-sh/setup-uv v5→v7** — dependabot PR #69 が open。同上。
+
+### 次回 focus-task 候補
+
+- **ib-sec-mcp**: dependabot PRs をまとめてマージする maintenance Issue（actions/checkout v6, setup-uv v7, yfinance 2.x）
+- **math-worksheet**: Issue #57（分数↔小数変換）の auto-resolve 試行が pending → Codex へ回すか確認
+- **english-note-maker**: sight words / phonics 穴埋めモード（PM/feature）
+
+## Auto-Resolve 結果
+
+| Issue | Codex | テスト | PR |
+|-------|-------|--------|-----|
+| ib-sec-mcp #114 | ✅ 完走 | 894/894 passed (56.17% coverage) | [#115](https://github.com/knishioka/ib-sec-mcp/pull/115) draft |
+
+## 実装サマリ
+
+新規ファイル `ib_sec_mcp/mcp/tools/earnings_calendar.py`:
+- `get_earnings_calendar(symbols, days_ahead=90)` MCP ツール
+- `symbols=None` → `PositionStore` の最新スナップショットから自動取得
+- yfinance `Ticker.calendar` で Earnings Date / Ex-Dividend Date を取得
+- 銘柄単位の失敗はエラーエントリとして返す（処理を止めない）
+- 結果は `days_until_earnings` 昇順ソート
+
+変更ファイル: 4件（earnings_calendar.py 新規, tools/__init__.py, test_server.py, test_earnings_calendar.py 新規）
