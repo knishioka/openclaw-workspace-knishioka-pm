@@ -15,7 +15,13 @@ SOFT_FAIL="${SOFT_FAIL:-0}"
 
 cd "$(git rev-parse --show-toplevel)"
 
-mapfile -t files < <(git ls-files '**/AGENTS.md' 'AGENTS.md' 2>/dev/null | sort -u)
+# `mapfile` is Bash 4+, so use a while-read loop for macOS /bin/bash (3.2).
+# `:(glob)**/AGENTS.md` matches root + any nested AGENTS.md in one pattern;
+# without :(glob) magic, `**/AGENTS.md` does NOT include the root path.
+files=()
+while IFS= read -r f; do
+  files+=("$f")
+done < <(git ls-files ':(glob)**/AGENTS.md' 2>/dev/null | sort -u)
 
 if [[ ${#files[@]} -eq 0 ]]; then
   echo "no AGENTS.md files tracked; nothing to check"
