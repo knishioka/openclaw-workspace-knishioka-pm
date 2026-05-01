@@ -43,7 +43,9 @@ LOCAL_REPO_BASE="${LOCAL_REPO_BASE:-/Users/ken/Developer/private}"
 CODEX_TIMEOUT="${CODEX_TIMEOUT:-900}"
 
 usage() {
-  sed -n '2,20p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  # Print the leading header comment block (after the shebang) up to the first
+  # non-comment line. Auto-extends as the header grows; no hardcoded line range.
+  awk 'NR==1{next} /^[^#]/{exit} {sub(/^# ?/,""); print}' "${BASH_SOURCE[0]}"
 }
 
 # --- Parse args (positional + --dry-run anywhere) ---
@@ -89,7 +91,11 @@ fi
 # This grep matches a YAML mapping key "name" with our exact REPO_NAME value
 # under either `repos:` or `private_repos:` (both share the same path prefix
 # per docs/codex-playbook.md).
-if ! grep -E "^[[:space:]]*-?[[:space:]]*name:[[:space:]]*${REPO_NAME}[[:space:]]*$" \
+# Escape dots in REPO_NAME so a name like "foo.bar" matches only "foo.bar"
+# in the ERE, not "fooXbar". Other allowed chars in the validation regex
+# (alnum / underscore / hyphen) are not ERE metacharacters in this position.
+REPO_NAME_RE="${REPO_NAME//./\\.}"
+if ! grep -E "^[[:space:]]*-?[[:space:]]*name:[[:space:]]*${REPO_NAME_RE}[[:space:]]*$" \
      "$REPOS_YAML" >/dev/null; then
   echo "Error: '$REPO_NAME' not found in $REPOS_YAML (repos: or private_repos:)" >&2
   exit 2
