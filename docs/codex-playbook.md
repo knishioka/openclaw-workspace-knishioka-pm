@@ -74,6 +74,18 @@ fi
 
 存在しないコマンドは省略（埋め草で書かない）。リポ独自のスクリプト (`make ci` 等) があればそれを優先する。
 
+### Lint 不在リポの扱い
+
+リポによっては lint / formatter が未導入のケースがある。Codex は **無いものを勝手に install しない**。
+
+- 検出 heuristic: `command -v {tool} >/dev/null` で解決できない / `npm run lint` 等が `Missing script` で落ちる → "lint 未導入" と判定する。
+- 判定したら以下の運用にする:
+  1. 動作確認テーブルの該当行は `⚠️ n/a (Linter未導入)` を記録（`✅` で塗らない、行の省略もしない）。
+  2. PR 本文に **「Linterが未導入のため lint をスキップ」** を 1 行残す（影響範囲 / リスク または レビュー観点で言及してよい）。
+  3. issue-tracker.jsonl の `lint_available` を `false`、`lint_skipped_reason` を `"no_lint_configured"` または `"command_not_found"` で記録する。
+  4. ESLint / Ruff / golangci-lint 等の **新規導入は別 Issue** に切り出す（このPRでは導入しない）。
+- 一時的に install パッケージを追加して lint を通す行為は禁止。本来の lint コマンドが解決できない事実を隠さない。
+
 ### 制約
 
 - **1 Issue ずつ逐次処理**（並列実行しない）
@@ -95,6 +107,9 @@ fi
   "auto_resolve": "draft_pr_created",
   "pr": 51,
   "codex_duration_sec": 342,
+  "playbook_version": "2026-05-01",
+  "lint_available": true,
+  "lint_skipped_reason": null,
   "verification": {
     "build": "pass",
     "lint": "pass",
@@ -107,6 +122,11 @@ fi
 
 `auto_resolve` の値: `"pending"` | `"in_progress"` | `"draft_pr_created"` | `"failed"` | `"skipped"`
 `verification` 各項目: `"pass"` | `"fail"` | `"warn"` | `"skipped"` | `"n/a"`
+`playbook_version` の値: `docs/codex-playbook.md` 先頭の `<!-- version: YYYY-MM-DD -->` から抽出した日付文字列。`scripts/codex-resolve.sh` が起動時に stderr に `[codex-resolve] playbook_version=YYYY-MM-DD` を出力するので、cron 側はそれを captureする。
+`lint_available` の値: `true` (lint コマンドが解決できた) / `false` (未導入 or 見つからない)。
+`lint_skipped_reason` の値: `lint_available=false` のときのみ設定。`"no_lint_configured"` (script 未定義) / `"command_not_found"` (バイナリ不在) / `null` (lint_available=true)。
+
+JSONL は **append-only**。既存レコードに新フィールドを遡及追加しない（`playbook_version` 不在の旧レコードはそのまま残す）。
 
 ## PR Description Standards (Codex Auto-PR)
 

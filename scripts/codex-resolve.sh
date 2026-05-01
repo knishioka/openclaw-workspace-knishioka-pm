@@ -121,6 +121,22 @@ fi
 
 PLAYBOOK_CONTENT="$(cat "$PLAYBOOK")"
 
+# --- Extract playbook_version from `<!-- version: YYYY-MM-DD -->` marker ---
+# The marker is the first line of docs/codex-playbook.md by convention.
+# If absent or malformed, log a warning and use "unknown" so downstream tracking
+# is never blocked. We do NOT fail the run on a missing version.
+# Portable across macOS BSD grep / GNU grep — no gawk match() arrays.
+PLAYBOOK_VERSION_LINE="$(head -n 1 "$PLAYBOOK")"
+PLAYBOOK_VERSION="$(printf '%s\n' "$PLAYBOOK_VERSION_LINE" \
+  | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' \
+  | head -n 1 || true)"
+if [ -z "$PLAYBOOK_VERSION" ] \
+   || ! printf '%s' "$PLAYBOOK_VERSION_LINE" | grep -qE '<!--[[:space:]]*version:[[:space:]]*[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]]*-->'; then
+  echo "Warning: no '<!-- version: YYYY-MM-DD -->' marker on line 1 of $PLAYBOOK" >&2
+  PLAYBOOK_VERSION="unknown"
+fi
+export PLAYBOOK_VERSION
+
 # --- Build final prompt ---
 # The playbook is injected as workspace policy context, then a Goals+Constraints
 # style instruction (per "Codex Prompting Guidelines") points Codex at the
@@ -131,6 +147,8 @@ PROMPT="$(cat <<EOF
 Below is the workspace-level Codex playbook. It is the source of truth for
 verification expectations, PR description format (Japanese, structured), and
 prompting style. Follow it strictly.
+
+Playbook version: ${PLAYBOOK_VERSION}
 
 ---
 
@@ -149,6 +167,9 @@ ${PLAYBOOK_CONTENT}
 - 上記 "Auto-Resolve via Codex" / "PR Description Standards" / "Codex Prompting Guidelines" に従うこと。
 - workspace 側 (knishioka-pm) のファイルは編集対象ではない。対象リポ ${OWNER_REPO} のみ変更する。
 - 自己修正コミットは最大3回まで。それでも失敗が残ったら隠さず ❌ で PR 本文に明示する。
+- lint コマンドが解決できない場合 (npm run lint が Missing script / バイナリ不在) は **install しない**。
+  動作確認テーブルに ⚠️ n/a で記録し、PR 本文に「Linterが未導入のため lint をスキップ」を 1 行残す。
+  詳細は "Lint 不在リポの扱い" 節を参照。
 
 【検証】
 - リポ標準のチェック (build / lint / format / typecheck / test) を順に実行。失敗 0 が "good" の定義。
@@ -156,6 +177,10 @@ ${PLAYBOOK_CONTENT}
 
 【出力】
 - draft PR を 1 本作成する。本文は workspace AGENTS.md "PR Description Standards" のテンプレに従い、日本語で記述する。
+- issue-tracker.jsonl への記録時に以下を含める (cron 側が capture):
+  - playbook_version: "${PLAYBOOK_VERSION}"
+  - lint_available: bool (lint が解決できたか)
+  - lint_skipped_reason: "no_lint_configured" / "command_not_found" / null
 EOF
 )"
 
@@ -184,7 +209,7 @@ fi
 # Log only the repo *name* and issue number — never the prompt body, since the
 # repo (and via it, the playbook) may be private. Codex itself logs to its own
 # session files; that is its own boundary, not ours.
-echo "[codex-resolve] start repo=${OWNER_REPO} issue=${ISSUE_NUMBER} timeout=${CODEX_TIMEOUT}s" >&2
+echo "[codex-resolve] start repo=${OWNER_REPO} issue=${ISSUE_NUMBER} playbook_version=${PLAYBOOK_VERSION} timeout=${CODEX_TIMEOUT}s" >&2
 
 START_EPOCH="$(date +%s)"
 set +e
