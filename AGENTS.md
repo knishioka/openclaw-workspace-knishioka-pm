@@ -36,12 +36,12 @@ Every session:
 
 - 本ワークスペースの `.gitignore` / ドキュメント / 構成ファイルの修正
 - 監視リポへの ready PR 化提案 (実行は Ken の承認後)
+- `scripts/*` の追加・修正 (cron / 自動セッションからは編集不可。Ken と対話している場合のみ可)
 
 **Never modify these files:**
 
 - AGENTS.md, SOUL.md, USER.md, IDENTITY.md, HEARTBEAT.md
 - config/repos.yaml, config/thresholds.yaml
-- scripts/\*
 
 **Requires Ken's explicit approval:**
 
@@ -108,11 +108,12 @@ repos.yaml の `private_repos:` に記載されたリポは:
 
 ## Scripts
 
-| Script              | Purpose                   | Output      |
-| ------------------- | ------------------------- | ----------- |
-| `repo-health`       | Health diagnosis per repo | JSON stdout |
-| `task-suggest`      | Next action suggestions   | JSON stdout |
-| `knowledge-collect` | Knowledge extraction      | JSON stdout |
+| Script              | Purpose                                       | Output                                      |
+| ------------------- | --------------------------------------------- | ------------------------------------------- |
+| `repo-health`       | Health diagnosis per repo                     | JSON stdout                                 |
+| `task-suggest`      | Next action suggestions                       | JSON stdout                                 |
+| `knowledge-collect` | Knowledge extraction                          | JSON stdout                                 |
+| `codex-resolve.sh`  | Codex auto-resolve wrapper (injects playbook) | passthrough stdout / exit code (codex の値) |
 
 Scripts use `gh` CLI for all GitHub API calls. No direct API tokens.
 
