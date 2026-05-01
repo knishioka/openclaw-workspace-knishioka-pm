@@ -37,9 +37,12 @@ jobs:
           shopt -s nullglob
           fail=0
           for f in config/*.yaml config/*.yml; do
-            ruby -ryaml -e "YAML.load_file(ARGV[0])" "$f" \
-              && echo "OK:   $f" \
-              || { echo "FAIL: $f"; fail=1; }
+            if ruby -ryaml -e "YAML.load_file(ARGV[0])" "$f"; then
+              echo "OK:   $f"
+            else
+              echo "FAIL: $f"
+              fail=1
+            fi
           done
           exit "$fail"
 
