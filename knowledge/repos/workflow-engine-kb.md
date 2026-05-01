@@ -34,6 +34,8 @@ No fresh competitive research in this run.
 
 ## Tech Decisions (from PRs/commits)
 
+- [2026-04-28] chore: upgrade default LLM from Sonnet 4.5 to Sonnet 4.6 -- workflows.yamlの2ワークフロー + 3 action class defaultを一括変更。同価準帯で品質向上、API互換性あり。 (source: PR #150)
+- [2026-04-28] fix(github_pr_to_notion): skip Notion task creation for merged/closed PRs -- Trigger fetchからaction実行までに PRが merge/closeされるレースを封じる。github_account設定時に最新状態を再 fetchしてskip。 (source: PR #149)
 - [2026-04-20] fix(github_pr_events): prevent duplicate Notion tasks and skip merged PRs -- - `GitHub PR → Notion` ワークフローで同じ PR から Notion タスクが2個作られる問題と、cron 起動時に既に merged/closed の PR でもタスクが作られる問題を修正 - 新規テスト4件追加 (全1265件 pass) Bug 1: 重複タスク（state file read/write 不整合） - `_fetch_via_search` / `_fetch_repository_prs` は per-key の state file (`__search_knishioka__` や `owner_repo`) から dedup 情報を読む - しかし継承元 `BaseTrigger… (source: PR #147)
 - [2026-04-16] fix(scripts): migrate sync_and_deploy.py from Secret Manager to GCS tokens.json -- Closes #143 Summary After the Secret Manager → GCS migration (89f7552, 630be37), `scripts/sync_and_deploy.py` was left pointing at the obsolete Secret Manager API. Re-running it would update Secret Manager versions while Cloud Run kept reading the unchanged GCS `tokens.json` — token updates silently never reached produ… (source: PR #144)
 - [2026-03-18] perf(state): add in-memory TTL cache for GCS state reads -- - Add module-level state cache with 45s TTL to eliminate redundant GCS reads on warm Cloud Run instances - 90%+ of executions (no new items) now hit cache instead of GCS - Returns deep copies to prevent mutation of cached data - Cache updated on both load and save; optimistic locking still protects writes Expected: ~$2… (source: PR #142)

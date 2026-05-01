@@ -1,5 +1,11 @@
 # math-worksheet Design Decisions
 
+## 2026-04-25: Number tracing module architectural overhaul
+
+- **What**: NumberTracingGridを ProblemList.tsx のトップレベルで特殊扱いに。0-4/5-9の左右2分割レイアウト。全10字のSVGパスを教科書体準拠に再設計。2行目の練習マス追加で余白を活用。
+- **Why**: 幼児（年長）向けターゲット拡大。教科書体の字形準拠にしないと子供が誤った字形を学ぶリスクがあるため。
+- **Source**: PR #60, #61, #62, #63
+
 ## 2026-04-16: fix(fraction): 分数パターンがbasicテンプレにフォールバックしてA4から溢れる問題を修正
 
 - **What**: fix(fraction): 分数パターンがbasicテンプレにフォールバックしてA4から溢れる問題を修正

@@ -31,15 +31,20 @@
 
 ## Competitive Landscape (notes)
 
+- [2026-05-01] 幼児向け拡張: 数字なぞり書き機能（PR #56, #60-63）で学年0（年長）を新設。0-4/5-9の左右2分割レイアウトと教科書体準拠のSVGストロークで差別化。他の無料プリントサービスは幼児向けをほとんどカバーしていないため、ターゲットユーザー拡大の観点で有効。
+- [2026-05-01] URL State: PR #38でURL queryparamsに設定を持つ方式に移行（localStorage廃止）。URLシェアで同一設定を再現できるため、教員や保護者が「今週の課題プリント」URLを共有する使い方に対応。
 - [2026-04-10] EdTech trend: adaptive math practice is increasingly organized around **skill-gap targeting** rather than static worksheet batches. That suggests value in reusing this repo's generator catalog for “next worksheet from mistakes” flows, not only one-off printing. (refs: https://www.discoveryeducation.com/blog/teaching-and-learning/adaptive-learning-supports-foundational-math-and-reading/ , https://www.mathbrix.com/blog/adaptive-learning-platforms-math/)
 - [2026-04-10] Pedagogy trend: spaced / interleaved retrieval is being emphasized for durable math retention. Printable products can differentiate by generating **cumulative mixed review pages** instead of only topic-isolated sheets. (refs: https://www.mathematicshub.edu.au/plan-teach-and-assess/teaching/teaching-strategies/spaced-interleaved-and-retrieval-practice/ , https://www.carnegielearning.com/blog/retrieval-practice-guide-download)
 
 Potential feature candidates for this repo:
+- Add a **URL-shareable preset library** so teachers can bookmark/share specific worksheet configurations.
 - Add a **mistake-driven regeneration mode** that reissues similar-but-not-identical problems for weak skills.
 - Add **spiral review worksheet presets** that intentionally mix prior topics across grades / units.
 
 ## Tech Decisions (from PRs/commits)
 
+- [2026-04-25] feat(tracing): 各数字に2行目の練習マスを追加 -- 余白を活用し、練習マスを1→5に増加。minProblemHeight: 90px→182px。 (source: PR #63)
+- [2026-04-25] feat(tracing): 0-4/5-9の左右2分割レイアウトと教科書体準拠の数字に刷新 -- 全10字のSVGパスを再設計。幼児（年長）向けターゲット。セルサイズ44px→70px。 (source: PR #60)
 - [2026-04-16] fix(fraction): 分数パターンがbasicテンプレにフォールバックしてA4から溢れる問題を修正 -- \`fix/hissan-mult-advanced-layout\` (#58) で3桁×2桁のかけ算を修正した流れで、全問題パターンを Playwright で俯瞰監査したところ、**5つの分数パターンが A4 から 312px も溢れる**ことが判明。原因は \`getEffectiveProblemType\` が分数パターンを検知できず \`basic\` テンプレート（30問上限）にフォールバックしていたこと。 影響を受けていたパターン Grade Pattern Before After ----- ------- ------ ----- 3 frac-same-denom 20問/2列, h=1435px ❌ 14… (source: PR #59)
 - [2026-04-16] fix(hissan): 3桁×2桁のかけ算が2枚に分かれる問題と横線の幅を修正 -- 4年生「3桁×2桁のかけ算の筆算」で報告された2つの問題を修正： 1. **12問でも印刷すると2ページに分かれる** — 実際の問題高さ（216px）が `minProblemHeight: 140px` を大きく超えていたため、A4に収まらず溢れていた 2. **横線の幅がバラバラで短い** — 上の線は4セル分（132px）、下の線は6セル分（200px）と不揃いで、5セル幅の答え行とも一致していなかった 変更内容 - **`src/components/Preview/ProblemList.tsx`**: `answerWidth` を一度だけ計算し、上下の横線を答え行と同じ幅に統一 - **`src/config/pri… (source: PR #58)
 - [2026-04-12] feat: 数字なぞり書きプリント機能（幼児向け） -- - 幼児（年長）向けの数字（0〜9）書き方練習プリントを新規追加 - 1行ごとに「数字ラベル お手本（書き順番号・矢印付き） なぞり書き×3 自由練習×3」を横並びで表示 - 学年セレクターに「幼児（年長）」を追加。選択時は自動で「数字なぞり書き」モードに切り替わる - 文字サイズは既存の列レイアウト（1/2/3列）で調整可能（1列=最大、3列=最小） 主な変更 ファイル 内容 --- --- `src/types/index.ts` `Grade` に `0` 追加、`NumberTracingProblem` 型追加 `src/lib/data/digit-strokes.ts` (新規) 0〜9のSVGストロークデータ（書き順… (source: PR #56)

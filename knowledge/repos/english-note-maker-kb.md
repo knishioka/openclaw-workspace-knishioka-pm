@@ -35,6 +35,8 @@
 
 ## Tech Decisions (from PRs/commits)
 
+- [2026-04-25] feat(practice): apply paged dedup and difficulty presets to word/phrase/sentence -- buildPagedUniqueSequence()を共通ヘルパーに抽出し、全モードに適用。WORD/PHRASE/SENTENCE_DIFFICULTY_PRESETSで年齢連動の難易度プリセットを導入。 (source: PR #28)
+- [2026-04-25] fix(cloze): 同一ページ内のフレーズ重複を解消 + 難易度プリセット導入 -- buildClozePagedSequence()のプール幸塓時再シャッフル境界がページ内に落ちるバグを修正。auto/easy/normal/hardプリセットで年齢グループに自動連動。 (source: PR #26)
 - [2026-04-16] feat: add phonics word-family practice mode -- Closes #22 Summary - add a phonics practice mode with selectable word-family patterns - render traceable baseline rows and pattern-aware word sequencing - add content, layout, and phonics data tests for the new mode (source: PR #23)
 - [2026-04-11] fix(cloze): increase questions per page and hide notice from print -- - 穴埋め問題の1ページあたりの問題数を増加（上限4→10、練習行を2行→1行に削減、CSS gapを縮小） - `getClozeCapacity()` の計算を正確なレイアウト高さに基づくように修正 - 自動調整通知（`.auto-layout-notice`）が印刷時に表示されてA4からはみ出す問題を修正 Test plan - [x] ユニットテスト 118件パス - [x] E2Eテスト（cloze） 30件パス - [ ] ブラウザで穴埋めモードを選択し、問題数が増えていることを確認 - [ ] 印刷プレビューでA4に収まることを確認 - [ ] 印刷プレビューに自動調整メッセージが表示されないことを確認 🤖 Gener… (source: PR #21)
 - [2026-04-11] feat(cloze): add fill-in-the-blank phrase practice mode -- - Add new "穴埋めフレーズ練習" (cloze/fill-in-the-blank) practice mode with sight words and phonics support - Support two blank granularities: word-level (replace sight words) and character-level (phonics-targeted letter blanking) - Include answer key with show/hide toggle, category selector reusing existing phrase collections… (source: PR #20)

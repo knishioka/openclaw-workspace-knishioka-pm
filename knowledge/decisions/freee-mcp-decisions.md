@@ -1,5 +1,11 @@
 # freee-mcp Design Decisions
 
+## 2026-04-29: First structured-content tool (freee_kpi_dashboard)
+
+- **What**: structuredContent を freee_kpi_dashboard に追加。company_id, period, profitability/safety/efficiency/liquidity KPI セクションを machine-readable 形式で返す。MCP SDK を 1.29.0 に更新。
+- **Why**: MCP spec の structuredContent 対応により、クライアントがテキスト再パースなしに KPI データをレンダリング可能になる。段階的採用（既存 JSON text も維持）。
+- **Source**: PR #178
+
 ## 2026-04-16: refactor(schema): migrate tool registration to Zod 4
 
 - **What**: refactor(schema): migrate tool registration to Zod 4

@@ -1,5 +1,23 @@
 # kanji-practice Design Decisions
 
+## 2026-04-25: Full-cell writing practice in sentence mode
+
+- **What**: 練習行の全マスを書き取り対象に変更（薄字固定文字を撤去）。ターゲット漢字を border-2 太枠でハイライト。
+- **Why**: 1問あたりの運筆練習量を大幅増加。漢字以外の平仮名・片仮名も書写できる。
+- **Source**: PR #30
+
+## 2026-04-25: Variable practice rows in sentence mode (1-3 rows)
+
+- **What**: sentencePracticeRows 設定値（デフォルト2、範囲1-3）を追加。calculateMaxSentencePracticeRows()で「最低2問/ページ」と「教育上限3」を動的計算。
+- **Why**: 学習理論上、写経による定着には2-3回反復が効果的。A4制約内で反復回数を選択可能にした。
+- **Source**: PR #29
+
+## 2026-04-24: Klee One via Google Fonts (critical fix)
+
+- **What**: CSS @import では Tailwind @import の後ろでは無効になるため、index.html の link タグで Google Fonts 経由の Klee One を確実に読み込む方式に変更。
+- **Why**: ゴシック体ではとめ・はね・はらいが正しく表現されず、小学校教育標準の教科書体が崩れる。全環境で正しいフォントが保証される。
+- **Source**: PR #27, #28
+
 ## 2026-04-20: feat: 学習プリセット（9級読み・9級書き取り・8級先取り）を追加
 
 - **What**: feat: 学習プリセット（9級読み・9級書き取り・8級先取り）を追加

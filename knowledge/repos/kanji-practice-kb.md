@@ -38,8 +38,22 @@ Potential feature candidates for this repo:
 - Add **cumulative review presets** that automatically mix current-grade kanji with recently learned items for spaced retrieval.
 - Add a **practice progression mode** that chains reading, writing, and sentence review across multiple days instead of one isolated print job.
 
+## Competitive Landscape (notes)
+
+[2026-04-24] 教育トレンド: spaced / interleaved / retrieval practice は、短い確認を時間差で繰り返す設計が定着に効くと整理されている。漢字プリントでは単発生成だけでなく、前回学習を混ぜた復習プリセットの価値が高い。 (refs: mathematicshub.edu.au/spaced-interleaved-and-retrieval-practice)
+[2026-04-24] 直近の実装で学習プリセットが入ったため、次の差別化ポイントは「習熟の流れ」をプリセットに閉じ込めること。9級読み→9級書き取り→8級先取りの固定選択だけでなく、日次の cumulative review を自動構成できると教材として一段強くなる。 (source: repo PR #26)
+[2026-05-01] フォント配信: Klee One を Google Fonts 経由の Web フォントに切り替えたことで、未インストール環境（macOS標準）でも教科書体が保証される。全ブラウザで とめ・はね・はらい が正しく表示される状態になった。 (source: PR #27, #28)
+[2026-05-01] 写経モード深化: 練習行数が1-3行に可変化し、全マス書き取り対象になった。A4に最低2問収まる制約を保ちつつ1問あたりの運筆量が最大3倍になる。学習理論（2-3回反復）に沿った実装。 (source: PR #29, #30)
+
+Potential feature candidates for this repo:
+- Add **cumulative review presets** that automatically mix current-grade kanji with recently learned items for spaced retrieval.
+- Add a **practice progression mode** that chains reading, writing, and sentence review across multiple days instead of one isolated print job.
+
 ## Tech Decisions (from PRs/commits)
 
+- [2026-04-25] feat: 例文写経の練習行を全マス書き取り対象に -- 練習行の全セルを罫線+ガイドラインのみ（薄字の固定文字を撤去）にし、ターゲット漢字を太枠で視覚的に区別。1問あたりの運筆練習量を大幅増加。 (source: PR #30)
+- [2026-04-25] feat: 例文写経モードの練習行数を可変化 -- sentencePracticeRows（デフォルト2、範囲1-3）を追加。calculateMaxSentencePracticeRows()で「最低2問/ページ」と「教育上限3」の小さい方を返す動的制御。 (source: PR #29)
+- [2026-04-24] fix: Klee Oneフォント配信 -- CSS @import はTailwind @importの後ろでは無効になるため、index.htmlのlinkタグで Google Fonts 経由の Klee One を読み込む方式に修正。全環境で教科書体が保証される。 (source: PR #28, #27)
 - [2026-04-20] feat: 学習プリセット（9級読み・9級書き取り・8級先取り）を追加 -- - add learning preset definitions plus pure apply/match helpers for the three learner flows - add a learning preset selector to the settings panel while keeping existing manual controls intact - add unit tests covering preset defaults, active-state detection, and explicit overwrite behavior Testing - npm run test:unit… (source: PR #26)
 - [2026-04-12] fix: 写経モードのふりがなをルビ注釈方式でゼロフォールバック化 -- 写経モードの例文ふりがなが「フォールバック」推測に依存しており、活用形・音訓選択を誤った読み（例: `何の用？` → `なにのもちいる`）が大量に出ていた問題を根本解決。 - 例文文字列に `{漢字 よみ}` ルビ記法を導入し、ふりがな生成は注釈を最優先するように変更 - 全 2052 例文を機械注釈 + 約 200 件の手動修正でゼロフォールバック化 - `sentenceCoverage` テストで CI 上の再発防止を保証 主な変更 仕組み - `src/utils/sentenceRuby.ts`: `{漢字 よみ}` パーサ + plain 化ヘルパー - `src/utils/furigana.ts`: `buildFu… (source: PR #24)
 - [2026-04-11] feat: a11y改善（lang=ja / slider aria-label / 選択状態 / skip link） -- - `<html lang="en">` → `<html lang="ja">` に修正（日本語UIに適切な言語属性） - ページ数・練習マス数・マスサイズの各rangeスライダーに `aria-label` を付与 - 学年選択・プリント種類・ガイドラインのトグルボタンに `aria-pressed` 属性を追加 - Skip link（設定へスキップ / プレビューへスキップ）を追加し、キーボードユーザーの操作性を向上 Closes #21 Test plan - [x] TypeScript型チェック通過 - [x] Biome lint/format チェック通過 - [x] ユニットテスト 256件全パス - [ ] ブ… (source: PR #23)
