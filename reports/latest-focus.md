@@ -99,4 +99,4 @@
 - 銘柄単位の失敗はエラーエントリとして返す（処理を止めない）
 - 結果は `days_until_earnings` 昇順ソート
 
-変更ファイル: 4件（earnings_calendar.py 新規, tools/**init**.py, test_server.py, test_earnings_calendar.py 新規）
+変更ファイル: 4件（earnings_calendar.py 新規, `tools/__init__.py`, test_server.py, test_earnings_calendar.py 新規）
