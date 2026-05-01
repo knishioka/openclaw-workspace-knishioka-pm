@@ -138,10 +138,12 @@ Scripts use `gh` CLI for all GitHub API calls. No direct API tokens.
 | Job                      | Schedule (KL)  | 配信                    | 目的                                                 |
 | ------------------------ | -------------- | ----------------------- | ---------------------------------------------------- |
 | weekly-repo-health       | Sun 20:00      | WhatsApp (変化時のみ)   | ヘルスレポート + サイトQA + レトロスペクティブ       |
-| focus-task               | Mon+Thu 8:30   | Issue 作成 + resolve    | Issue 自動作成 → Codex で draft PR 作成（週4件上限） |
+| focus-task[^codex-wrap]  | Mon+Thu 8:30   | Issue 作成 + resolve    | Issue 自動作成 → Codex で draft PR 作成（週4件上限） |
 | weekly-knowledge-extract | Fri 19:00      | commit                  | ナレッジ + 競合リサーチ + changelog                  |
 | monthly-portfolio-review | 第1日曜 19:00  | WhatsApp                | ポートフォリオ俯瞰 + PM Retrospective                |
 | private-repo-check       | 隔週水曜 20:00 | gitignored + Issue 作成 | private リポ監視 + Issue 作成                        |
+
+[^codex-wrap]: focus-task は `scripts/codex-resolve.sh` 経由で Codex を起動する（`docs/codex-playbook.md` をプロンプトに injection）。直接 `codex exec` は呼ばない。
 
 ### CI と cron 自動 PR の関係
 
