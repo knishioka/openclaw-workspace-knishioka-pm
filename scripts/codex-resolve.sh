@@ -131,7 +131,7 @@ PLAYBOOK_VERSION="$(printf '%s\n' "$PLAYBOOK_VERSION_LINE" \
   | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' \
   | head -n 1 || true)"
 if [ -z "$PLAYBOOK_VERSION" ] \
-   || ! printf '%s' "$PLAYBOOK_VERSION_LINE" | grep -qE '<!--[[:space:]]*version:[[:space:]]*[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]]*-->'; then
+   || ! printf '%s\n' "$PLAYBOOK_VERSION_LINE" | grep -qE '<!--[[:space:]]*version:[[:space:]]*[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]]*-->'; then
   echo "Warning: no '<!-- version: YYYY-MM-DD -->' marker on line 1 of $PLAYBOOK" >&2
   PLAYBOOK_VERSION="unknown"
 fi

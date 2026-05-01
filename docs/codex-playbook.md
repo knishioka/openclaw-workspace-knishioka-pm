@@ -122,7 +122,7 @@ fi
 
 `auto_resolve` の値: `"pending"` | `"in_progress"` | `"draft_pr_created"` | `"failed"` | `"skipped"`
 `verification` 各項目: `"pass"` | `"fail"` | `"warn"` | `"skipped"` | `"n/a"`
-`playbook_version` の値: `docs/codex-playbook.md` 先頭の `<!-- version: YYYY-MM-DD -->` から抽出した日付文字列。`scripts/codex-resolve.sh` が起動時に stderr に `[codex-resolve] playbook_version=YYYY-MM-DD` を出力するので、cron 側はそれを captureする。
+`playbook_version` の値: `docs/codex-playbook.md` 先頭の `<!-- version: YYYY-MM-DD -->` から抽出した日付文字列。`scripts/codex-resolve.sh` が起動時に stderr へ `[codex-resolve] start repo=... issue=... playbook_version=YYYY-MM-DD timeout=...s` という形式の 1 行を出力するので、cron 側は `grep -oE 'playbook_version=[0-9]{4}-[0-9]{2}-[0-9]{2}'` 等で部分一致して capture する（行頭一致では取れない点に注意）。
 `lint_available` の値: `true` (lint コマンドが解決できた) / `false` (未導入 or 見つからない)。
 `lint_skipped_reason` の値: `lint_available=false` のときのみ設定。`"no_lint_configured"` (script 未定義) / `"command_not_found"` (バイナリ不在) / `null` (lint_available=true)。
 
