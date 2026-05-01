@@ -630,13 +630,13 @@ fi
 
 リポ別の標準コマンド (Codex は AGENTS.md / CLAUDE.md > package.json scripts > 慣例 の順で検出):
 
-| 言語 / 環境     | build               | lint                    | typecheck           | test                |
-| --------------- | ------------------- | ----------------------- | ------------------- | ------------------- |
-| Node (npm/pnpm) | `npm run build`     | `npm run lint`          | `npm run typecheck` | `npm test`          |
-| Python (uv)     | `uv build` (該当時) | `uv run ruff check`     | `uv run mypy`       | `uv run pytest`     |
-| Python (poetry) | -                   | `poetry run ruff check` | `poetry run mypy`   | `poetry run pytest` |
-| Rust            | `cargo build`       | `cargo clippy`          | -                   | `cargo test`        |
-| Go              | `go build ./...`    | `golangci-lint run`     | `go vet ./...`      | `go test ./...`     |
+| 言語 / 環境     | build               | lint                      | format                     | typecheck           | test                |
+| --------------- | ------------------- | ------------------------- | -------------------------- | ------------------- | ------------------- |
+| Node (npm/pnpm) | `npm run build`     | `npm run lint`            | `npm run format`           | `npm run typecheck` | `npm test`          |
+| Python (uv)     | `uv build` (該当時) | `uv run ruff check .`     | `uv run ruff format .`     | `uv run mypy .`     | `uv run pytest`     |
+| Python (poetry) | -                   | `poetry run ruff check .` | `poetry run ruff format .` | `poetry run mypy .` | `poetry run pytest` |
+| Rust            | `cargo build`       | `cargo clippy`            | `cargo fmt`                | -                   | `cargo test`        |
+| Go              | `go build ./...`    | `golangci-lint run`       | `go fmt ./...`             | `go vet ./...`      | `go test ./...`     |
 
 存在しないコマンドは省略（埋め草で書かない）。リポ独自のスクリプト (`make ci` 等) があればそれを優先する。
 
@@ -696,13 +696,16 @@ Closes #{issue_number}
 
 ## 動作確認 (Verification)
 
-| 項目                       | コマンド            | 結果        |
-| -------------------------- | ------------------- | ----------- |
-| Build                      | `npm run build`     | ✅ pass     |
-| Lint                       | `npm run lint`      | ✅ 0 errors |
-| Typecheck                  | `npm run typecheck` | ✅ pass     |
-| Unit test                  | `npm test`          | ✅ N passed |
-| (該当時) E2E / Integration | `...`               | ✅ pass     |
+| 項目                       | コマンド              | 結果        |
+| -------------------------- | --------------------- | ----------- |
+| Build                      | `{build_command}`     | ✅ pass     |
+| Lint                       | `{lint_command}`      | ✅ 0 errors |
+| Format                     | `{format_command}`    | ✅ pass     |
+| Typecheck                  | `{typecheck_command}` | ✅ pass     |
+| Unit test                  | `{test_command}`      | ✅ N passed |
+| (該当時) E2E / Integration | `{e2e_command}`       | ✅ pass     |
+
+> コマンド欄は前章「検証コマンドの自動検出」表からリポの言語に合わせて埋める。該当しない行は省略。
 
 実行ログ要約: {自己修正で直したエラー、許容した warning、未対応の理由など。なければ「初回成功」}
 
