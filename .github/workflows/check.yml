@@ -1,0 +1,74 @@
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: markdownlint
+        # Validates AGENTS.md, docs/*.md, reports/*.md and friends.
+        # Rules tuned in .markdownlint.json (line-length disabled etc.).
+        uses: DavidAnson/markdownlint-cli2-action@v17
+        with:
+          globs: |
+            **/*.md
+            !**/node_modules/**
+
+      - name: actionlint (workflow YAML + shellcheck)
+        uses: raven-actions/actionlint@v2
+
+      - name: yaml syntax (config/*.yaml)
+        # Ruby ships with YAML in stdlib — no install step needed.
+        run: |
+          shopt -s nullglob
+          fail=0
+          for f in config/*.yaml config/*.yml; do
+            ruby -ryaml -e "YAML.load_file(ARGV[0])" "$f" \
+              && echo "OK:   $f" \
+              || { echo "FAIL: $f"; fail=1; }
+          done
+          exit "$fail"
+
+      - name: jsonl syntax (tracked *.jsonl)
+        run: |
+          mapfile -t files < <(git ls-files '*.jsonl')
+          if [[ ${#files[@]} -eq 0 ]]; then
+            echo "no tracked .jsonl files; skipping"
+            exit 0
+          fi
+          fail=0
+          for f in "${files[@]}"; do
+            line_no=0
+            while IFS= read -r line || [[ -n "$line" ]]; do
+              line_no=$((line_no + 1))
+              [[ -z "$line" ]] && continue
+              if ! printf '%s' "$line" | ruby -rjson -e "JSON.parse(STDIN.read)" >/dev/null 2>&1; then
+                echo "FAIL: $f:$line_no invalid JSON"
+                fail=1
+              fi
+            done < "$f"
+            [[ "$fail" == "0" ]] && echo "OK:   $f"
+          done
+          exit "$fail"
+
+      - name: AGENTS.md size check
+        # Spec: warn ≥250 lines, fail ≥500 lines.
+        # SOFT_FAIL=1 keeps CI green while existing AGENTS.md is reduced
+        # in a follow-up issue. Flip to 0 once under the limit.
+        env:
+          SOFT_FAIL: "1"
+        run: bash scripts/check-agents-md-size.sh
