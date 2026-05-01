@@ -48,7 +48,7 @@ codex exec -C /Users/ken/Developer/private/{repo_name} \
 
 【ルール】
 - ファイル削除や破壊的変更が必要なら PR 本文の "影響範囲 / リスク" に明記する。
-- AGENTS.md / scripts/ / config/repos.yaml は変更しない（workspace 側のガード）。
+- docs/ / AGENTS.md / scripts/ / config/repos.yaml は変更しない（workspace 側のガード）。
 - コミットメッセージ・ブランチ名・PRタイトルは英語、PR本文は日本語。
 EOF
 )"
