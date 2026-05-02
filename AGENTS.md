@@ -153,6 +153,7 @@ Scripts use `gh` CLI for all GitHub API calls. No direct API tokens.
 
 ## Documents
 
+- [docs/environment.md](docs/environment.md) — Canonical Paths / Worktree 使い分け / Uncommitted Changes ポリシー / 新リポ追加手順 / 依存ツール
 - [docs/output-format.md](docs/output-format.md) — Output Format / Sub-agent Integration
 - [docs/pm-policy.md](docs/pm-policy.md) — Issue Creation / Frequency / Retrospective / Feature Discovery / Escalation / Interactive Mode / Knowledge Rules
 - [docs/codex-playbook.md](docs/codex-playbook.md) — Auto-Resolve via Codex / PR Description Standards / Codex Prompting Guidelines
