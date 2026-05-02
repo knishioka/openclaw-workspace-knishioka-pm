@@ -1,5 +1,37 @@
 # Focus Task Report — 2026-04-30 (Thu)
 
+## 2026-05-02: playbook_version 配線完了メモ (Issue #19)
+
+`scripts/codex-resolve.sh` と `~/.openclaw/cron/jobs.json` の `focus-task` job を点検し、`monitoring/issue-tracker.jsonl` 新規レコードに `playbook_version` が必ず入る状態に揃えた。Wave 5 (Issue #9: Codex hooks 採否評価) の前提となる「playbook 改訂前後の Quality Score 比較」用フィールドを稼働させる。
+
+| 項目          | 内容                                                                                                                                                                                                                                               |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 切替日        | 2026-05-02                                                                                                                                                                                                                                         |
+| 抽出元        | `docs/codex-playbook.md` 1 行目の `<!-- version: YYYY-MM-DD -->` マーカ (現行: `2026-05-01`)                                                                                                                                                       |
+| script 側     | `scripts/codex-resolve.sh` の `extract` ブロック (現行 lines 124–138) は実装済み。本変更で dry-run 時にも stderr に `[codex-resolve] dry-run ... playbook_version=YYYY-MM-DD` を必ず出力するよう追加 (cron が capture できる経路を realrun と統一) |
+| cron 側       | `focus-task` job step 12 の `monitoring/issue-tracker.jsonl` 追記指示にすでに `playbook_version` が入っていることを確認 (`pre-codex-resolve` backup との diff で配線時期を特定)                                                                    |
+| backup        | `~/.openclaw/cron/jobs.json.bak.pre-playbook-version-20260502` (本 Issue 編集前のスナップショット)                                                                                                                                                 |
+| fallback      | playbook 1 行目に version マーカが無い場合は `unknown` を export し、focus-task は継続                                                                                                                                                             |
+| 検証ゲート    | 次回 `focus-task` cron 実行 (Mon 2026-05-04 8:30 KL) で `issue-tracker.jsonl` 新規レコードに `"playbook_version": "2026-05-01"` が入ることを確認。入らなければ即 rollback                                                                          |
+| rollback 手順 | `cp ~/.openclaw/cron/jobs.json.bak.pre-playbook-version-20260502 ~/.openclaw/cron/jobs.json`                                                                                                                                                       |
+
+### Dry-run 確認
+
+```bash
+$ bash scripts/codex-resolve.sh --dry-run knishioka/math-worksheet 1 2>&1 1>/dev/null
+[codex-resolve] dry-run repo=knishioka/math-worksheet issue=1 playbook_version=2026-05-01
+```
+
+stdout 側のプロンプト本文 (Codex 注入用) には引き続き `Playbook version: 2026-05-01` が含まれる。stderr ログは cron / wrapper が `grep -oE 'playbook_version=[0-9]{4}-[0-9]{2}-[0-9]{2}'` で拾うための独立した経路。
+
+### Out of scope (本 Issue では触らない)
+
+- 過去 `issue-tracker.jsonl` レコードへの遡及付与 (Append-only ポリシーに従う)
+- `lint_available` フィールド (別 Issue 担当。step 12 の field list には既出だが、書き込み判定ロジックは Issue #19 の責務外)
+- monthly-portfolio-review の Quality Score 集計ロジック (Wave 5 で対応)
+
+---
+
 ## 2026-05-02: cron prompt → codex-resolve.sh 切替メモ (Issue #7)
 
 `~/.openclaw/cron/jobs.json` の `focus-task` job を編集し、Codex 起動行を直接 `codex exec` から workspace の wrapper に切り替えた。

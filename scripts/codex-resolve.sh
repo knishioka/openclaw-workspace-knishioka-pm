@@ -186,6 +186,9 @@ EOF
 
 # --- Dry-run: print prompt and exit ---
 if [ "$DRY_RUN" -eq 1 ]; then
+  # Emit playbook_version on stderr so cron / wrappers can capture it the same
+  # way they will in real runs (see start-log on the real-run path below).
+  echo "[codex-resolve] dry-run repo=${OWNER_REPO} issue=${ISSUE_NUMBER} playbook_version=${PLAYBOOK_VERSION}" >&2
   printf '%s\n' "$PROMPT"
   exit 0
 fi
