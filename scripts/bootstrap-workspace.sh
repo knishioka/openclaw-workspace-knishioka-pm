@@ -126,7 +126,7 @@ fi
 # yq で .repos と .private_repos を結合し、JSONL に流す
 # ここで失敗すると yaml が壊れているか yq が想定外の挙動 → exit 3
 REPOS_JSONL=""
-if ! REPOS_JSONL="$(yq -o=json '.repos + .private_repos' "$REPOS_YAML" 2>/dev/null \
+if ! REPOS_JSONL="$(yq -o=json '(.repos // []) + (.private_repos // [])' "$REPOS_YAML" 2>/dev/null \
                     | jq -c '.[] | {owner, name, status: (.status // null)}' 2>/dev/null)"; then
   echo "Error: failed to parse $REPOS_YAML (yq/jq error)" >&2
   exit 3
@@ -146,8 +146,12 @@ APPLIED=0
 CLONE_ERRORS=0
 
 # 結果を JSONL で蓄積 (最終出力で集計)
-RESULTS_FILE="$(mktemp -t bootstrap-workspace.XXXXXX)"
+# mktemp の `-t` フラグは GNU/BSD で挙動が異なるため、明示的にテンプレートを渡す。
+RESULTS_FILE="$(mktemp "${TMPDIR:-/tmp}/bootstrap-workspace.XXXXXX")"
 trap 'rm -f "$RESULTS_FILE"' EXIT
+
+# `gh repo clone` は親ディレクトリが無いと失敗するため、`--apply` の前に作成。
+(( APPLY )) && mkdir -p "${LOCAL_REPO_BASE}"
 
 while IFS= read -r repo_json; do
   [ -z "$repo_json" ] && continue
@@ -181,7 +185,7 @@ while IFS= read -r repo_json; do
       if [ "${status}" = "abandoned" ] || [ "${status}" = "on-hold" ]; then
         # 放棄/保留中のリポは --apply でも自動 clone しない (idempotent + 安全)
         action="skip-status"
-      elif gh repo clone "${owner}/${name}" "${expected_path}" -- --depth=1 >/dev/null 2>&1; then
+      elif gh repo clone "${owner}/${name}" "${expected_path}" -- --quiet --depth=1; then
         APPLIED=$((APPLIED + 1))
         action="cloned"
       else
