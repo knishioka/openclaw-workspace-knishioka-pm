@@ -27,6 +27,13 @@
 # Dependencies: bash, gh, codex, gtimeout (GNU coreutils). jq is not required
 # here (kept for future structured-summary output). yq is not required because
 # the path convention is uniform; repos.yaml is validated with grep.
+#
+# Exported env vars (consumed by the focus-task cron prompt to enrich
+# monitoring/issue-tracker.jsonl):
+#   LINT_AVAILABLE       "true" | "false"
+#   LINT_SKIPPED_REASON  "no_lint_configured" | "command_not_found" | ""
+#                        (empty when LINT_AVAILABLE=true)
+#   PLAYBOOK_VERSION     YYYY-MM-DD from docs/codex-playbook.md (or "unknown")
 
 set -euo pipefail
 
@@ -121,6 +128,62 @@ fi
 
 PLAYBOOK_CONTENT="$(cat "$PLAYBOOK")"
 
+# --- Detect lint availability for the target repo ---
+# Heuristic only — used to inject an explicit "lint not installed → skip, do
+# not install" directive into the Codex prompt and to surface the result via
+# LINT_AVAILABLE / LINT_SKIPPED_REASON for downstream tracking
+# (issue-tracker.jsonl). Reasons map to the set documented in
+# docs/codex-playbook.md: "no_lint_configured" or "command_not_found".
+detect_lint_available() {
+  local repo_path="$1"
+
+  if [ ! -d "$repo_path" ]; then
+    LINT_AVAILABLE="false"
+    LINT_SKIPPED_REASON="no_lint_configured"
+    return
+  fi
+
+  # Node: package.json with a scripts.lint key (no jq dependency).
+  if [ -f "${repo_path}/package.json" ]; then
+    if grep -qE '"lint"[[:space:]]*:' "${repo_path}/package.json"; then
+      LINT_AVAILABLE="true"
+      LINT_SKIPPED_REASON=""
+      return
+    fi
+    LINT_AVAILABLE="false"
+    LINT_SKIPPED_REASON="no_lint_configured"
+    return
+  fi
+
+  # Python: try uv first, then poetry. ruff is the conventional linter per
+  # docs/codex-playbook.md "検証コマンドの自動検出". Heuristic check via
+  # pyproject.toml so this stays side-effect free (no dep sync, no install).
+  if [ -f "${repo_path}/pyproject.toml" ]; then
+    if grep -qE '(^|[^a-zA-Z_])ruff([^a-zA-Z_]|$)' "${repo_path}/pyproject.toml"; then
+      if command -v uv >/dev/null 2>&1 || command -v poetry >/dev/null 2>&1; then
+        LINT_AVAILABLE="true"
+        LINT_SKIPPED_REASON=""
+        return
+      fi
+      LINT_AVAILABLE="false"
+      LINT_SKIPPED_REASON="command_not_found"
+      return
+    fi
+    LINT_AVAILABLE="false"
+    LINT_SKIPPED_REASON="no_lint_configured"
+    return
+  fi
+
+  # No supported manifest detected (Rust / Go / shell / docs-only repos, etc.).
+  LINT_AVAILABLE="false"
+  LINT_SKIPPED_REASON="no_lint_configured"
+}
+
+LINT_AVAILABLE="false"
+LINT_SKIPPED_REASON=""
+detect_lint_available "$REPO_PATH"
+export LINT_AVAILABLE LINT_SKIPPED_REASON
+
 # --- Extract playbook_version from `<!-- version: YYYY-MM-DD -->` marker ---
 # The marker is the first line of docs/codex-playbook.md by convention.
 # If absent or malformed, log a warning and use "unknown" so downstream tracking
@@ -136,6 +199,27 @@ if [ -z "$PLAYBOOK_VERSION" ] \
   PLAYBOOK_VERSION="unknown"
 fi
 export PLAYBOOK_VERSION
+
+# --- Build conditional lint-absent directive ---
+# When detection says lint is unavailable, prepend an explicit block to the
+# /resolve-issue task so Codex cannot interpret the generic "lint コマンドが
+# 解決できない場合 ... install しない" rule as advisory. Empty string when
+# lint is available.
+if [ "$LINT_AVAILABLE" = "false" ]; then
+  LINT_DIRECTIVE="$(cat <<EOF
+
+【Lint 未導入の明示指示 (override)】
+- このリポは lint コマンドが解決できなかった (LINT_SKIPPED_REASON=${LINT_SKIPPED_REASON})。
+- lint は **実行せず**、ESLint / Ruff / golangci-lint 等を **新規 install しない**。
+- 動作確認テーブルの Lint 行は \`⚠️ n/a (Linter未導入)\` を記録する (\`✅\` で塗らない / 行を消さない)。
+- PR 本文に「Linterが未導入のため lint をスキップ」を 1 行残す。
+- issue-tracker.jsonl 記録時は lint_available=false / lint_skipped_reason="${LINT_SKIPPED_REASON}" / verification.lint="n/a" にする。
+- 詳細は "Lint 不在リポの扱い" 節を参照。
+EOF
+)"
+else
+  LINT_DIRECTIVE=""
+fi
 
 # --- Build final prompt ---
 # The playbook is injected as workspace policy context, then a Goals+Constraints
@@ -179,16 +263,20 @@ ${PLAYBOOK_CONTENT}
 - draft PR を 1 本作成する。本文は workspace AGENTS.md "PR Description Standards" のテンプレに従い、日本語で記述する。
 - issue-tracker.jsonl への記録時に以下を含める (cron 側が capture):
   - playbook_version: "${PLAYBOOK_VERSION}"
-  - lint_available: bool (lint が解決できたか)
-  - lint_skipped_reason: "no_lint_configured" / "command_not_found" / null
+  - lint_available: ${LINT_AVAILABLE}
+  - lint_skipped_reason: $(if [ "$LINT_AVAILABLE" = "false" ]; then printf '"%s"' "$LINT_SKIPPED_REASON"; else printf 'null'; fi)
+${LINT_DIRECTIVE}
 EOF
 )"
 
 # --- Dry-run: print prompt and exit ---
 if [ "$DRY_RUN" -eq 1 ]; then
-  # Emit playbook_version on stderr so cron / wrappers can capture it the same
-  # way they will in real runs (see start-log on the real-run path below).
+  # Emit playbook_version / lint_* on stderr so cron / wrappers can capture
+  # them the same way they will in real runs (see start-log on the real-run
+  # path below).
   echo "[codex-resolve] dry-run repo=${OWNER_REPO} issue=${ISSUE_NUMBER} playbook_version=${PLAYBOOK_VERSION}" >&2
+  echo "[codex-resolve] LINT_AVAILABLE=${LINT_AVAILABLE}" >&2
+  echo "[codex-resolve] LINT_SKIPPED_REASON=${LINT_SKIPPED_REASON}" >&2
   printf '%s\n' "$PROMPT"
   exit 0
 fi
@@ -212,7 +300,7 @@ fi
 # Log only the repo *name* and issue number — never the prompt body, since the
 # repo (and via it, the playbook) may be private. Codex itself logs to its own
 # session files; that is its own boundary, not ours.
-echo "[codex-resolve] start repo=${OWNER_REPO} issue=${ISSUE_NUMBER} playbook_version=${PLAYBOOK_VERSION} timeout=${CODEX_TIMEOUT}s" >&2
+echo "[codex-resolve] start repo=${OWNER_REPO} issue=${ISSUE_NUMBER} playbook_version=${PLAYBOOK_VERSION} lint_available=${LINT_AVAILABLE} lint_skipped_reason=${LINT_SKIPPED_REASON:-none} timeout=${CODEX_TIMEOUT}s" >&2
 
 START_EPOCH="$(date +%s)"
 set +e
