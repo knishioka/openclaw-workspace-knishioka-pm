@@ -69,20 +69,53 @@
    手動 backfill は不要 (Phase 3 の `playbook_version` / `lint_available`
    仕様に従う)。
 
-bootstrap script (`scripts/bootstrap-workspace.sh`) の自動化は Issue #11
-で対応する。それまでは上記を手動で実行する。
+手順 2 の clone 一括チェック / 一括実 clone は
+[`scripts/bootstrap-workspace.sh`](#scriptsbootstrap-workspacesh) で自動化済み (Issue #16)。
+
+## scripts/bootstrap-workspace.sh
+
+新マシンや障害復旧時に、依存ツールの存在と `config/repos.yaml` の全リポの
+clone 状況を一括チェックする。デフォルトは dry-run (副作用なし)。
+
+```bash
+# 人間向けレポート (dry-run)
+bash scripts/bootstrap-workspace.sh
+
+# 構造化出力 (CI / 他 script から parse 可能)
+bash scripts/bootstrap-workspace.sh --json | jq '.summary'
+
+# 未 clone リポを実 clone (idempotent)
+bash scripts/bootstrap-workspace.sh --apply
+```
+
+挙動:
+
+- `~/Developer/private/{name}/.git` の有無を全件チェック。
+- `--apply` で未 clone を `gh repo clone` (既存は skip、`status: abandoned` / `on-hold` は自動 clone しない)。
+- `~/Developer/{name}` (private 配下以外) の重複 clone を ⚠️ で警告のみ。
+  削除は Issue #12 / Ken の手動レビュー前提 (本スクリプトは絶対に削除しない)。
+- `--json` は `{deps, mode, repos: [...], summary}` を返す。
+
+Exit codes:
+
+| Code | 意味                                  |
+| ---- | ------------------------------------- |
+| 0    | success                               |
+| 2    | 依存ツール不足                        |
+| 3    | config/repos.yaml が読めない          |
+| 4    | `--apply` 中に `gh repo clone` が失敗 |
 
 ## 必要な依存ツール
 
-| ツール               | 最低 version | 用途                                                                |
-| -------------------- | ------------ | ------------------------------------------------------------------- |
-| bash                 | 4.x          | `scripts/*` (associative array や `mapfile` を使う前提)             |
-| gh                   | 2.30+        | GitHub API (issue / PR / repo)                                      |
-| codex                | 0.124+       | auto-resolve (`scripts/codex-resolve.sh` から起動)                  |
-| jq                   | 1.6+         | `issue-tracker.jsonl` 解析 / 集計                                   |
-| yq                   | 4.x          | `repos.yaml` 構造化読み出し (将来用 / 現行スクリプトは grep で代用) |
-| gtimeout (coreutils) | 9.x          | `codex exec` のタイムアウト制御。fallback で `timeout` も可         |
-| markdownlint-cli2    | 0.13+        | CI lint (`.github/workflows/check.yml`)                             |
+| ツール               | 最低 version | 用途                                                                  |
+| -------------------- | ------------ | --------------------------------------------------------------------- |
+| bash                 | 4.x          | `scripts/*` (associative array や `mapfile` を使う前提)               |
+| gh                   | 2.30+        | GitHub API (issue / PR / repo)                                        |
+| codex                | 0.124+       | auto-resolve (`scripts/codex-resolve.sh` から起動)                    |
+| jq                   | 1.6+         | `issue-tracker.jsonl` 解析 / 集計                                     |
+| yq                   | 4.x          | `repos.yaml` 構造化読み出し (`scripts/bootstrap-workspace.sh` が使用) |
+| gtimeout (coreutils) | 9.x          | `codex exec` のタイムアウト制御。fallback で `timeout` も可           |
+| markdownlint-cli2    | 0.13+        | CI lint (`.github/workflows/check.yml`)                               |
 
 確認コマンド:
 
@@ -102,12 +135,13 @@ markdownlint-cli2 --version
 brew install gh jq yq coreutils bash
 npm i -g @openai/codex@latest markdownlint-cli2
 gh auth login
+bash scripts/bootstrap-workspace.sh --apply  # 全リポ一括 clone
 ```
 
 ## 障害復旧 (Reset Procedure)
 
 1. `gh repo clone knishioka/openclaw-workspace-knishioka-pm ~/.openclaw/workspace-knishioka-pm` で再取得する (clone 先ディレクトリ名を明示する。デフォルトでは `openclaw-workspace-knishioka-pm` になり canonical path とずれる)。
-2. `config/repos.yaml` の各リポを canonical path (`~/Developer/private/{name}`) に clone する (順序不問)。
+2. `bash scripts/bootstrap-workspace.sh --apply` で `config/repos.yaml` の全リポを canonical path (`~/Developer/private/{name}`) に一括 clone する。
 3. cron 設定 (`~/.openclaw/cron/jobs.json`) は別リポ管理外なので、個別バックアップ (`~/.openclaw/cron/jobs.json.bak.*`) から復元する。テンプレ化は Issue #11 で対応予定。
 4. 「新リポを監視対象に追加する手順」の手順 3 (dry-run) を 1 件通せば、playbook 注入経路が生きていることを確認できる。
 
