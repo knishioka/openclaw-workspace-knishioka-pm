@@ -37,7 +37,7 @@ REPOS_YAML="${WORKSPACE_ROOT}/config/repos.yaml"
 PLAYBOOK="${WORKSPACE_ROOT}/docs/codex-playbook.md"
 
 # Local checkout convention (matches docs/codex-playbook.md "ローカルリポパス")
-LOCAL_REPO_BASE="${LOCAL_REPO_BASE:-/Users/ken/Developer/private}"
+LOCAL_REPO_BASE="${LOCAL_REPO_BASE:-${HOME}/Developer/private}"
 
 # Codex timeout (seconds). Matches playbook's "codex exec のタイムアウト: 15分".
 CODEX_TIMEOUT="${CODEX_TIMEOUT:-900}"

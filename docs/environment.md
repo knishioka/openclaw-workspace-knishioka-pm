@@ -25,7 +25,7 @@
 
 重複 clone (例: `~/Developer/cost-management-mcp`) の物理整理は Issue #17 で対
 応する: `scripts/bootstrap-workspace.sh` が `--apply` 時にも警告のみで削除し
-ないため、検出 → `reports/spike-clone-duplicates-{date}.md` に記録 → Ken が
+ないため、検出 → `reports/spike-clone-duplicates-2026-05-02.md` に記録 → Ken が
 手動で `rm -rf` する手順 (本リポは絶対に自動削除しない)。
 
 ## Workspace 内 worktree vs 監視リポ直接作業
