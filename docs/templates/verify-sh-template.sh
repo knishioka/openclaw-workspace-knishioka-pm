@@ -10,10 +10,10 @@
 #   ./scripts/verify.sh --json    # 構造化結果 (CI / Codex 用)
 #
 # 出力契約 (--json):
-#   {"build":"pass|fail|n/a","lint":"...","format":"...","typecheck":"...","test":"...","failures":[{"step":"lint","cmd":"...","exit":1}]}
+#   {"build":"pass|fail|n/a","lint":"...","format":"...","typecheck":"...","test":"...","failures":[{"step":"lint","exit":1}]}
 #   - 値は "pass" | "fail" | "n/a" のいずれか。
 #   - lint/formatter 等が未導入のリポは "n/a" を返す (Issue #19 と整合)。
-#   - failures[] には fail だった step だけを順番通りに格納。
+#   - failures[] には fail だった step だけを順番通りに格納 (各要素は step 名と exit code のみ)。
 #
 # Exit code:
 #   0  全 step pass / n/a
@@ -63,7 +63,12 @@ TEST_CMD=""       # 例: "npm test --silent"
 JSON_MODE=0
 [[ "${1:-}" == "--json" ]] && JSON_MODE=1
 
-declare -A RESULT
+# Bash 3.2 (macOS default /bin/bash) でも動くよう、連想配列ではなく個別変数で結果を保持する。
+RESULT_BUILD=""
+RESULT_LINT=""
+RESULT_FORMAT=""
+RESULT_TYPECHECK=""
+RESULT_TEST=""
 FAILURES_JSON=""
 ANY_FAIL=0
 
@@ -73,10 +78,14 @@ log_text() {
   fi
 }
 
+# run_step <name> <result_var_name> <cmd>
+#   name        ログ表示用の小文字名 (build/lint/format/typecheck/test)
+#   result_var  結果を書き戻す変数名 (RESULT_BUILD など。printf -v で代入)
+#   cmd         実行するコマンド (空文字なら n/a)
 run_step() {
-  local name="$1" cmd="$2"
+  local name="$1" result_var="$2" cmd="$3"
   if [[ -z "$cmd" ]]; then
-    RESULT[$name]="n/a"
+    printf -v "$result_var" '%s' "n/a"
     log_text "$(printf '  %-10s n/a' "$name")"
     return 0
   fi
@@ -84,10 +93,10 @@ run_step() {
   local exit_code=0
   bash -c "$cmd" >/tmp/verify-"$name".log 2>&1 || exit_code=$?
   if [[ $exit_code -eq 0 ]]; then
-    RESULT[$name]="pass"
+    printf -v "$result_var" '%s' "pass"
     log_text "$(printf '  %-10s ✅ pass' "$name")"
   else
-    RESULT[$name]="fail"
+    printf -v "$result_var" '%s' "fail"
     ANY_FAIL=1
     local sep=""
     [[ -n "$FAILURES_JSON" ]] && sep=","
@@ -98,15 +107,15 @@ run_step() {
 
 log_text "verify.sh: starting"
 
-run_step build     "$BUILD_CMD"
-run_step lint      "$LINT_CMD"
-run_step format    "$FORMAT_CMD"
-run_step typecheck "$TYPECHECK_CMD"
-run_step test      "$TEST_CMD"
+run_step build     RESULT_BUILD     "$BUILD_CMD"
+run_step lint      RESULT_LINT      "$LINT_CMD"
+run_step format    RESULT_FORMAT    "$FORMAT_CMD"
+run_step typecheck RESULT_TYPECHECK "$TYPECHECK_CMD"
+run_step test      RESULT_TEST      "$TEST_CMD"
 
 if [[ $JSON_MODE -eq 1 ]]; then
   printf '{"build":"%s","lint":"%s","format":"%s","typecheck":"%s","test":"%s","failures":[%s]}\n' \
-    "${RESULT[build]}" "${RESULT[lint]}" "${RESULT[format]}" "${RESULT[typecheck]}" "${RESULT[test]}" \
+    "$RESULT_BUILD" "$RESULT_LINT" "$RESULT_FORMAT" "$RESULT_TYPECHECK" "$RESULT_TEST" \
     "$FAILURES_JSON"
 fi
 
