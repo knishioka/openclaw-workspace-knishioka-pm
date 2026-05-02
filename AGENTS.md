@@ -108,12 +108,13 @@ repos.yaml の `private_repos:` に記載されたリポは:
 
 ## Scripts
 
-| Script              | Purpose                                       | Output                                      |
-| ------------------- | --------------------------------------------- | ------------------------------------------- |
-| `repo-health`       | Health diagnosis per repo                     | JSON stdout                                 |
-| `task-suggest`      | Next action suggestions                       | JSON stdout                                 |
-| `knowledge-collect` | Knowledge extraction                          | JSON stdout                                 |
-| `codex-resolve.sh`  | Codex auto-resolve wrapper (injects playbook) | passthrough stdout / exit code (codex の値) |
+| Script                   | Purpose                                                         | Output                                      |
+| ------------------------ | --------------------------------------------------------------- | ------------------------------------------- |
+| `repo-health`            | Health diagnosis per repo                                       | JSON stdout                                 |
+| `task-suggest`           | Next action suggestions                                         | JSON stdout                                 |
+| `knowledge-collect`      | Knowledge extraction                                            | JSON stdout                                 |
+| `codex-resolve.sh`       | Codex auto-resolve wrapper (injects playbook)                   | passthrough stdout / exit code (codex の値) |
+| `bootstrap-workspace.sh` | 環境 preflight + リポ clone 状況 dry-run (`--apply` で実 clone) | text / `--json` で構造化                    |
 
 Scripts use `gh` CLI for all GitHub API calls. No direct API tokens.
 
