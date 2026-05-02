@@ -14,7 +14,7 @@ Ken の手動検証コストを最小化するのが目的。
 
 repos.yaml のリポ名からローカルパスを解決する:
 
-- Public / Private とも `/Users/ken/Developer/private/{name}` (canonical)
+- Public / Private とも `~/Developer/private/{name}` (canonical)
 
 詳細 (重複 clone の扱い、新リポ追加、dirty checkout 時の隔離方針) は
 [docs/environment.md](environment.md) を参照する。

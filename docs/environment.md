@@ -18,7 +18,7 @@
 
 `~/Developer/cost-management-mcp` のような **`/private` 配下を経由しない重
 複 clone は canonical ではない**。`scripts/codex-resolve.sh` は
-`LOCAL_REPO_BASE=/Users/ken/Developer/private` を唯一の起点として解決する
+`LOCAL_REPO_BASE=~/Developer/private` を唯一の起点として解決する
 ので、外側の clone は cron / auto-resolve から見えない。重複 clone の物理
 整理は Issue #12 で対応する。
 
@@ -106,8 +106,8 @@ gh auth login
 
 ## 障害復旧 (Reset Procedure)
 
-1. `~/.openclaw/workspace-knishioka-pm` を `gh repo clone knishioka/openclaw-workspace-knishioka-pm` で再取得する。
-2. `~/Developer/private/` 配下に `config/repos.yaml` の各リポを clone する (順序不問)。
+1. `gh repo clone knishioka/openclaw-workspace-knishioka-pm ~/.openclaw/workspace-knishioka-pm` で再取得する (clone 先ディレクトリ名を明示する。デフォルトでは `openclaw-workspace-knishioka-pm` になり canonical path とずれる)。
+2. `config/repos.yaml` の各リポを canonical path (`~/Developer/private/{name}`) に clone する (順序不問)。
 3. cron 設定 (`~/.openclaw/cron/jobs.json`) は別リポ管理外なので、個別バックアップ (`~/.openclaw/cron/jobs.json.bak.*`) から復元する。テンプレ化は Issue #11 で対応予定。
 4. 「新リポを監視対象に追加する手順」の手順 3 (dry-run) を 1 件通せば、playbook 注入経路が生きていることを確認できる。
 
