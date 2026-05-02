@@ -1,4 +1,4 @@
-<!-- version: 2026-05-02 -->
+<!-- version: 2026-05-02 (Issue #17) -->
 
 # Workspace Environment
 
@@ -16,11 +16,17 @@
 | Wave-based 作業 worktree (本リポ Issue) | `<workspace>/.claude/worktrees/{N}`  | `/resolve-issue` などの並列作業先                                 |
 | Codex 一時隔離先 (主リポ dirty 時)      | `/tmp/{name}-issue-{N}`              | Codex 内部の現行挙動。本ドキュメントで明文化                      |
 
-`~/Developer/cost-management-mcp` のような **`/private` 配下を経由しない重
-複 clone は canonical ではない**。`scripts/codex-resolve.sh` は
-`LOCAL_REPO_BASE=~/Developer/private` を唯一の起点として解決する
-ので、外側の clone は cron / auto-resolve から見えない。重複 clone の物理
-整理は Issue #12 で対応する。
+**Canonical rule (絶対):** 監視リポは `~/Developer/private/{name}` のみを使
+う。`~/Developer/{name}` 直下など、`/private` 配下を経由しないパスに clone
+してはならない。`scripts/codex-resolve.sh` は
+`LOCAL_REPO_BASE=~/Developer/private` を唯一の起点として解決するので、外側
+の clone は cron / auto-resolve から見えず、ステートが二重化する事故源にな
+る。
+
+重複 clone (例: `~/Developer/cost-management-mcp`) の物理整理は Issue #17 で対
+応する: `scripts/bootstrap-workspace.sh` が `--apply` 時にも警告のみで削除し
+ないため、検出 → `reports/spike-clone-duplicates-2026-05-02.md` に記録 → Ken が
+手動で `rm -rf` する手順 (本リポは絶対に自動削除しない)。
 
 ## Workspace 内 worktree vs 監視リポ直接作業
 
@@ -93,7 +99,7 @@ bash scripts/bootstrap-workspace.sh --apply
 - `~/Developer/private/{name}/.git` の有無を全件チェック。
 - `--apply` で未 clone を `gh repo clone` (既存は skip、`status: abandoned` / `on-hold` は自動 clone しない)。
 - `~/Developer/{name}` (private 配下以外) の重複 clone を ⚠️ で警告のみ。
-  削除は Issue #12 / Ken の手動レビュー前提 (本スクリプトは絶対に削除しない)。
+  削除は Issue #17 / Ken の手動レビュー前提 (本スクリプトは絶対に削除しない)。
 - `--json` は `{deps, mode, repos: [...], summary}` を返す。
 
 Exit codes:
