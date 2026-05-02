@@ -22,7 +22,7 @@ $ bash scripts/codex-resolve.sh --dry-run knishioka/math-worksheet 1 2>&1 1>/dev
 [codex-resolve] dry-run repo=knishioka/math-worksheet issue=1 playbook_version=2026-05-01
 ```
 
-stdout 側のプロンプト本文 (Codex 注入用) には引き続き `Playbook version: 2026-05-01` が含まれる。stderr ログは cron / wrapper が `grep -oE 'playbook_version=[0-9]{4}-[0-9]{2}-[0-9]{2}'` で拾うための独立した経路。
+stdout 側のプロンプト本文 (Codex 注入用) には引き続き `Playbook version: 2026-05-01` が含まれる。stderr ログは cron / wrapper が `grep -oE 'playbook_version=[^ ]+'` で拾うための独立した経路 (date 形式と `unknown` fallback の両方を取り漏らさない)。
 
 ### Out of scope (本 Issue では触らない)
 
