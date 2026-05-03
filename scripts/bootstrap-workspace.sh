@@ -190,17 +190,9 @@ while IFS= read -r repo_json; do
   if $present; then
     action="skip"
   elif $is_on_hold; then
+    # on-hold は意図的に未 clone のことがあるため、--apply でも絶対 clone しない。
     if (( INCLUDE_ON_HOLD )); then
       MISSING_CT=$((MISSING_CT + 1))
-    fi
-    if (( APPLY )); then
-      # on-hold は意図的に未 clone のことがあるため、--apply でも絶対 clone しない。
-      if (( INCLUDE_ON_HOLD )); then
-        action="missing-on-hold"
-      else
-        action="skip-on-hold"
-      fi
-    elif (( INCLUDE_ON_HOLD )); then
       action="missing-on-hold"
     else
       action="skip-on-hold"
