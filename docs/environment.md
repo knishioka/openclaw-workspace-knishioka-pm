@@ -90,6 +90,9 @@ bash scripts/bootstrap-workspace.sh
 # 構造化出力 (CI / 他 script から parse 可能)
 bash scripts/bootstrap-workspace.sh --json | jq '.summary'
 
+# on-hold も dry-run の missing に含めて確認
+bash scripts/bootstrap-workspace.sh --include-on-hold --json | jq '.summary'
+
 # 未 clone リポを実 clone (idempotent)
 bash scripts/bootstrap-workspace.sh --apply
 ```
@@ -98,9 +101,14 @@ bash scripts/bootstrap-workspace.sh --apply
 
 - `~/Developer/private/{name}/.git` の有無を全件チェック。
 - `--apply` で未 clone を `gh repo clone` (既存は skip、`status: abandoned` / `on-hold` は自動 clone しない)。
+- `status: on-hold` はデフォルトでは informational 扱いで、未 clone でも
+  `summary.missing` に含めない。`summary.on_hold` で件数を確認する。
+- `--include-on-hold` は dry-run の互換確認用。on-hold を `summary.missing`
+  に含めて報告するが、`--apply` と併用しても on-hold は clone しない。
 - `~/Developer/{name}` (private 配下以外) の重複 clone を ⚠️ で警告のみ。
   削除は Issue #17 / Ken の手動レビュー前提 (本スクリプトは絶対に削除しない)。
-- `--json` は `{deps, mode, repos: [...], summary}` を返す。
+- `--json` は `{deps, mode, repos: [...], summary}` を返す。`repos[]` には
+  `config/repos.yaml` の `status` を含める。
 
 Exit codes:
 
@@ -141,13 +149,13 @@ markdownlint-cli2 --version
 brew install gh jq yq coreutils bash
 npm i -g @openai/codex@latest markdownlint-cli2
 gh auth login
-bash scripts/bootstrap-workspace.sh --apply  # 全リポ一括 clone
+bash scripts/bootstrap-workspace.sh --apply  # 対象リポを一括 clone (abandoned / on-hold は除外)
 ```
 
 ## 障害復旧 (Reset Procedure)
 
 1. `gh repo clone knishioka/openclaw-workspace-knishioka-pm ~/.openclaw/workspace-knishioka-pm` で再取得する (clone 先ディレクトリ名を明示する。デフォルトでは `openclaw-workspace-knishioka-pm` になり canonical path とずれる)。
-2. `bash scripts/bootstrap-workspace.sh --apply` で `config/repos.yaml` の全リポを canonical path (`~/Developer/private/{name}`) に一括 clone する。
+2. `bash scripts/bootstrap-workspace.sh --apply` で `config/repos.yaml` の対象リポを canonical path (`~/Developer/private/{name}`) に一括 clone する (`status: abandoned` / `on-hold` は除外)。
 3. cron 設定 (`~/.openclaw/cron/jobs.json`) は別リポ管理外なので、個別バックアップ (`~/.openclaw/cron/jobs.json.bak.*`) から復元する。テンプレ化は Issue #11 で対応予定。
 4. 「新リポを監視対象に追加する手順」の手順 3 (dry-run) を 1 件通せば、playbook 注入経路が生きていることを確認できる。
 

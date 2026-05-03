@@ -10,6 +10,8 @@
 # Usage:
 #   scripts/bootstrap-workspace.sh                 # dry-run 人間向けレポート
 #   scripts/bootstrap-workspace.sh --json          # dry-run 構造化出力
+#   scripts/bootstrap-workspace.sh --include-on-hold --json
+#                                                   # on-hold も missing に含めて報告
 #   scripts/bootstrap-workspace.sh --apply         # 未 clone を実 clone
 #   scripts/bootstrap-workspace.sh --apply --json  # apply + JSON
 #
@@ -40,10 +42,12 @@ usage() {
 # --- Parse args ---------------------------------------------------------------
 APPLY=0
 JSON=0
+INCLUDE_ON_HOLD=0
 for arg in "$@"; do
   case "$arg" in
-    --apply) APPLY=1 ;;
-    --json)  JSON=1 ;;
+    --apply)           APPLY=1 ;;
+    --json)            JSON=1 ;;
+    --include-on-hold) INCLUDE_ON_HOLD=1 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Error: unknown arg: $arg" >&2; usage >&2; exit 2 ;;
   esac
@@ -141,6 +145,7 @@ fi
 TOTAL=0
 PRESENT=0
 MISSING_CT=0
+ON_HOLD_CT=0
 DUPLICATE_CT=0
 APPLIED=0
 CLONE_ERRORS=0
@@ -160,6 +165,11 @@ while IFS= read -r repo_json; do
   owner="$(jq -r '.owner' <<< "$repo_json")"
   name="$(jq  -r '.name'  <<< "$repo_json")"
   status="$(jq -r '.status // ""' <<< "$repo_json")"
+  is_on_hold=false
+  if [ "${status}" = "on-hold" ]; then
+    is_on_hold=true
+    ON_HOLD_CT=$((ON_HOLD_CT + 1))
+  fi
 
   expected_path="${LOCAL_REPO_BASE}/${name}"
   duplicate_path="${DEVELOPER_BASE}/${name}"
@@ -179,11 +189,27 @@ while IFS= read -r repo_json; do
 
   if $present; then
     action="skip"
+  elif $is_on_hold; then
+    if (( INCLUDE_ON_HOLD )); then
+      MISSING_CT=$((MISSING_CT + 1))
+    fi
+    if (( APPLY )); then
+      # on-hold は意図的に未 clone のことがあるため、--apply でも絶対 clone しない。
+      if (( INCLUDE_ON_HOLD )); then
+        action="missing-on-hold"
+      else
+        action="skip-on-hold"
+      fi
+    elif (( INCLUDE_ON_HOLD )); then
+      action="missing-on-hold"
+    else
+      action="skip-on-hold"
+    fi
   else
     MISSING_CT=$((MISSING_CT + 1))
     if (( APPLY )); then
-      if [ "${status}" = "abandoned" ] || [ "${status}" = "on-hold" ]; then
-        # 放棄/保留中のリポは --apply でも自動 clone しない (idempotent + 安全)
+      if [ "${status}" = "abandoned" ]; then
+        # 放棄中のリポは --apply でも自動 clone しない (idempotent + 安全)
         action="skip-status"
       elif gh repo clone "${owner}/${name}" "${expected_path}" -- --quiet --depth=1; then
         APPLIED=$((APPLIED + 1))
@@ -226,6 +252,7 @@ if (( JSON )); then
     --argjson total       "$TOTAL" \
     --argjson present     "$PRESENT" \
     --argjson missing     "$MISSING_CT" \
+    --argjson on_hold     "$ON_HOLD_CT" \
     --argjson duplicates  "$DUPLICATE_CT" \
     --argjson applied     "$APPLIED" \
     --argjson errors      "$CLONE_ERRORS" \
@@ -237,6 +264,7 @@ if (( JSON )); then
          total: $total,
          present: $present,
          missing: $missing,
+         on_hold: $on_hold,
          duplicates: $duplicates,
          applied: $applied,
          clone_errors: $errors
@@ -244,7 +272,7 @@ if (( JSON )); then
      }' "$RESULTS_FILE"
 else
   echo "Workspace bootstrap report (mode: ${MODE})"
-  echo "  total=${TOTAL} present=${PRESENT} missing=${MISSING_CT} duplicates=${DUPLICATE_CT} applied=${APPLIED} errors=${CLONE_ERRORS}"
+  echo "  total=${TOTAL} present=${PRESENT} missing=${MISSING_CT} on_hold=${ON_HOLD_CT} duplicates=${DUPLICATE_CT} applied=${APPLIED} errors=${CLONE_ERRORS}"
   echo
 
   while IFS= read -r line; do
@@ -257,7 +285,9 @@ else
       would-clone)  icon="📥" ; msg="missing (would clone with --apply)" ;;
       cloned)       icon="✨" ; msg="cloned" ;;
       clone-failed) icon="❌" ; msg="clone failed" ;;
-      skip-status)  icon="⏭" ; msg="skipped (abandoned / on-hold)" ;;
+      skip-status)  icon="⏭" ; msg="skipped (abandoned)" ;;
+      skip-on-hold) icon="ℹ️" ; msg="on-hold (skipped; not counted missing)" ;;
+      missing-on-hold) icon="ℹ️" ; msg="on-hold missing (included by --include-on-hold; --apply still skips)" ;;
       *)            icon="?"  ; msg="$action" ;;
     esac
     printf '  %s %-32s  %s\n' "$icon" "$name" "$msg"
