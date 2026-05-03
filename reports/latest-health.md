@@ -30,6 +30,7 @@
 | english-note-maker | 🟢 GREEN | ✅ | 1d | 0 | 0 | — |
 
 ### Abandoned (skipped for issues)
+
 | Repo | Status | Inactive |
 |------|--------|----------|
 | td-mcp-server | 🔴 RED | 273d |

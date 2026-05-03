@@ -8,6 +8,7 @@ Summary: Active 10 / Dormant 1 / Abandoned 4
 ## Portfolio classification
 
 ### Public repos
+
 | Repo | Category | Days inactive | Status |
 |------|----------|--------------|--------|
 | kanji-practice | education | 1 | Active |
@@ -22,6 +23,7 @@ Summary: Active 10 / Dormant 1 / Abandoned 4
 | remotion-math-education | education | 320 | Abandoned |
 
 ### Private repos
+
 | Repo | Days inactive | Status |
 |------|--------------|--------|
 | market-lens-studio | 15 | Active |
