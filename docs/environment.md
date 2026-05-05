@@ -159,6 +159,23 @@ bash scripts/bootstrap-workspace.sh --apply  # 対象リポを一括 clone (aban
 3. cron 設定 (`~/.openclaw/cron/jobs.json`) は別リポ管理外なので、個別バックアップ (`~/.openclaw/cron/jobs.json.bak.*`) から復元する。テンプレ化は Issue #11 で対応予定。
 4. 「新リポを監視対象に追加する手順」の手順 3 (dry-run) を 1 件通せば、playbook 注入経路が生きていることを確認できる。
 
+## 既知の運用障害 (無視可)
+
+OpenClaw runner や外部依存に起因する周期的な warning / error。**本体機能は無傷**。
+
+### WhatsApp 配信失敗で `weekly-repo-health` が `lastRunStatus: error` になる
+
+- **症状**: WhatsApp Web セッションが status 499 で 30 分ごとに切断 → 自動 retry で復旧。配信タイミングと不一致だと cron job が `error` 扱い + `lastError: "⚠️ ✉️ Message failed"` を記録 (例: 2026-05-03 weekly-repo-health)
+- **影響**: 通知遅延のみ。health check / Issue 作成 / commit / `monitoring/health-trend.jsonl` 追記は成功している
+- **対応不要**: `consecutiveErrors` が `failureAlert.after` (= 2) に達するまで放置。閾値超過したら個別調査
+- **将来的改善**: cron runner 側で配信失敗を非致命扱いにする upstream 設定が必要 (本 workspace スコープ外)
+
+### `_di-spillover/` (gitignored) に入っている scripts / reports
+
+- **由来**: `datainformed-jp/di-*` リポ向け orchestrator scripts と reports が、過去 Ken の手動作業で誤って knishioka-pm 内に作成された
+- **対応**: gitignore 退避済 (commit 対象外)。Ken が `~/.openclaw/workspace-di/scripts/` 等の正しい workspace に `mv` してから `_di-spillover/` を削除
+- **詳細**: `_di-spillover/README.md`
+
 ## 関連ドキュメント
 
 - [`docs/codex-playbook.md`](codex-playbook.md) — auto-resolve のプロンプト / PR Description Standards
