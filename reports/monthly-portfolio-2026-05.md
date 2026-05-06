@@ -1,98 +1,190 @@
-As of: 2026-05-05
-Summary: Active 10 / Dormant 1 / Abandoned 6
+# Monthly Portfolio Review - 2026-05
 
-PM judgment: ポートフォリオ全体は「教育プロダクト群 + MCP群」が前進中。整理対象は、長期停止した public リポと backlog が重すぎる 2 リポです。
+Date: 2026-05-06 19:00 Asia/Kuala_Lumpur
 
-## 1. Portfolio snapshot
+## Executive Summary
 
-### Active (30日以内にコミット)
-- knishioka/kanji-practice, 3日前, education, public
-- knishioka/math-worksheet, 1日前, education, public
-- knishioka/ib-sec-mcp, 4日前, mcp, public
-- knishioka/freee-mcp, 2日前, mcp, public
-- knishioka/cost-management-mcp, 2日前, mcp, public
-- knishioka/english-note-maker, 1日前, education, public
-- knishioka/market-lens-studio, 1日前, private
-- knishioka/workflow-engine, 3日前, private
-- knishioka/ut-gymnastics, 20日前, private
-- knishioka/jgrants-app, 20日前, private
+- Portfolio snapshot: 17 repos total, 10 Active, 1 Dormant, 6 Abandoned.
+- Public portfolio improved through April, then slightly regressed in early May: health trend moved from 3 GREEN / 2 YELLOW / 5 RED in late March to 6 GREEN / 0 YELLOW / 4 RED in mid-to-late April, then 5 GREEN / 0 YELLOW / 5 RED on 2026-05-03.
+- Main positive shift this month: `english-note-maker` returned to active development, `ib-sec-mcp` recovered from RED to GREEN, and education repos kept shipping.
+- Main drag this month: `cost-management-mcp` reactivated but CI fell back to failure by early May, and `simple-bookkeeping` is now functionally abandoned while still carrying a large unresolved backlog.
 
-### Dormant (30-90日)
-- knishioka/household-finance, 57日前, private
+## Classification
 
-### Abandoned (90日以上)
-- knishioka/simple-bookkeeping, 100日前, fintech, public
-- knishioka/td-mcp-server, 275日前, mcp, public
-- knishioka/meditation-chrome-extension, 309日前, tool, public
-- knishioka/remotion-math-education, 321日前, education, public
-- knishioka/line-advisor, 293日前, private, on-hold
-- knishioka/story-bridge, 312日前, private, on-hold
+### Active
 
-## 2. Past-month trend (from monitoring/health-trend.jsonl)
+Public:
+- knishioka/kanji-practice
+- knishioka/math-worksheet
+- knishioka/ib-sec-mcp
+- knishioka/freee-mcp
+- knishioka/cost-management-mcp
+- knishioka/english-note-maker
 
-- Public monitored set improved in mid-April: 2026-04-05 was GREEN 4 / YELLOW 1 / RED 5, while 2026-04-12 through 2026-04-26 held at GREEN 6 / RED 4.
-- Early May slipped slightly to GREEN 5 / RED 5 because `cost-management-mcp` regressed from GREEN to RED on CI while still remaining actively developed.
-- `ib-sec-mcp` recovered from RED to GREEN during April and stayed active.
-- `english-note-maker` also recovered from stale/RED state into active GREEN during April.
-- `simple-bookkeeping` crossed the 90-day inactivity line during April and is now operationally abandoned, with backlog still heavy.
-- The long-idle public pool (`td-mcp-server`, `meditation-chrome-extension`, `remotion-math-education`) remained unchanged throughout the month.
+Private:
+- knishioka/market-lens-studio
+- knishioka/workflow-engine
+- knishioka/ut-gymnastics
+- knishioka/jgrants-app
 
-## 3. Cross-repo analysis
+### Dormant
 
-### Common technology / integration opportunities
-1. MCP共通基盤の抽出余地が大きい
-   - `freee-mcp`, `cost-management-mcp`, `ib-sec-mcp`, `td-mcp-server` はいずれも「tool-per-capability」「schema validation」「外部API adapter」という似た形。
-   - 共通化候補: structured output helper, auth/config validation, error taxonomy, CI/security workflow, long-running task pattern。
-   - 特に KB 上で `freee-mcp` は structured output を先行導入、`ib-sec-mcp` は structured output / elicitation の導入余地が明確。ここを横展開できる。
+Public:
+- none
 
-2. 教育系プリント生成の共通プロダクト面が見えている
-   - `kanji-practice`, `math-worksheet`, `english-note-maker` は全て A4 print-first generator。
-   - 共通化候補: preset/share URL, layout verifier, printable component primitives, cumulative review / spaced retrieval preset。
-   - `remotion-math-education` の「動画化」自体は止まっているが、学習コンテンツ資産は education cluster に再利用可能。
+Private:
+- knishioka/household-finance
 
-3. 学習理論ベースの差別化が education 群の共通テーマ
-   - `kanji-practice` と `math-worksheet` の KB では、どちらも spaced / interleaved / retrieval practice が次の差別化軸として繰り返し出ている。
-   - 単発プリント生成ではなく、復習混在プリセットや progression flow を cluster 横断で設計すると再利用効率が高い。
+### Abandoned
 
-### Repos with excessive maintenance load
-- `simple-bookkeeping`: open issues 37, open PRs 8。活動停止に対して backlog が重すぎる。
-- `freee-mcp`: open issues 2, open PRs 17。活発だが PR 滞留が大きく、レビュー待ち負債が蓄積している。
-- `ib-sec-mcp`: open PRs 5。まだ制御可能だが、活発さに対してやや積み上がり始めている。
+Public:
+- knishioka/simple-bookkeeping
+- knishioka/td-mcp-server
+- knishioka/meditation-chrome-extension
+- knishioka/remotion-math-education
 
-## 4. Abandoned public repos: archive / revival conditions
+Private:
+- knishioka/line-advisor
+- knishioka/story-bridge
 
-### Recommend archive
-- `knishioka/td-mcp-server`
-  - 理由: 9か月超停止、直近の merged PR signal なし、MCP共通基盤の本流は `freee-mcp` / `cost-management-mcp` / `ib-sec-mcp` 側に移っている。
-  - 復活条件: Treasure Data を実際に再利用する明確な案件が出ること、または MCP 共通基盤抽出の検証先として必要になること。
+## 1-Month Trend Readout
 
-- `knishioka/meditation-chrome-extension`
-  - 理由: 10か月超停止、未消化 backlog もなく、現ポートフォリオの中心テーマから外れている。
-  - 復活条件: Chrome 拡張の個人利用ニーズが再発し、Manifest V3 対応や音声UX改善をやる具体目的があること。
+- Late March baseline: strong activity in `kanji-practice`, `math-worksheet`, and `freee-mcp`; `ib-sec-mcp` and `cost-management-mcp` were RED; `simple-bookkeeping` and `english-note-maker` were aging.
+- Early April inflection: `cost-management-mcp` recovered to GREEN, and the portfolio briefly reached 4 GREEN / 1 YELLOW / 5 RED.
+- Mid April best state: 6 GREEN / 0 YELLOW / 4 RED. `ib-sec-mcp` turned GREEN, `english-note-maker` became active again, and the education cluster was healthy.
+- Early May regression: `cost-management-mcp` returned to RED on CI failure, bringing the public snapshot to 5 GREEN / 0 YELLOW / 5 RED.
+- Persistent problem across the full month: `simple-bookkeeping` stayed deeply stale and overloaded with open work.
 
-- `knishioka/remotion-math-education`
-  - 理由: ほぼ初期実験のまま停止。教育資産は `math-worksheet` 側に寄せた方が現状の勝ち筋に合う。
-  - 復活条件: 「印刷物ではなく動画教材が必要」という明確な配布チャネルや利用者仮説が立つこと。
+## Cross-Repo Analysis
 
-### Archive unless a tight restart plan is chosen
-- `knishioka/simple-bookkeeping`
-  - 理由: 100日停止に加え、open issues 37 / open PRs 8 で保守負債が大きい。現状は active product というより backlog warehouse。
-  - 復活条件: (1) 対象ユーザーを自分用の青色申告に再限定, (2) backlog を 1テーマに圧縮, (3) まず PR と Issue を大幅整理して 30日以内に小さく再始動すること。
+### Common technology and integration opportunities
 
-## 5. Recommended portfolio focus for next month
+#### 1. MCP shared platform opportunity is now clear
 
-1. MCP群は「機能追加」より共通化と backlog 整理を優先
-   - `freee-mcp` の PR滞留圧縮
-   - `cost-management-mcp` の CI安定化
-   - `ib-sec-mcp` を structured output / safer tool UX の先行実装候補にする
+`freee-mcp`, `cost-management-mcp`, `ib-sec-mcp`, and `td-mcp-server` all converge on the same pattern:
+- schema-validated tool surfaces
+- report / analysis oriented outputs
+- growing need for structured content, async jobs, and safer long-running flows
 
-2. Education群は shareability と review generation に寄せる
-   - `kanji-practice` / `math-worksheet` / `english-note-maker` で preset, review flow, printable QA の共通思想を揃える
+Portfolio-level opportunity:
+- create a shared MCP foundation for tool registration, structured output conventions, pagination helpers, error mapping, and async task patterns
+- prioritize `freee-mcp`, `cost-management-mcp`, and `ib-sec-mcp`; treat `td-mcp-server` only as a migration source, not as a strategic product
 
-3. 停止 public リポは減らす
-   - 最低でも `td-mcp-server`, `meditation-chrome-extension`, `remotion-math-education` の archive 判断を今月中に行う
-   - `simple-bookkeeping` は revive するなら再始動条件を先に決める
+Expected benefit:
+- less duplicate protocol plumbing
+- faster rollout of structured outputs and TaskManager-style async flows
+- easier consistency across finance / broker / cost domains
 
-## 6. Confirmed
-- Public active leaders are `kanji-practice`, `math-worksheet`, `ib-sec-mcp`, `freee-mcp`, `cost-management-mcp`, `english-note-maker`.
-- Private portfolio remains active overall, but details are intentionally omitted here beyond names and classification.
+#### 2. Education repos are forming a reusable worksheet product family
+
+`kanji-practice`, `math-worksheet`, `english-note-maker`, and even the abandoned `remotion-math-education` share a product thesis:
+- A4 print-first generation
+- browser-only delivery
+- pedagogy-led feature design
+- layout verification and output-fit constraints
+
+Portfolio-level opportunity:
+- unify them as a worksheet platform with shared preset logic, layout-fit verification, print QA helpers, and distribution patterns
+- common next step across `kanji-practice` and `math-worksheet`: cumulative review / spaced retrieval presets
+- `english-note-maker` can likely reuse the same preset and print QA concepts
+
+#### 3. Finance domain overlap exists but is fragmented
+
+`freee-mcp`, `simple-bookkeeping`, and `household-finance` all revolve around auditable financial records and reporting.
+
+Portfolio-level opportunity:
+- standardize shared ledger / category / reporting vocabulary across repos
+- keep `freee-mcp` as API-facing advisory tooling
+- decide whether `simple-bookkeeping` remains a product bet or is reduced to a reference domain model
+- use `household-finance` as a smaller proving ground for reporting and anomaly UX
+
+### Repos showing excessive effort or backlog pressure
+
+Public:
+- `simple-bookkeeping`: 37 open issues, 8 open PRs, 100 days inactive. This is the clearest overhang in the portfolio.
+- `freee-mcp`: active and healthy, but previously carried a very high PR volume. Current load looks more controlled, yet still needs scope discipline.
+- `ib-sec-mcp`: active with 5 open PRs. Not alarming, but enough concurrent surface area to watch.
+- `cost-management-mcp`: 3 open issues and 3 open PRs is manageable, but CI regression means coordination cost is higher than the raw count suggests.
+
+Private:
+- `market-lens-studio`
+- `workflow-engine`
+
+Note: private repo details are intentionally omitted here beyond identification.
+
+## Abandoned Repo Recommendations
+
+### Public repos
+
+#### knishioka/simple-bookkeeping
+Recommendation: archive only if there is no concrete restart intent before the next tax-focused development window; otherwise run a hard revival triage first.
+
+Reasoning:
+- domain is still strategically relevant to the finance cluster
+- but 100+ days inactivity plus 45 open items means it is currently carrying more backlog than active momentum
+
+Revival condition:
+- first, close or defer backlog aggressively until one narrow milestone remains
+- relaunch only with a single concrete use case, for example blue-return bookkeeping core flow or report export
+
+#### knishioka/td-mcp-server
+Recommendation: archive.
+
+Reasoning:
+- 276 days inactive
+- no recent product signal in KB
+- overlaps with stronger MCP investments elsewhere
+
+Revival condition:
+- only if a real Treasure Data workflow reappears and cannot be served by the shared MCP foundation or another analytics path
+
+#### knishioka/meditation-chrome-extension
+Recommendation: archive.
+
+Reasoning:
+- 310 days inactive
+- no visible cross-repo leverage
+- isolated product thesis relative to current portfolio center of gravity
+
+Revival condition:
+- user pull for an offline bilingual wellness product, or a clear distribution channel that justifies standalone maintenance
+
+#### knishioka/remotion-math-education
+Recommendation: do not revive now; archive unless video generation becomes a deliberate education strategy.
+
+Reasoning:
+- 322 days inactive
+- conceptually adjacent to education repos, but current momentum is in printable worksheet products, not video
+
+Revival condition:
+- revive only if there is a specific plan to turn worksheet content into reusable instructional video assets or teacher-facing explainer content
+
+### Private repos
+
+- knishioka/line-advisor: on-hold, keep frozen unless priority changes
+- knishioka/story-bridge: on-hold, keep frozen unless priority changes
+
+## Portfolio-Level Recommendations for Next Month
+
+1. Consolidate the active bets into three clusters:
+   - Education: `kanji-practice`, `math-worksheet`, `english-note-maker`
+   - MCP/finance infrastructure: `freee-mcp`, `ib-sec-mcp`, `cost-management-mcp`
+   - Automation/publishing tools: `workflow-engine`, `market-lens-studio`
+
+2. Treat `simple-bookkeeping` as a portfolio decision, not a normal repo task queue.
+   - Either restart with one narrow milestone or intentionally wind it down.
+
+3. Put shared-platform work ahead of isolated feature work where possible.
+   - MCP shared foundation
+   - worksheet shared preset / print QA layer
+   - finance shared reporting vocabulary
+
+4. Watch CI quality on `cost-management-mcp`.
+   - It is active again, but unstable activity is noisier than dormancy.
+
+## Appendix: Classification Basis
+
+Classification uses latest observed push recency as of 2026-05-06 11:00 UTC.
+- Active: commit within 30 days
+- Dormant: 30-90 days
+- Abandoned: 90+ days
