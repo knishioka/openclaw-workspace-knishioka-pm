@@ -1,63 +1,74 @@
-# Focus Task Report — 2026-05-04 (Mon)
+# Focus Task Report — 2026-05-07 (Thu)
 
 ## 作成 Issue + PR
 
 | repo | issue | PR | perspective | subtype | title | status |
 |---|---|---|---|---|---|---|
-| knishioka/freee-mcp | [#179](https://github.com/knishioka/freee-mcp/issues/179) | [#181](https://github.com/knishioka/freee-mcp/pull/181) | dev | dx | test: Jest から Vitest へ移行 | draft PR ✅ CI green |
+| knishioka/cost-management-mcp | [#151](https://github.com/knishioka/cost-management-mcp/issues/151) | [#152](https://github.com/knishioka/cost-management-mcp/pull/152) | dev | maintenance | fix(ci): make TruffleHog secret scan robust on main pushes | draft PR ✅ CI green |
 
 ## Pre-check 判定
 
 | チェック項目 | 結果 |
 |---|---|
-| Open PM Issues (制限: <3) | 2件 (kanji-practice #31, cost-management-mcp #149) → 作成可 |
-| Resolve rate 直近30日 | 6/8 = 75% → max 1 Issue/run |
-| Feature Issue 直近4回連続0件 | No (3/4 に feature あり) → 通常 |
-| 前回サジェスト除外 | ib-sec-mcp → 除外 |
+| Open PM-created Issues (制限: <3) | 0件 → 作成可 |
+| Open tracked Issues (参考) | 1件 (`knishioka/kanji-practice` #31, qa/bugfix) |
+| Resolve rate 直近30日 | 8/9 = 88.9% → max 2 Issues/run |
+| Feature Issue 直近4回連続0件 | No (`ib-sec-mcp` #114 が feature) |
+| 前回サジェスト除外 | `knishioka/freee-mcp` → 除外 |
+| エスカレーション優先 | RED 2週連続+high の最優先対象なし |
 
 ## 動的頻度判定
 
-Resolve rate 75%（50-80%帯）→ 1 Issue/run 上限 適用。
+Resolve rate 88.9%（80%以上）なので通常運転、最大2 Issue/run。今回は Dual-Perspective 比較の結果、CI fail を即解消できる Developer 視点の maintenance を 1件だけ採用。
+
+## Dual-Perspective 候補比較
+
+| repo | perspective | subtype | candidate | Value | Effort | Confidence | Urgency | Total | 採否 |
+|---|---|---|---|---:|---:|---:|---:|---:|---|
+| knishioka/cost-management-mcp | dev | maintenance | TruffleHog diff scan を push / PR SHA ベースへ修正し CI ノイズを止める | 9 | 9 | 9 | 10 | 37 | ✅ 採用 |
+| knishioka/english-note-maker | pm | growth | LICENSE / CONTRIBUTING 追加で外部コントリビューション導線を作る | 5 | 9 | 9 | 3 | 26 | 見送り |
+| knishioka/english-note-maker | pm | feature | alphabet 練習の次候補はあるが `/resolve-issue` で完走させる要件明確度が今回不足 | 7 | 6 | 5 | 2 | 20 | 見送り |
+| knishioka/ib-sec-mcp | dev | maintenance | SDK / OpenAI minor 更新を検討 | 5 | 6 | 6 | 3 | 20 | 見送り |
 
 ## 直近4回の perspective 比率
 
-| focus session | PM系 | Dev系 |
-|---|---|---|
-| 2026-04-16 | english-note-maker #22 (pm/feature) | freee-mcp #174 (dev/refactor) |
-| 2026-04-20 | kanji-practice #25 (pm/feature) | ib-sec-mcp #111 (dev/maintenance) |
-| 2026-04-26-27 | — (qa/bugfix skipped) | freee-mcp #177 (dev/tech-adoption) |
-| 2026-04-30 | ib-sec-mcp #114 (pm/feature) | — (qa/bugfix skipped) |
-| **2026-05-04** | — | **freee-mcp #179 (dev/dx)** |
+対象: 2026-04-30 以降の focus-task で作成・追跡した 4件
 
-直近5セッション: PM:3, Dev:4 → 43:57（4:6〜6:4 の許容範囲内）
+| created | repo | issue | perspective | subtype |
+|---|---|---:|---|---|
+| 2026-04-30 | knishioka/ib-sec-mcp | #114 | pm | feature |
+| 2026-05-03 | knishioka/cost-management-mcp | #149 | qa | bugfix |
+| 2026-05-04 | knishioka/freee-mcp | #179 | dev | dx |
+| 2026-05-07 | knishioka/cost-management-mcp | #151 | dev | maintenance |
 
-## Tech Radar スキャン (2026-05-04)
+PM:Dev = 1:2（qa を除外）。直近は Dev 側に寄っているが、直前の未解決 CI failure を優先した判断。
 
-今回スキャンで把握した重要トピック（今回 Issue に採用しなかったが次回以降検討）:
+## Tech Radar スキャン (2026-05-07)
+
+今回採用しなかったが次回以降の監視候補:
 
 | トピック | 関連リポ | 優先度 | メモ |
 |---|---|---|---|
-| Tailwind CSS v4 (4.2.4) | math-worksheet | medium | v3.4.17から1メジャー遅れ。CSS-first config。math-worksheetは既にVite7+React19でモダンスタックなので相性良い |
-| @modelcontextprotocol/sdk 1.29.0 | freee-mcp, ib-sec-mcp, cost-management-mcp | low | freee-mcpは^1.26.0で minor update のみ |
-| Vitest 4.x (4.1.5) | math-worksheet | low | math-worksheetは^3.2.3。minor update |
-| ESLint v9 (flat config) | freee-mcp | medium | freee-mcpは.eslintrc.json形式のまま。migration候補 |
+| TruffleHog GitHub Action の base/head 運用見直し | cost-management-mcp | high | 今回の Issue で対処。merge 後は main push 経路の実観測を確認したい |
+| `@modelcontextprotocol/sdk` 1.29.0 | freee-mcp / ib-sec-mcp / cost-management-mcp | medium | `cost-management-mcp` は `^1.20.2` で遅れあり。ただし今回は CI修復を優先 |
+| `openai` 6.36.0 | cost-management-mcp | medium | 現在 `^6.8.0`。差分が大きく、別 maintenance Issue に切り出す価値あり |
+| Tailwind CSS v4 系 | math-worksheet | medium | CSS-first config への移行余地あり |
+| Vitest 4.x / ESLint flat config | math-worksheet / freee-mcp | low-medium | 直近で freee-mcp 側はテスト移行済み。横展開候補 |
 
 ## Codex auto-resolve 結果
 
-- Issue: knishioka/freee-mcp #179
-- PR: #181 (draft) — https://github.com/knishioka/freee-mcp/pull/181
-- Branch: `chore/179-vitest-migration`
-- Commits: 2 (migration + @types/node peer fix)
-- Tests: 20 files / 603 tests ✅ pass
-- CI: ci ✅ / label ✅
-- 自己修正: 1回（@types/node peer dependency → npm ci 対応）
+- Issue: knishioka/cost-management-mcp #151
+- PR: #152 (draft) — https://github.com/knishioka/cost-management-mcp/pull/152
+- Branch: `fix/issue-151-trufflehog-scan-refs`
+- Commit: `b030efc`
+- 検証: `build` ✅ / `lint` ✅ / `format` ✅ / `typecheck` ✅ / `test` ✅ / `ci` ✅
+- PR checks: `secret-scan`, `dependency-scan`, `CodeQL Analysis`, `build`, `security`, `test (18.x)`, `test (20.x)` 全 pass
 - playbook_version: 2026-05-01
 - lint_available: true
+- lint_skipped_reason: null
 
-## 既存 Open PM Issues 状況
+## 既存 Open tracked Issues 状況
 
-| repo | issue | title | 経過日数 |
-|---|---|---|---|
-| knishioka/kanji-practice | #31 | (qa/bugfix, auto_resolve: skipped) | 8日 |
-| knishioka/cost-management-mcp | #149 | (qa/bugfix, auto_resolve: skipped) | 1日 |
-| knishioka/math-worksheet | #57 | feat: 分数↔小数変換プリントを追加 (未追跡) | 21日 |
+| repo | issue | perspective | subtype | title |
+|---|---:|---|---|---|
+| knishioka/kanji-practice | #31 | qa | bugfix | bugfix: hide Debug overlay entrypoint from production preview |
