@@ -10,8 +10,8 @@
 - License: MIT
 - Default branch: master
 - Created: 2025-10-19
-- Updated: 2026-04-20
-- Collected: 2026-04-24
+- Updated: 2026-05-02
+- Collected: 2026-05-08
 
 ## Tech Stack
 
@@ -21,26 +21,28 @@
 - npm scripts (keys): not found
 - pyproject.toml: present
 - requirements.txt: present
-- README signal: workflow-engine **Workflow Engine - Run your automations with full control** ZapierワークフローをCloud Functions + Cloud Schedulerで自動実行するワークフローエンジンです。 🎯 プロジェクト概要 - **目的**: 56個のZapierワークフローを段階的に移行 - **アプローチ**: Zapier風ワークフローエンジン + YAML駆動設定 - **実行基盤**: Cloud Functions + Cloud Scheduler（本番稼働中） - **コスト削減**: 月額$69 → $6.10（91%削減） なぜ…
+- README signal: # workflow-engine [![Codecov](https://codecov.io/gh/knishioka/workflow-engine/branch/master/graph/badge.svg)](https://codecov.io/gh/knishioka/workflow-engine) **Workflow Engine - Run your automations with full control** ZapierワークフローをCloud Functions + Cloud Schedulerで自動実行するワークフローエ
 
 ## Architecture / Patterns
 
-- Python application with repo-specific automation around its core domain
-- Workflow translation/orchestration layer between no-code automation and agent/API execution
+- Python-based application with repo-specific service boundaries
+- Incremental feature delivery through PR-sized vertical slices
+- Automation and deployment concerns handled alongside product logic
 
 ## Competitive Landscape (notes)
 
 No fresh competitive research in this run.
 
+Potential feature candidates for this repo:
+- No candidates captured yet.
+
 ## Tech Decisions (from PRs/commits)
 
-- [2026-04-28] chore: upgrade default LLM from Sonnet 4.5 to Sonnet 4.6 -- workflows.yamlの2ワークフロー + 3 action class defaultを一括変更。同価準帯で品質向上、API互換性あり。 (source: PR #150)
-- [2026-04-28] fix(github_pr_to_notion): skip Notion task creation for merged/closed PRs -- Trigger fetchからaction実行までに PRが merge/closeされるレースを封じる。github_account設定時に最新状態を再 fetchしてskip。 (source: PR #149)
-- [2026-04-20] fix(github_pr_events): prevent duplicate Notion tasks and skip merged PRs -- - `GitHub PR → Notion` ワークフローで同じ PR から Notion タスクが2個作られる問題と、cron 起動時に既に merged/closed の PR でもタスクが作られる問題を修正 - 新規テスト4件追加 (全1265件 pass) Bug 1: 重複タスク（state file read/write 不整合） - `_fetch_via_search` / `_fetch_repository_prs` は per-key の state file (`__search_knishioka__` や `owner_repo`) から dedup 情報を読む - しかし継承元 `BaseTrigger… (source: PR #147)
-- [2026-04-16] fix(scripts): migrate sync_and_deploy.py from Secret Manager to GCS tokens.json -- Closes #143 Summary After the Secret Manager → GCS migration (89f7552, 630be37), `scripts/sync_and_deploy.py` was left pointing at the obsolete Secret Manager API. Re-running it would update Secret Manager versions while Cloud Run kept reading the unchanged GCS `tokens.json` — token updates silently never reached produ… (source: PR #144)
-- [2026-03-18] perf(state): add in-memory TTL cache for GCS state reads -- - Add module-level state cache with 45s TTL to eliminate redundant GCS reads on warm Cloud Run instances - 90%+ of executions (no new items) now hit cache instead of GCS - Returns deep copies to prevent mutation of cached data - Cache updated on both load and save; optimistic locking still protects writes Expected: ~$2… (source: PR #142)
-- [2026-03-17] perf(state): reduce GCS API calls for state management -- - Remove redundant `blob.exists()` calls in GCS load/save operations (3→2 and 2→1 API calls) - Cache migration status on warm Cloud Run instances to skip repeated GCS reads on init - Batch `mark_action_completed()` in memory, flush once at `mark_item_processed()` - Remove redundant `get_completed_actions()` GCS read be… (source: PR #140)
-- [2026-03-09] feat: add sync_and_deploy.py to ensure Secret Manager + Cloud Run sync -- - Secret Manager のトークン更新後に Cloud Run リデプロイを忘れると、古いトークンが使われ続ける問題を解決 - `scripts/sync_and_deploy.py` を追加: トークンアップロード + Cloud Run リデプロイを1コマンドで実行 - `.claude/rules/authentication.md` を更新: リデプロイ必須を CRITICAL として明記、パイプラインとチェックリストを改訂 Background Google Forms の 403 エラーが継続していた原因: 1. ローカルトークンは再認証済み（9スコープ、`spreadsheets.readonly` 含む）… (source: PR #138)
-- [2026-03-08] feat(github_pr): add Search API mode for cross-org PR monitoring -- - GitHub PR→Notion タスク作成ワークフローを、リポジトリ個別ポーリングから **GraphQL Search API** に変更 - `author` パラメータ指定で全アクセス可能リポジトリのPRを **1回のAPIコール** で取得 - 3つのワークフロー（personal/D-stats/datainformed-jp）を1つに統合可能に - リポジトリリストのメンテナンス不要、新しいリポジトリは自動的に監視対象 変更点 - `_fetch_via_search()`: GraphQL `search(query: "is:pr author:X updated:>=...")` で横断検索 - `autho… (source: PR #137)
-- [2026-03-05] fix(auth): detect missing OAuth scopes and force full re-authentication -- 背景 `gmail_poolsalon_info` アカウントで HTTP 403 エラーが24件発生。原因はトークンに `spreadsheets.readonly` スコープが不足していたこと。 問題の根本原因 `authenticate_gmail_multi.py` は既存トークンが期限切れの場合に `creds.refresh()` でリフレッシュするが、**refresh_token は元の OAuth フローで付与されたスコープ内でしか更新できない**。新しいスコープが `SCOPES` に追加されても、既存トークンをリフレッシュするだけでは新スコープは付与されない。 ``` 旧フロー（問題あり）: トークン読み込み… (source: PR #136)
-- [2026-01-17] fix(memory): prevent GCS/Firestore client memory leak in Cloud Run (#133) -- Fixes critical memory leak in Cloud Run causing OOM crashes after ~12 hours of operation. **Root Cause:** Each `StateManager` and `FirestoreLock` instance created new GCS/Firestore clients, causing unbounded memory growth over time. **Solution:** Implement global singleton pattern for GCS and Firestore clients, ensurin… (source: PR #134)
+- [2026-05-02] feat(notion): auto-close Notion tasks when their GitHub PR is merged -- Adds new trigger notion_pr_tasks and action notion_close_task_if_pr_merged that periodically scan the Notion tasks DB for incomplete tasks with GitHub PR URLs and mark them Done once the PR is merged/closed. (source: PR #151)
+- [2026-04-28] chore: upgrade default LLM from Sonnet 4.5 to Sonnet 4.6 -- t tests/test_anthropic_summarize_action.py tests/test_school_message_analyze.py tests/test_github_pr_to_notion_action.py (40 passed) [ ] デプロイ後、Cloud Logging で実際に claude-sonnet-4-6 がリクエストされていることを確認 🤖 Generated with [Claude Code](https://claude.com/claude-code... (source: PR #150)
+- [2026-04-28] fix(github_pr_to_notion): skip Notion task creation for merged/closed PRs -- PR #147 で trigger 側の pr_state == "open" フィルタは入っており、cron 発火時点で既に merged/closed の PR は除外されていた。ただし以下のレースは残っていた: ``` T0: ... (source: PR #149)
+- [2026-04-20] fix(github_pr_events): prevent duplicate Notion tasks and skip merged PRs -- ory_prs は per-key の state file (__search_knishioka__ や owner_repo) から dedup 情報を読む しかし継承元 BaseTriggerAdapter.mark_item_processed は self.state_manager (default: github_pr_events_{account}_default_state.json) に書く 読み書きで別ファイルを指していたため dedup が常に空扱いになり、60分の検索窓に残る PR... (source: PR #147)
+- [2026-04-16] fix(scripts): migrate sync_and_deploy.py from Secret Manager to GCS tokens.json -- Closes #143 After the Secret Manager → GCS migration (89f7552, 630be37), scripts/sync_and_deploy.py was left pointing at the obsolete Secret Manager API. (source: PR #144)
+- [2026-03-18] perf(state): add in-memory TTL cache for GCS state reads -- t mutation of cached data Cache updated on both load and save; optimistic locking still protects writes Expected: ~$20/month → ~$8/month (GCS operations) Closes #141 [x] All 1261 tests pass [x] Coverage 81.93% (above 80% threshold) [x] ruff + mypy pass [x] C... (source: PR #142)
+- [2026-03-17] perf(state): reduce GCS API calls for state management -- completed() in memory, flush once at mark_item_processed() Remove redundant get_completed_actions() GCS read before mark_item_processed() Expected reduction: ~17,000 GCS calls/day → ~8,000 (~$78/month → ~$35/month) Closes #139 [x] All 1261 existing tests pas... (source: PR #140)
+- [2026-03-09] feat: add sync_and_deploy.py to ensure Secret Manager + Cloud Run sync -- Secret Manager のトークン更新後に Cloud Run リデプロイを忘れると、古いトークンが使われ続ける問題を解決 scripts/sync_and_deploy.py を追加: トークンアップロード + Cloud Run リデプロイを1コマンドで実行 .claude/rules/authentication.md を更新: リデプロイ必須を CRITICAL として明記、パイプラインとチェックリストを改訂 Google Forms の 403 エラーが継続していた原因: 1. (source: PR #138)

@@ -10,38 +10,39 @@
 - License: none
 - Default branch: main
 - Created: 2025-06-18
-- Updated: 2026-04-16
-- Collected: 2026-04-24
+- Updated: 2026-05-04
+- Collected: 2026-05-08
 
 ## Tech Stack
 
 - package.json: present
 - Dependencies (sample): puppeteer
 - Dev dependencies (sample): @eslint/js, @playwright/test, @types/jsdom, @types/node, @vitejs/plugin-legacy, @vitest/ui, eslint, html-validate, http-server, husky, jsdom, lint-staged
-- npm scripts (keys): build, build:prod, clean, debug:layout, debug:open, debug:stats, dev, dev:legacy, format, lint, lint:fix, prepare
+- npm scripts (keys): build, build:prod, clean, debug:layout, debug:open, debug:stats, dev, dev:legacy, format, lint, lint:fix, prepare, preview, server:check, test, test:content, test:coverage, test:e2e, test:headed, test:layout, test:ui, typecheck, validate
 - pyproject.toml: not found
 - requirements.txt: not found
-- README signal: 英語罫線ノート作成ツール 英語の4本線ノートをブラウザ上で作成・印刷できる静的Webアプリケーションです。インターナショナルスクールに通う子どもたちが実用的な語彙とフレーズを学べるよう、豊富なコンテンツと自動レイアウト機能を備えています。 ライブデモとステータス - ライブデモ: - - _フレーズ練習モード: 実用的な会話表現を4本線で練習_ 主な機能 練習モード 1. **通常練習**: 基本的な罫線ノート（自由記�
+- README signal: # 英語罫線ノート作成ツール 英語の4本線ノートをブラウザ上で作成・印刷できる静的Webアプリケーションです。インターナショナルスクールに通う子どもたちが実用的な語彙とフレーズを学べるよう、豊富なコンテンツと自動レイアウト機能を備えています。 ## ライブデモとステータス - ライブデモ: [https://knishioka.github.io/english-note-maker/](https://knishioka.github.io/english-note-maker/) - ![GitHub Actions Status](https://
 
 ## Architecture / Patterns
 
-- Print-first worksheet generator optimized for A4 browser output
-- Client-side generation flow with browser preview and printable layout calculations
-- Lightweight browser app focused on printable learning artifacts
+- Preset/config-driven content generation with browser preview before export
+- Learning-content rendering that balances pedagogy, layout density, and accessibility
+- Typed frontend/tooling workflow with npm-based build/test scripts
 
 ## Competitive Landscape (notes)
 
-- No dedicated competitive / trend note recorded this week.
+No competitive research captured yet.
+
+Potential feature candidates for this repo:
+- No candidates captured yet.
 
 ## Tech Decisions (from PRs/commits)
 
-- [2026-04-25] feat(practice): apply paged dedup and difficulty presets to word/phrase/sentence -- buildPagedUniqueSequence()を共通ヘルパーに抽出し、全モードに適用。WORD/PHRASE/SENTENCE_DIFFICULTY_PRESETSで年齢連動の難易度プリセットを導入。 (source: PR #28)
-- [2026-04-25] fix(cloze): 同一ページ内のフレーズ重複を解消 + 難易度プリセット導入 -- buildClozePagedSequence()のプール幸塓時再シャッフル境界がページ内に落ちるバグを修正。auto/easy/normal/hardプリセットで年齢グループに自動連動。 (source: PR #26)
-- [2026-04-16] feat: add phonics word-family practice mode -- Closes #22 Summary - add a phonics practice mode with selectable word-family patterns - render traceable baseline rows and pattern-aware word sequencing - add content, layout, and phonics data tests for the new mode (source: PR #23)
-- [2026-04-11] fix(cloze): increase questions per page and hide notice from print -- - 穴埋め問題の1ページあたりの問題数を増加（上限4→10、練習行を2行→1行に削減、CSS gapを縮小） - `getClozeCapacity()` の計算を正確なレイアウト高さに基づくように修正 - 自動調整通知（`.auto-layout-notice`）が印刷時に表示されてA4からはみ出す問題を修正 Test plan - [x] ユニットテスト 118件パス - [x] E2Eテスト（cloze） 30件パス - [ ] ブラウザで穴埋めモードを選択し、問題数が増えていることを確認 - [ ] 印刷プレビューでA4に収まることを確認 - [ ] 印刷プレビューに自動調整メッセージが表示されないことを確認 🤖 Gener… (source: PR #21)
-- [2026-04-11] feat(cloze): add fill-in-the-blank phrase practice mode -- - Add new "穴埋めフレーズ練習" (cloze/fill-in-the-blank) practice mode with sight words and phonics support - Support two blank granularities: word-level (replace sight words) and character-level (phonics-targeted letter blanking) - Include answer key with show/hide toggle, category selector reusing existing phrase collections… (source: PR #20)
-- [2025-11-12] Allow printing up to 20 pages -- - Update page count max from 5 to 20 in index.html - Update README.md to reflect new page limit 🤖 Generated with (source: PR #18)
-- [2025-11-12] Add more math problem types -- No summary captured. (source: PR #17)
-- [2025-11-11] Set up Claude Code Web development -- - Add SessionStart hook for automatic dependency installation - Configure npm install with PUPPETEER_SKIP_DOWNLOAD for remote env - Install Playwright browsers for e2e testing - Only run hook in remote environment (Claude Code on the Web) - Add .claude/settings.json to register the hook Benefits: - Ensures all dependen… (source: PR #16)
-- [2025-11-05] fix: keep phrase practice print within a4 -- No summary captured. (source: PR #15)
-- [2025-11-05] fix: auto-adjust layouts to fit a4 output -- 背景 - 既存の警告表示だけでは実際のPDF出力でA4外にはみ出すケースが解消されず、利用者が都度ページ数や項目数を手動調整する必要があった - レイアウト診断で検出した問題をフロー内で即座に解消し、印刷プレビューの段階で安定したA4収まりを保証する仕組みが求められていた - HTML の構造不備がCIでのみ検知される状態だったため、ローカル段階で同じ品質チェックを実施できるよう整備したい 対応内容 - プレビュー生成処理を再構成し、各モードの最大行数・項目数を共通的に算出 → A4高さを超えている場合は段階的に減算する自動調整ロジックを実装 - 通常／文章／単語／フレーズ練習モードの各ジェネレーターが調整後の値を受け取れるよう改修… (source: PR #14)
+- [2026-05-04] fix(alphabet): use bundled tracing font -- 公開サイト https://knishioka.github.io/english-note-maker/ を Playwright で直接確認したところ、PR #33 は反映済みでしたが、OS フォントの Comic Sans MS 由来で大文字・単語の右傾きが残っていました。 (source: PR #34)
+- [2026-05-04] fix(alphabet): refine lowercase tracing baseline position -- 公開後のスクリーンショット確認で、小文字なぞり書きの形は改善されている一方、a/apple/ant/b の薄字ガイドが4本線の基準線に対して少し低く、さらにフォント字形由来の右傾きも少し目立っていました。罫線高さやページ密度は変えず、小文字系ガイドの縦位置と、なぞり文字・英字ラベルの傾きを微調整します。 (source: PR #33)
+- [2026-05-04] fix(alphabet): align tracing guides with handwriting lines -- アルファベットなぞり書きで、小文字や例示単語の薄字ガイドが手書き練習用の4本線に対してやや合っていなかったため、実表示を Playwright で確認しながら小文字・単語・罫線高さ別に調整しました。 (source: PR #32)
+- [2026-05-04] fix(build): restore Vite and typecheck pipeline -- なぞり書きモードの小文字を手書き練習向けの字形に近づけ、あわせて npm run build を止めていた TypeScript / Vite 設定の問題を修正しました。 (source: PR #31)
+- [2026-05-02] feat(alphabet): beginner-friendly tracing — non-italic, full-line, repeated horizontally -- Alphabet Practice のなぞり書きモードを初学者向けに改善します。実スクショで複数回イテレーションして仕上げました。 (source: PR #30)
+- [2026-05-02] feat(alphabet): expand vocabulary and add tracing mode -- Alphabet Practice の余白問題と語彙不足を解消し、なぞり書き（トレース）モードを追加します。 (source: PR #29)
+- [2026-04-25] feat(practice): apply paged dedup and difficulty presets to word/phrase/sentence -- Generalizes the cloze-mode improvements from #26 (within-page deduplication + age-driven difficulty presets) to the **word**, **phrase**, and **sentence** practice modes. (source: PR #28)
+- [2026-04-25] fix(data): resolve near-duplicate phrases in classroom_english -- ループとほぼ同義のフレーズが含まれており、穴埋め演習で「同じ問題を 2 回解いている」感覚を与えていた 重複の強い 2 フレーズを差し替え、How / Why 疑問文を新規追加して文型バリエーションを拡充 7-9 のシンプル版は年齢相応として残し、10-12 側だけを置換 Closes #24 | Age Group | Before | After | 理由 | |-----------|--------|-------|------| | 10-12 | Could you explain that again? (source: PR #27)
