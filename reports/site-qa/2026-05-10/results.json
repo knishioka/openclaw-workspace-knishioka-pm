@@ -1,0 +1,51 @@
+{
+  "checked_at": "2026-05-10",
+  "results": [
+    {
+      "repo": "knishioka/kanji-practice",
+      "checks": {
+        "pageCounts": {
+          "1": 1,
+          "5": 5,
+          "10": 10
+        },
+        "debugVisible": true,
+        "contentSpotCheck": "1年生 読み練習の生成内容を目視確認。語彙は初等漢字中心で、明らかな学年外混入は今回の spot check では未検出。"
+      },
+      "status": "issue"
+    },
+    {
+      "repo": "knishioka/math-worksheet",
+      "checks": {
+        "defaultThirtyProblemsVisible": true,
+        "subtractionPairsChecked": 30,
+        "negativeFound": false,
+        "count20OptionVisible": true,
+        "layoutSpotCheck": "デフォルト 30問 3列レイアウトは崩れず、問題番号・式・解答欄の位置関係も良好。"
+      },
+      "status": "ok"
+    },
+    {
+      "repo": "knishioka/english-note-maker",
+      "checks": {
+        "pageCounts": {
+          "1": {
+            "lastPageMarkerDetected": false,
+            "headerCount": 0
+          },
+          "5": {
+            "lastPageMarkerDetected": false,
+            "headerCount": 10
+          },
+          "10": {
+            "lastPageMarkerDetected": false,
+            "headerCount": 20
+          }
+        },
+        "spellingSpotCheckOk": true,
+        "layoutSpotCheck": "5ページ preview modal でページ区切りと A4 表示を確認。テキスト崩れは今回の範囲では未検出。"
+      },
+      "status": "ok"
+    }
+  ]
+}

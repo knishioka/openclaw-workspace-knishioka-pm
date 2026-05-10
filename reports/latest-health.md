@@ -1,114 +1,65 @@
-# Weekly Repo Health Report — 2026-05-03
+As of: 2026-05-10
+Summary: RED 4 / YELLOW 0 / GREEN 6
 
-**Generated:** 2026-05-03 20:00 KL / 2026-05-03T12:00Z  
-**Previous check:** 2026-04-26
+No new repo regressions this week. `cost-management-mcp` recovered to GREEN after the fast-xml-parser security fix, but `kanji-practice` still exposes the production `Debug` entrypoint already tracked in Issue #31.
 
----
+>> Changes this week:
+  knishioka/cost-management-mcp: RED → GREEN (PR #150 merged on 2026-05-04, CI/security failure cleared)
 
-## Summary
+>> Risks / Blockers:
+  knishioka/kanji-practice  Production preview still shows `Debug` button in public UI; reproduced again on 2026-05-10 weekly QA. Existing Issue #31 remains open, so no duplicate created.
+  knishioka/simple-bookkeeping  120 days inactive, 37 open issues, 8 open PRs [RED 5週連続]
+  knishioka/td-mcp-server  280 days inactive, effectively abandoned backlog [RED 9週連続]
+  knishioka/meditation-chrome-extension  314 days inactive, no active CI signal [RED 9週連続]
+  knishioka/remotion-math-education  327 days inactive, no active CI signal [RED 9週連続]
 
-| Status | Count | Change vs last week |
-|--------|-------|---------------------|
-| 🟢 GREEN | 5 | -1 |
-| 🟡 YELLOW | 0 | — |
-| 🔴 RED | 5 | +1 |
+>> Next actions:
+  knishioka/kanji-practice: hide production Debug overlay entrypoint → Issue #31 pending
+  knishioka/cost-management-mcp: review open PR #152 (TruffleHog refs robustness) now that repo health is GREEN → pending
+  knishioka/simple-bookkeeping: no new issue due dormant policy; keep suppressed unless status changes → pending
 
-**⚠️ Status change detected:** `cost-management-mcp` GREEN → RED (CI failure)
+>> Confirmed:
+  knishioka/kanji-practice  GREEN, 8日前更新, page-count QA passed for 1/5/10 pages, but Debug button still visible
+  knishioka/math-worksheet  GREEN, 今日更新, 30問3列レイアウトと non-negative subtraction spot check passed
+  knishioka/ib-sec-mcp  GREEN, 9日前更新, earnings calendar feature merged this week and CI remains healthy
+  knishioka/freee-mcp  GREEN, 4日前更新, Vitest migration merged this week and CI remains healthy
+  knishioka/cost-management-mcp  GREEN, 6日前更新, security fix landed and RED recovered
+  knishioka/english-note-maker  GREEN, 6日前更新, 5/10 page preview QA and spelling spot check passed
 
----
+## Demo Site QA
 
-## Active Repos
+- knishioka/kanji-practice: `reports/site-qa/2026-05-10/kanji-practice.png`
+  - 1 / 5 / 10 page generation counts matched expected output
+  - 1年生 読み練習 spot check did not show obvious grade-range contamination
+  - `Debug` button is still visible in production, matching open Issue #31
+- knishioka/math-worksheet: `reports/site-qa/2026-05-10/math-worksheet.png`
+  - default 30-question 3-column worksheet rendered cleanly
+  - 1桁のひき算（繰り下がりなし）30問 spot check found no negative results
+- knishioka/english-note-maker: `reports/site-qa/2026-05-10/english-note-maker.png`
+  - 5-page and 10-page preview flows rendered expected repeated page headers
+  - phrase spelling spot check passed (`How have you been?`, `Congratulations!`, `Excuse me.`)
 
-| Repo | Status | CI | Inactive | Issues | PRs | Change |
-|------|--------|----|----------|--------|-----|--------|
-| kanji-practice | 🟢 GREEN | ✅ | 1d | 1 | 0 | — |
-| math-worksheet | 🟢 GREEN | ✅ | 8d | 1 | 1 | — |
-| ib-sec-mcp | 🟢 GREEN | ✅ | 2d | 0 | 5 | — |
-| freee-mcp | 🟢 GREEN | ✅ | 4d | 1 | 15 | — |
-| cost-management-mcp | 🔴 RED | ❌ | 1d | 3 | 3 | 🔺 GREEN→RED |
-| simple-bookkeeping | 🔴 RED | ✅ | 113d | 37 | 8 | — (dormant) |
-| english-note-maker | 🟢 GREEN | ✅ | 1d | 0 | 0 | — |
+## Issue Tracker
 
-### Abandoned (skipped for issues)
+### Resolved / Updated this week
 
-| Repo | Status | Inactive |
-|------|--------|----------|
-| td-mcp-server | 🔴 RED | 273d |
-| meditation-chrome-extension | 🔴 RED | 307d |
-| remotion-math-education | 🔴 RED | 320d |
+- knishioka/cost-management-mcp Issue #149: merged via PR #150 on 2026-05-04, Quality Score A
+- knishioka/freee-mcp Issue #179: merged via PR #180 on 2026-05-05, Quality Score A
 
----
+### Still open
 
-## 🔴 Risks / Blockers
-
-### cost-management-mcp — CI failure (GREEN→RED)
-- **CI:** Both `CI` and `Security Scan` workflows failing on `main` since 2026-05-02
-- **Root cause (Security Scan):** `fast-xml-parser` DoS vulnerability (GHSA-37qj-frw5-hhjh) — `npm audit --production` exits 1; fix: `npm audit fix`
-- **TruffleHog false positive:** BASE==HEAD error on push-to-main (non-blocking, workflow config issue)
-- **Action taken:** Created Issue #149 (fix: resolve fast-xml-parser vulnerability)
-- **Note:** Dependabot PR #145 (deps bump ×11) may resolve this — check and merge first
-- **Open PRs:** 3 ready PRs including deps bumps waiting for review
-
-### freee-mcp — 15 open PRs
-- 15 open PRs is a persistent backlog. Oldest issue open 321 days.
-
-### math-worksheet — stale issue
-- Issue #57 (分数↔小数変換プリント追加) open since 2026-04-13; PR #14 also open
-
-### simple-bookkeeping (dormant)
-- 37 open issues, 8 open PRs, 113 days inactive. No action per dormant policy.
-
----
-
-## Part 2: Demo Site QA
-
-**Environment note:** Playwright not installed in workspace; browser SSRF policy blocked. Sites verified via HTTP availability only.
-
-| Site | HTTP | Last Deploy | Notes |
-|------|------|-------------|-------|
-| kanji-practice | ✅ 200 | 2026-05-02 | Active development (Phase B PoC merged) |
-| math-worksheet | ✅ 200 | 2026-04-25 | tracing 2-row practice added |
-| english-note-maker | ✅ 200 | 2026-05-02 | alphabet tracing (beginner-friendly) |
-
-**Full browser QA skipped** — Playwright not available in this cron environment. No regression issues flagged from code review.
-
----
-
-## Part 3: Issue Retrospective
-
-### Resolved This Week
-
-| Repo | Issue | Type | PR | Days | Score | Notes |
-|------|-------|------|----|------|-------|-------|
-| freee-mcp | #177 | tech-adoption | #178 | 0 | A | merged 2026-04-29 |
-| ib-sec-mcp | #114 | feature | #115 | 0 | A | merged 2026-05-01 |
-
-### Still Open
-
-| Repo | Issue | Type | Created | Age | Auto-resolve |
-|------|-------|------|---------|-----|--------------|
-| kanji-practice | #31 | bugfix | 2026-04-26 | 7d | skipped |
-| freee-mcp | #177 | tech-adoption | 2026-04-27 | — | *(now resolved above)* |
-| ib-sec-mcp | #114 | feature | 2026-04-30 | — | *(now resolved above)* |
-
-### Newly Created This Run
-
-| Repo | Issue | Type | Title |
-|------|-------|------|-------|
-| cost-management-mcp | #149 | bugfix | fix(security): resolve fast-xml-parser DoS vulnerability |
+- knishioka/kanji-practice Issue #31 (`bugfix`): production Debug overlay still reproducible
+- knishioka/cost-management-mcp Issue #151 (`maintenance`): PR #152 open, verification already green
 
 ### Quality Score Summary (all-time)
-- **A:** 11 (merged, no edits)
-- **B:** 0
-- **C:** 0
-- **Open:** 2 (kanji-practice #31, cost-management-mcp #149)
 
----
+- A: 14
+- B: 0
+- C: 0
+- Open: 2
 
-## Next Actions
+## Context from knowledge/CHANGELOG.md
 
-1. **cost-management-mcp:** Review and merge PR #145 → check if it resolves fast-xml-parser; then verify CI passes
-2. **cost-management-mcp:** TruffleHog BASE==HEAD false positive — may need workflow config fix for push-to-main
-3. **kanji-practice #31:** Debug overlay in production build (open 7d, auto-resolve skipped)
-4. **freee-mcp:** 15 open PRs backlog — batch review
-5. **math-worksheet:** PR #14 (multi-page printing) + Issue #57 (fractions worksheet)
+- `cost-management-mcp` recovery aligns with `fix(security): override vulnerable fast-xml-parser (#150)` merged on 2026-05-04.
+- `math-worksheet` and `english-note-maker` both shipped worksheet/tracing improvements this week, and no new QA regressions were found in this run.
+- `kanji-practice` merged the harness pack Phase B PoC on 2026-05-02, but the older production Debug UI bug is still present.
