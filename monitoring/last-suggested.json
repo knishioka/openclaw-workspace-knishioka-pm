@@ -1,12 +1,12 @@
 {
-  "updated_at": "2026-05-07",
+  "updated_at": "2026-05-11",
   "repos": [
-    "knishioka/cost-management-mcp"
+    "knishioka/math-worksheet"
   ],
   "issues_created": [
     {
-      "repo": "knishioka/cost-management-mcp",
-      "issue": 151
+      "repo": "knishioka/math-worksheet",
+      "issue": 67
     }
   ]
 }
