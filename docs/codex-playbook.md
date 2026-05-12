@@ -88,6 +88,8 @@ fi
   4. ESLint / Ruff / golangci-lint 等の **新規導入は別 Issue** に切り出す（このPRでは導入しない）。
 - 一時的に install パッケージを追加して lint を通す行為は禁止。本来の lint コマンドが解決できない事実を隠さない。
 
+> **portfolio 現状 (2026-05-13 時点)**: `config/repos.yaml` の active 全 12 リポは `detect_lint_available()` が `true` を返す（TS リポは `package.json` の `scripts.lint`、Python リポは pyproject.toml の `ruff` + uv/poetry 導入済）。よって `lint_available=false` の実 record は自然 cron では発生しない。`false` 3 経路 (`no_lint_configured` × 2 / `command_not_found`) の prompt 注入は `scripts/codex-resolve.sh --dry-run` + `LOCAL_REPO_BASE` 差替えで実証済 (PR #27 検証)。新規 lint 未導入リポを portfolio に追加した場合、初回 cron 通過時に実 record が生まれる。
+
 ### 制約
 
 - **1 Issue ずつ逐次処理**（並列実行しない）
