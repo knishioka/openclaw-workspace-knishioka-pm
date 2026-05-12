@@ -43,6 +43,13 @@ WORKSPACE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 REPOS_YAML="${WORKSPACE_ROOT}/config/repos.yaml"
 PLAYBOOK="${WORKSPACE_ROOT}/docs/codex-playbook.md"
 
+# Refuse to spawn codex unless we're on a ChatGPT subscription auth.
+if [ -f "${SCRIPT_DIR}/lib/require-codex-subscription.sh" ]; then
+  # shellcheck source=lib/require-codex-subscription.sh
+  source "${SCRIPT_DIR}/lib/require-codex-subscription.sh"
+  require_codex_subscription || exit 4
+fi
+
 # Local checkout convention (matches docs/codex-playbook.md "ローカルリポパス")
 LOCAL_REPO_BASE="${LOCAL_REPO_BASE:-${HOME}/Developer/private}"
 
