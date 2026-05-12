@@ -21,6 +21,7 @@
 #   2   bad arguments / repo not found in config/repos.yaml
 #   3   local repo path missing
 #   4   docs/codex-playbook.md missing
+#   5   codex subscription auth guard refused to spawn (see lib/require-codex-subscription.sh)
 #   124 codex exec timed out (15min)
 #   *   codex exec exit code passthrough
 #
@@ -47,7 +48,7 @@ PLAYBOOK="${WORKSPACE_ROOT}/docs/codex-playbook.md"
 if [ -f "${SCRIPT_DIR}/lib/require-codex-subscription.sh" ]; then
   # shellcheck source=lib/require-codex-subscription.sh
   source "${SCRIPT_DIR}/lib/require-codex-subscription.sh"
-  require_codex_subscription || exit 4
+  require_codex_subscription || exit 5
 fi
 
 # Local checkout convention (matches docs/codex-playbook.md "ローカルリポパス")
