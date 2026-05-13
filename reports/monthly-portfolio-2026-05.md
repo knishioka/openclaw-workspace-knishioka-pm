@@ -6,29 +6,31 @@ Summary: Active 10 / Dormant 1 / Abandoned 6
 ## Portfolio snapshot
 
 ### Public repos
-| Repo | Class | Days inactive | Note |
-| --- | --- | ---: | --- |
-| knishioka/kanji-practice | Active | 8 | education line keeps compounding through preset and print-quality work |
-| knishioka/math-worksheet | Active | 0 | strongest current shipping pace in the education cluster |
-| knishioka/ib-sec-mcp | Active | 8 | active delivery resumed, but still carries moderate PR queue |
-| knishioka/freee-mcp | Active | 4 | healthiest MCP line, recent output remains steady |
-| knishioka/cost-management-mcp | Active | 3 | active again, but latest health snapshot regressed to RED |
-| knishioka/simple-bookkeeping | Abandoned | 104 | large backlog remains with no recent execution |
-| knishioka/english-note-maker | Active | 5 | recovered from April staleness and kept shipping |
-| knishioka/td-mcp-server | Abandoned | 280 | legacy MCP line, no visible revival signal |
-| knishioka/meditation-chrome-extension | Abandoned | 314 | long-idle side project |
-| knishioka/remotion-math-education | Abandoned | 326 | long-idle experiment, no active distribution path |
+
+| Repo                                  | Class     | Days inactive | Note                                                                   |
+| ------------------------------------- | --------- | ------------: | ---------------------------------------------------------------------- |
+| knishioka/kanji-practice              | Active    |             8 | education line keeps compounding through preset and print-quality work |
+| knishioka/math-worksheet              | Active    |             0 | strongest current shipping pace in the education cluster               |
+| knishioka/ib-sec-mcp                  | Active    |             8 | active delivery resumed, but still carries moderate PR queue           |
+| knishioka/freee-mcp                   | Active    |             4 | healthiest MCP line, recent output remains steady                      |
+| knishioka/cost-management-mcp         | Active    |             3 | active again, but latest health snapshot regressed to RED              |
+| knishioka/simple-bookkeeping          | Abandoned |           104 | large backlog remains with no recent execution                         |
+| knishioka/english-note-maker          | Active    |             5 | recovered from April staleness and kept shipping                       |
+| knishioka/td-mcp-server               | Abandoned |           280 | legacy MCP line, no visible revival signal                             |
+| knishioka/meditation-chrome-extension | Abandoned |           314 | long-idle side project                                                 |
+| knishioka/remotion-math-education     | Abandoned |           326 | long-idle experiment, no active distribution path                      |
 
 ### Private repos
-| Repo | Class |
-| --- | --- |
-| knishioka/market-lens-studio | Active |
-| knishioka/workflow-engine | Active |
-| knishioka/household-finance | Dormant |
-| knishioka/ut-gymnastics | Active |
-| knishioka/jgrants-app | Active |
-| knishioka/line-advisor | Abandoned |
-| knishioka/story-bridge | Abandoned |
+
+| Repo                         | Class     |
+| ---------------------------- | --------- |
+| knishioka/market-lens-studio | Active    |
+| knishioka/workflow-engine    | Active    |
+| knishioka/household-finance  | Dormant   |
+| knishioka/ut-gymnastics      | Active    |
+| knishioka/jgrants-app        | Active    |
+| knishioka/line-advisor       | Abandoned |
+| knishioka/story-bridge       | Abandoned |
 
 ## 1-month trend read (from monitoring/health-trend.jsonl)
 

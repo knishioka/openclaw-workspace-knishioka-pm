@@ -21,7 +21,7 @@
 - npm scripts (keys): build, dev, dev:local, lint, lint:fix, prepare, prisma:generate, prisma:migrate, prisma:pull, prisma:push, prisma:reset, prisma:studio, seed, seed:full, seed:users, start, test, test:build, test:clean, test:e2e, test:unit, test:unit:coverage, test:unit:watch
 - pyproject.toml: not found
 - requirements.txt: not found
-- README signal: # 東大体操部OB・OG会 Webサイト 東京大学体操部OB・OG会の公式ウェブサイトです。Next.js 14とTypeScriptで構築されています。 ## 🚀 クイックスタート ### 開発環境のセットアップ ```bash # 1. リポジトリのクローン git clone git@github.com:knishioka/ut-gymnastics.git cd ut-gymnastics # 2. 依存関係のインストール npm install # 3. 環境変数の設定 cp .env.example .env # プロジェクト共通の設定を 
+- README signal: # 東大体操部OB・OG会 Webサイト 東京大学体操部OB・OG会の公式ウェブサイトです。Next.js 14とTypeScriptで構築されています。 ## 🚀 クイックスタート ### 開発環境のセットアップ ```bash # 1. リポジトリのクローン git clone git@github.com:knishioka/ut-gymnastics.git cd ut-gymnastics # 2. 依存関係のインストール npm install # 3. 環境変数の設定 cp .env.example .env # プロジェクト共通の設定を
 
 ## Architecture / Patterns
 
@@ -34,6 +34,7 @@
 No fresh competitive research in this run.
 
 Potential feature candidates for this repo:
+
 - No candidates captured yet.
 
 ## Tech Decisions (from PRs/commits)
@@ -45,4 +46,4 @@ Potential feature candidates for this repo:
 - [2026-02-17] docs: CLAUDE.md スリム化と .claude/rules/ 分離 -- --------|---------|------| | nextjs.md | app/**, components/** | Server/Client Component、Date型、Edge Runtime | | prisma.md | prisma/**, lib/prisma.ts | マイグレーションワークフロー、ポート番号 | | deployment.md | scripts/production/**, docker/**, nginx/** | デプロイ参照先、Docker/jqゴッチャ... (source: PR #143)
 - [2026-02-17] feat(security): nginxレート制限の実装（DDoS対策） -- d_reset, upload, search, static の7ゾーン **認証エンドポイント保護**: /api/auth/login: 1r/m burst=2（ブルートフォース防止、遅延あり） /api/auth/signup: 1r/m burst=3（スパム登録防止） /api/auth/send-confirmation: 1r/m burst=2（メール濫用防止） /api/auth/password-reset: 1r/m burst=3（不正リセット防止） **リソース保護**: `/ap... (source: PR #142)
 - [2026-02-17] security(nginx): セキュリティヘッダーの強化 -- リックジャッキング完全防止 X-Content-Type-Options: nosniff - MIMEスニッフィング防止 X-XSS-Protection: 1; mode=block - XSSフィルター有効化 Strict-Transport-Security: max-age=31536000; includeSubDomains; preload - HTTPS強制 Referrer-Policy: strict-origin-when-cross-origin `Permissions-Policy... (source: PR #141)
-- [2026-02-17] test: 既存データの互換性テスト(Markdownエディタ移行) -- --|------| | lib/sanitize.ts | HTML sanitization（XSS防止、コンテンツタイプ検出） | | components/content/MarkdownRenderer.tsx | 統一コンテンツレンダラー（プレーンテキスト/HTML/Markdown） | | __tests__/lib/sanitize.test.ts | サニタイズテスト（XSS攻撃ベクター14種、コンテンツ検出） | | `__tests__/components/MarkdownRender... (source: PR #140)
+- [2026-02-17] test: 既存データの互換性テスト(Markdownエディタ移行) -- --|------| | lib/sanitize.ts | HTML sanitization（XSS防止、コンテンツタイプ検出） | | components/content/MarkdownRenderer.tsx | 統一コンテンツレンダラー（プレーンテキスト/HTML/Markdown） | | **tests**/lib/sanitize.test.ts | サニタイズテスト（XSS攻撃ベクター14種、コンテンツ検出） | | `**tests**/components/MarkdownRender... (source: PR #140)
