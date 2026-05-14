@@ -1,12 +1,12 @@
 {
-  "updated_at": "2026-05-11",
+  "updated_at": "2026-05-14",
   "repos": [
-    "knishioka/math-worksheet"
+    "knishioka/kanji-practice"
   ],
   "issues_created": [
     {
-      "repo": "knishioka/math-worksheet",
-      "issue": 67
+      "repo": "knishioka/kanji-practice",
+      "issue": 33
     }
   ]
 }
