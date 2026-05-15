@@ -1,61 +1,63 @@
 # simple-bookkeeping Design Decisions
 
-## 2026-01-10: simplify auth context and extract common supabase validation
+Updated: 2026-05-15
 
-- **What**: simplify auth context and extract common supabase validation
-- **Why**: s duplication from client.ts and server.ts) Consolidate cookie logging in auth.ts to structured format Refactor logger.ts to use function declarations per project conventions Removed redundant UserOrgWithRelations interface Removed unnecessary `crypto.random...
+## 2026-01-10: refactor: simplify auth context and extract common supabase validation
+
+- **What**: ## Summary - Simplify `fetchUserData` in auth-context.tsx by removing redundant types and double filtering - Extract `assertNotLegacyKey` to shared `validation.ts` module...
+- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
 - **Source**: PR #585
 
-## 2025-11-24: EmptyStateコンポーネントの実装とUI改善 (#481)
+## 2025-11-24: feat: EmptyStateコンポーネントの実装とUI改善 (#481)
 
-- **What**: EmptyStateコンポーネントの実装とUI改善 (#481)
-- **Why**: データがない時の画面表示を改善し、ユーザーが次に何をすべきか分かりやすくしました。視覚的に魅力的で行動を促すEmptyStateコンポーネントを実装し、5つのダッシュボードページに統合しました。
+- **What**: ## 概要 データがない時の画面表示を改善し、ユーザーが次に何をすべきか分かりやすくしました。視覚的に魅力的で行動を促すEmptyStateコンポーネントを実装し、5つのダッシュボードページに統合しました。 Closes #481 ## 変更内容 ### 主な変更 - ✅ 再利用可能なEmptyStateコンポーネントの新規作成 - ✅...
+- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
 - **Source**: PR #573
 
-## 2025-11-24: update dev dependencies for security fixes (#531)
+## 2025-11-24: fix(deps): update dev dependencies for security fixes (#531)
 
-- **What**: update dev dependencies for security fixes (#531)
-- **Why**: Fixed security vulnerabilities by updating 8 development dependencies to their latest minor versions.
+- **What**: ## Summary Fixed security vulnerabilities by updating 8 development dependencies to their latest minor versions. All updates are non-breaking and maintain compatibility with the...
+- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
 - **Source**: PR #569
 
 ## 2025-11-12: Migrate from Prisma ORM to Supabase Client
 
-- **What**: Migrate from Prisma ORM to Supabase Client
-- **Why**: Successfully completed the migration from Prisma ORM to Supabase Client for all database operations.
+- **What**: ## Summary Successfully completed the migration from Prisma ORM to Supabase Client for all database operations. The codebase now uses Supabase Client exclusively, ensuring...
+- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
 - **Source**: PR #564
 
 ## 2025-11-11: Strengthen password requirements and add strength indicator
 
-- **What**: Strengthen password requirements and add strength indicator
-- **Why**: mber At least one special character **Changes:** Update signup validation to enforce new password requirements Update server-side auth actions (signUp and updatePassword) with validatePassword() Add real-time password strength meter component with visual fee...
+- **What**: Implement enhanced password security based on OWASP 2025 guidelines: **Password Requirements:** - Minimum 12 characters (increased from 8) - At least one uppercase letter - At...
+- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
 - **Source**: PR #563
 
 ## 2025-11-11: Resolve Issue #555
 
-- **What**: Resolve Issue #555
-- **Why**: e with modern web standards Add comprehensive security headers section to docs/ai-guide/security-deployment.md Document all 7 security headers currently implemented: Content-Security-Policy (CSP) X-Frame-Options X-Content-Type-Options X-XSS-Protection Referr...
+- **What**: …tation ## Changes ### Security Headers Enhancement (Issue #555) - Add `interest-cohort=()` to Permissions-Policy to block Google's FLoC tracking - Improves privacy protection...
+- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
 - **Source**: PR #562
 
 ## 2025-11-11: Fix authentication bypass vulnerability in test mode
 
-- **What**: Fix authentication bypass vulnerability in test mode
-- **Why**: …st mode protection Fix critical authentication bypass vulnerability (Issue #554) by removing user-controllable mockAuth cookie and implementing multi-layer production detection.
+- **What**: …st mode protection ## Summary Fix critical authentication bypass vulnerability (Issue #554) by removing user-controllable mockAuth cookie and implementing multi-layer...
+- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
 - **Source**: PR #561
 
 ## 2025-11-11: Fix Issue 553
 
-- **What**: Fix Issue 553
-- **Why**: …ns (#553) Eliminated Service Role Key usage from middleware.ts and moved organization lookup logic to dedicated Server Action, reducing the attack surface and following the principle of least privilege.
+- **What**: …ns (#553) ## Summary Eliminated Service Role Key usage from middleware.ts and moved organization lookup logic to dedicated Server Action, reducing the attack surface and...
+- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
 - **Source**: PR #560
 
 ## 2025-11-11: Set up Claude Code web development environment
 
-- **What**: Set up Claude Code web development environment
-- **Why**: Add automated setup script that runs when starting a Claude Code web session.
+- **What**: Add automated setup script that runs when starting a Claude Code web session. Changes: - Create .claude/hooks/session-start.sh with environment setup - Install pnpm dependencies...
+- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
 - **Source**: PR #559
 
-## 2025-11-11: Remove excessive console logging from authentication flows (#552)
+## 2025-11-11: fix(security): Remove excessive console logging from authentication flows (#552)
 
-- **What**: Remove excessive console logging from authentication flows (#552)
-- **Why**: ✅ Created environment-aware logger utility (apps/web/lib/logger.ts) ✅ Replaced all console.info/console.warn in authentication code with logger ✅ Removed all PII (emails, user IDs) from log statements ✅ Maintained console.error for critical errors ✅ Added logg
+- **What**: ## Summary This PR addresses Issue #552 - a high-priority security issue that prevents information disclosure through console logs in production environments. ### Changes Made -...
+- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
 - **Source**: PR #558

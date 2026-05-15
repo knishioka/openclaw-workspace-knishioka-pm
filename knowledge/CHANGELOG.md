@@ -1,36 +1,35 @@
-# Knowledge Changelog
+# Knowledge Changelog - 2026-05-15
 
-As of: 2026-05-08
+Only new findings since 2026-05-08 are listed.
 
-## New findings this week
+## knishioka/cost-management-mcp
 
-- knishioka/ib-sec-mcp: feat: add earnings calendar MCP tool (PR #115, 2026-05-01)
-- knishioka/english-note-maker: feat(alphabet): expand vocabulary and add tracing mode (PR #29, 2026-05-02)
-- knishioka/cost-management-mcp: chore: adopt knishioka/openclaw-workspace-ds-pm baseline (PR #148, 2026-05-02)
-- knishioka/kanji-practice: feat: harness pack (AGENTS.md / verify.sh / PR template) — Phase B PoC (PR #32, 2026-05-02)
-- knishioka/english-note-maker: feat(alphabet): beginner-friendly tracing — non-italic, full-line, repeated horizontally (PR #30, 2026-05-02)
-- knishioka/workflow-engine: feat(notion): auto-close Notion tasks when their GitHub PR is merged (PR #151, 2026-05-02)
-- knishioka/cost-management-mcp: fix(security): resolve fast-xml-parser audit finding (PR #150, 2026-05-04)
-- knishioka/english-note-maker: fix(build): restore Vite and typecheck pipeline (PR #31, 2026-05-04)
-- knishioka/english-note-maker: fix(alphabet): align tracing guides with handwriting lines (PR #32, 2026-05-04)
-- knishioka/english-note-maker: fix(alphabet): refine lowercase tracing baseline position (PR #33, 2026-05-04)
-- knishioka/english-note-maker: fix(alphabet): use bundled tracing font (PR #34, 2026-05-04)
-- knishioka/math-worksheet: fix(number-tracing): refine handwritten digit strokes (PR #64, 2026-05-04)
-- knishioka/math-worksheet: fix(number-tracing): match reference handwriting strokes (PR #65, 2026-05-05)
-- knishioka/market-lens-studio: fix(workflow): unblock jq + tee pipelines for /note:write --auto runs (PR #177, 2026-05-05)
-- knishioka/freee-mcp: test: migrate Jest suite to Vitest (PR #180, 2026-05-05)
-- knishioka/kanji-practice: research -> Education trend: Khan Academy's Khanmigo Interests emphasizes learner-specific personalization based on saved interests, reinforcing that engagement is shifting from static practice sheets to context-aware practice experiences. kanji-practice is print-first today, but even lightweight personalization like student goal presets or favorite-theme sentence pools would align with the direction without abandoning printable UX. (source: Khan Academy, "New! Personalized AI Learning with Khanmigo Interests", 2025-03-21; fetched 2026-05-08)
-- knishioka/kanji-practice: research -> Competitive implication: worksheet tools increasingly need a bridge between reusable teacher defaults and learner-level personalization. A strong next step is shareable study profiles that bundle grade, target set, review cadence, and sentence difficulty into one printable link. (source: Khan Academy personalization article above + existing repo preset/link-sharing direction)
-- knishioka/ib-sec-mcp: research -> MCP SDK latest stable on npm remains 1.29.0, while the 2026-04-01 TypeScript SDK pre-release adds Standard Schema support, TaskManager extraction, and stricter protocol error handling. For a broker-facing MCP server, the practical opportunity is richer structured outputs and resumable long-running portfolio tasks without waiting for another stable line. (sources: npm registry @modelcontextprotocol/sdk latest=1.29.0 fetched 2026-05-08; GitHub releases 2026-04-01)
-- knishioka/ib-sec-mcp: research -> Competitive direction: MCP ecosystem is moving from plain text tool responses toward typed tool/prompt schemas and explicit task orchestration. ib-sec-mcp can differentiate by exposing holdings/risk/order-preview payloads as machine-readable structures first, then layering confirmation flows for live trading mutations. (source: modelcontextprotocol/typescript-sdk releases, 2026-04-01)
+- [2026-05-12] PR #152: fix(ci): make TruffleHog scan refs robust — ## 概要 Security Scan workflow の TruffleHog diff scan が main push で default branch 名と `HEAD` を比較して同一 commit 扱いになり、`BASE and HEAD commits are the same` で失敗する問題を修正しました。push /...
 
-## Competitive / trend research
+## knishioka/kanji-practice
 
-- ib-sec-mcp: MCP SDK latest stable on npm remains 1.29.0, while the 2026-04-01 TypeScript SDK pre-release adds Standard Schema support, TaskManager extraction, and stricter protocol error handling. For a broker-facing MCP server, the practical opportunity is richer structured outputs and resumable long-running portfolio tasks without waiting for another stable line. (sources: npm registry @modelcontextprotocol/sdk latest=1.29.0 fetched 2026-05-08; GitHub releases 2026-04-01)
-- ib-sec-mcp: Competitive direction: MCP ecosystem is moving from plain text tool responses toward typed tool/prompt schemas and explicit task orchestration. ib-sec-mcp can differentiate by exposing holdings/risk/order-preview payloads as machine-readable structures first, then layering confirmation flows for live trading mutations. (source: modelcontextprotocol/typescript-sdk releases, 2026-04-01)
-- kanji-practice: Education trend: Khan Academy's Khanmigo Interests emphasizes learner-specific personalization based on saved interests, reinforcing that engagement is shifting from static practice sheets to context-aware practice experiences. kanji-practice is print-first today, but even lightweight personalization like student goal presets or favorite-theme sentence pools would align with the direction without abandoning printable UX. (source: Khan Academy, "New! Personalized AI Learning with Khanmigo Interests", 2025-03-21; fetched 2026-05-08)
-- kanji-practice: Competitive implication: worksheet tools increasingly need a bridge between reusable teacher defaults and learner-level personalization. A strong next step is shareable study profiles that bundle grade, target set, review cadence, and sentence difficulty into one printable link. (source: Khan Academy personalization article above + existing repo preset/link-sharing direction)
+- [2026-05-14] PR #34: feat(print): customize first page header fields — ## 概要 1ページ目ヘッダーの名前欄・日付欄について、表示/非表示とラベル文言を設定パネルから変更できるようにしました。既存設定ロード時はデフォルト値を migration で補完し、2ページ目以降のヘッダー表示は従来どおり維持しています。 Closes #33 ## 変更内容 - `Settings` に `showNameField` /...
 
-## Knowledge freshness
+## knishioka/market-lens-studio
 
-- No priority=high repos are older than 8 weeks in KB freshness.
+- [2026-05-13] PR #178: fix(note): avoid preview jq permission prompts — ## Summary Moves preview JSON construction for `/note:write` into the `note:preview-save` skill so auto workflows do not need top-level `jq | tee` commands that can miss Claude...
+
+## knishioka/math-worksheet
+
+- [2026-05-12] PR #69: feat(word-en): raise grade 4-6 difficulty for English word problems — ## Summary 4年生以上の English Word Problems (`word-en`) のレベルが、数値計算面でも英文構造面でも低すぎたため、Grade 4-6 全体を引き上げ。 -...
+- [2026-05-12] PR #68: feat: add equation line option for word problems — ## 概要 文章題で立式の練習ができるように、文章題系パターンだけに「式を書く欄」トグルを追加しました。トグルON時は日本語文章題・英語文章題・Singapore Math の各問題で、答え欄の前に式欄を表示します。 Closes #67 ## 変更内容 - `WorksheetSettings` に `showEquationLine`...
+- [2026-05-10] PR #66: [codex] Improve answer line spacing — ## Summary - Increase the writable area for Japanese word-problem answer lines. - Move the answer line lower for first-grade symbol/counting problems so it uses the blank space...
+
+## knishioka/workflow-engine
+
+- [2026-05-12] PR #153: fix(notion): bump HTTPClient timeout to 30s to avoid ReadTimeoutError — ## Summary - Increase the Notion HTTPClient timeout from 10s → 30s in `service_manager.get_notion_client()` - The Notion query API exceeds 10s when scanning the Tasks DB with a...
+- [2026-05-11] PR #152: feat(actions): bundle multi-item LINE notifications via batch mode — ## Background ファミリーカレンダーで一度に多数の予定変更が起きた際、現状はイベントごとに個別の LINE push が走り、`max_per_execution=10` の rate limiter で10件目以降が失敗する（2026-05-11 06:00 UTC で実際に発生）。 ## Summary - ワークフロー設定に...
+
+## Competitive Research Findings
+
+- math-worksheet: AI/adaptive worksheet trend suggests next-step personalization, mistake-driven regeneration, answer/explanation sheets, and bar-model hint scaffolds.
+- freee-mcp: Money Forward remote MCP launch makes remote/OAuth deployment a competitive baseline; freee deal-line cap change requires schema/test coverage for 100-line deals.
+
+## Staleness Warnings
+
+- None: all priority=high repositories were collected this week.
