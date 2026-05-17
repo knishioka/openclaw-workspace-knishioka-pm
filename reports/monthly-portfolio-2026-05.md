@@ -1,69 +1,79 @@
 # Monthly Portfolio Review - 2026-05
 
-As of: 2026-05-10
-Summary: Active 10 / Dormant 1 / Abandoned 6
+As of: 2026-05-17
+Summary: Active 8 / Dormant 3 / Abandoned 6
+Scope: public 10 repos + private 7 repos. Private repo detail is limited to name and class.
 
 ## Portfolio snapshot
 
 ### Public repos
 
-| Repo                                  | Class     | Days inactive | Note                                                                   |
-| ------------------------------------- | --------- | ------------: | ---------------------------------------------------------------------- |
-| knishioka/kanji-practice              | Active    |             8 | education line keeps compounding through preset and print-quality work |
-| knishioka/math-worksheet              | Active    |             0 | strongest current shipping pace in the education cluster               |
-| knishioka/ib-sec-mcp                  | Active    |             8 | active delivery resumed, but still carries moderate PR queue           |
-| knishioka/freee-mcp                   | Active    |             4 | healthiest MCP line, recent output remains steady                      |
-| knishioka/cost-management-mcp         | Active    |             3 | active again, but latest health snapshot regressed to RED              |
-| knishioka/simple-bookkeeping          | Abandoned |           104 | large backlog remains with no recent execution                         |
-| knishioka/english-note-maker          | Active    |             5 | recovered from April staleness and kept shipping                       |
-| knishioka/td-mcp-server               | Abandoned |           280 | legacy MCP line, no visible revival signal                             |
-| knishioka/meditation-chrome-extension | Abandoned |           314 | long-idle side project                                                 |
-| knishioka/remotion-math-education     | Abandoned |           326 | long-idle experiment, no active distribution path                      |
+| Repo | Class | Days inactive | Open issues | Open PRs | Note |
+| --- | --- | ---: | ---: | ---: | --- |
+| `knishioka/kanji-practice` | Active | 3 | 1 | 0 | education cluster keeps compounding through print customization and worksheet quality |
+| `knishioka/math-worksheet` | Active | 4 | 2 | 1 | strong active education line with recent word-problem depth work |
+| `knishioka/ib-sec-mcp` | Active | 15 | 5 | 5 | active MCP line; review queue still needs pressure reduction |
+| `knishioka/freee-mcp` | Active | 6 | 12 | 11 | active high-priority MCP, but open queue grew again |
+| `knishioka/cost-management-mcp` | Active | 5 | 6 | 3 | active and CI recovered after early-May RED regression |
+| `knishioka/simple-bookkeeping` | Abandoned | 111 | 45 | 8 | largest public backlog with no delivery since January |
+| `knishioka/english-note-maker` | Active | 12 | 0 | 0 | active but lower-priority education repo after alphabet/tracing push |
+| `knishioka/td-mcp-server` | Abandoned | 287 | 2 | 2 | legacy MCP line with no current revival signal |
+| `knishioka/meditation-chrome-extension` | Abandoned | 321 | 0 | 0 | isolated long-idle side project |
+| `knishioka/remotion-math-education` | Abandoned | 333 | 0 | 0 | video experiment outside current education execution loop |
 
 ### Private repos
 
-| Repo                         | Class     |
-| ---------------------------- | --------- |
-| knishioka/market-lens-studio | Active    |
-| knishioka/workflow-engine    | Active    |
-| knishioka/household-finance  | Dormant   |
-| knishioka/ut-gymnastics      | Active    |
-| knishioka/jgrants-app        | Active    |
-| knishioka/line-advisor       | Abandoned |
-| knishioka/story-bridge       | Abandoned |
+| Repo | Class |
+| --- | --- |
+| `knishioka/market-lens-studio` | Active |
+| `knishioka/workflow-engine` | Active |
+| `knishioka/household-finance` | Dormant |
+| `knishioka/ut-gymnastics` | Dormant |
+| `knishioka/jgrants-app` | Dormant |
+| `knishioka/line-advisor` | Abandoned |
+| `knishioka/story-bridge` | Abandoned |
 
 ## 1-month trend read (from monitoring/health-trend.jsonl)
 
-- The public portfolio held **6 GREEN / 0 YELLOW / 4 RED** for three straight weekly checks from 2026-04-12 through 2026-04-26.
-- The only regression in the last month was `knishioka/cost-management-mcp`, which moved **GREEN -> RED** on 2026-05-03 despite fresh commits, so the current risk is quality/reliability debt rather than inactivity.
-- `knishioka/kanji-practice`, `knishioka/math-worksheet`, `knishioka/freee-mcp`, `knishioka/ib-sec-mcp`, and `knishioka/english-note-maker` all stayed on the active side of the portfolio and did not show month-long health decay.
-- `knishioka/simple-bookkeeping`, `knishioka/td-mcp-server`, `knishioka/meditation-chrome-extension`, and `knishioka/remotion-math-education` remained structurally outside the active operating loop.
+- 2026-04-19: GREEN 6 / YELLOW 0 / RED 4 / UNKNOWN 0
+- 2026-04-26: GREEN 6 / YELLOW 0 / RED 4 / UNKNOWN 0
+- 2026-05-03: GREEN 5 / YELLOW 0 / RED 5 / UNKNOWN 0
+- 2026-05-10: GREEN 6 / YELLOW 0 / RED 4 / UNKNOWN 0
+
+Trend note: latest stored health snapshot is 2026-05-10 (no 2026-05-17 health-trend entry was present at review time).
+- Public health held near 6 GREEN / 4 RED through late April and 2026-05-10, with the RED set dominated by abandoned or backlog-heavy repos.
+- `cost-management-mcp` briefly regressed to RED on 2026-05-03, then returned to GREEN by 2026-05-10 after CI/security cleanup.
+- `freee-mcp` review load improved sharply in trend data (15 open PRs -> 0 on 2026-05-10), but live GitHub state now shows the queue has re-accumulated.
+- `simple-bookkeeping` remains the persistent structural drag: RED, 100+ days inactive, and a large issue/PR backlog.
 
 ## Cross-repo analysis
 
 ### Common technology and integration opportunities
 
-1. **MCP shared core opportunity**
-   - `freee-mcp`, `cost-management-mcp`, `ib-sec-mcp`, and `td-mcp-server` all share the same basic pattern: schema-validated tools, report-style outputs, and external-system error handling.
-   - Highest leverage is a small shared baseline for structured outputs, long-running task handling, auth/error conventions, and test harnesses instead of continuing repo-by-repo duplication.
+1. **MCP shared foundation**
+   - `freee-mcp`, `cost-management-mcp`, `ib-sec-mcp`, and `td-mcp-server` repeat the same architecture: schema-validated tools, external API adapters, auth/config validation, and structured report outputs.
+   - Highest leverage: extract a small shared baseline for tool registration, error shaping, structured-content responses, SDK-version migration checks, and quota/auth handling.
+   - Start with active TypeScript repos (`freee-mcp` + `cost-management-mcp`), then port conventions to Python MCP repos.
 
-2. **Education generator family is now a real product cluster**
-   - `kanji-practice`, `math-worksheet`, and `english-note-maker` all converge on print-first worksheet generation, browser preview, and age/grade-aware presets.
-   - Best integration path is a common preset/share model plus shared visual QA for A4 layout, tracing guides, and printable output verification.
+2. **Education generator family**
+   - `kanji-practice`, `math-worksheet`, and `english-note-maker` now share a clear product pattern: browser-first printable worksheets, grade/age-aware presets, tracing/handwriting fidelity, and A4 layout QA.
+   - Highest leverage: shared visual QA harness, common preset/share model, and reusable print-layout assertions before adding more worksheet modes.
+   - `remotion-math-education` should only revive if video becomes a deliberate extension of this cluster.
 
-3. **Finance domain overlap exists, but needs narrowing before integration**
-   - `freee-mcp`, `simple-bookkeeping`, and `household-finance` all touch reporting, ledgers, and anomaly/KPI style workflows.
-   - The useful near-term move is not full unification. It is shared reporting primitives and a clearer boundary between personal-finance workflows and business-accounting workflows.
+3. **Finance/reporting boundary**
+   - `freee-mcp`, `simple-bookkeeping`, and private `household-finance` all touch calculations, categorization, ledgers, or KPI/anomaly reporting.
+   - Integration should be narrow: share deterministic reporting primitives and terminology tests, not a single merged finance product.
 
-4. **Automation spine is becoming reusable across the portfolio**
-   - The active automation/tooling cluster suggests a reusable orchestration layer is emerging across the portfolio.
-   - That layer can reduce one-off glue code between GitHub, Notion, content generation, and MCP-style backends.
+4. **Automation spine**
+   - The active tooling/automation repos point toward reusable patterns for GitHub/Notion/content workflow orchestration and rate-limit-safe batching.
+   - This can reduce bespoke glue code across PM automation, portfolio reporting, and MCP-adjacent workflows.
 
 ### Repos with excessive maintenance load
 
-- `knishioka/simple-bookkeeping`: **37 open issues + 8 open PRs** with 100+ days of inactivity. This is the clearest overhang in the public portfolio.
-- `knishioka/cost-management-mcp`: active, but **4 open issues + 4 open PRs** plus a fresh RED regression suggests maintenance debt is re-accumulating faster than it is being retired.
-- Publicly, no other repo currently looks as overloaded as those two.
+- `knishioka/simple-bookkeeping`: 45 open issues + 8 open PRs with 100+ days of inactivity. This is the clearest public overhang.
+- `knishioka/freee-mcp`: 12 open issues + 11 open PRs despite active delivery; review throughput should be protected before adding more feature work.
+- `knishioka/ib-sec-mcp`: 5 open issues + 5 open PRs; still manageable, but high-priority MCP work should merge down before widening scope.
+- `knishioka/cost-management-mcp`: 6 open issues + 3 open PRs and recent CI/security churn; keep medium-priority scope tight.
 
 ## Abandoned repos: archive recommendation or revival gate
 
@@ -71,26 +81,26 @@ Summary: Active 10 / Dormant 1 / Abandoned 6
 
 - `knishioka/td-mcp-server`
   - Archive recommendation: yes.
-  - Revival gate: a real Treasure Data use case returns, and the repo is restarted as part of a shared MCP foundation instead of as a standalone branch of maintenance.
+  - Revival gate: Treasure Data becomes an active data source again, and the restart happens on top of the shared MCP foundation rather than standalone maintenance.
 
 - `knishioka/meditation-chrome-extension`
   - Archive recommendation: yes.
-  - Revival gate: a deliberate decision to pursue an offline bilingual wellness product, not just keep the prototype around.
+  - Revival gate: a deliberate offline bilingual wellness product strategy with a current distribution path.
 
 - `knishioka/remotion-math-education`
-  - Archive recommendation: yes unless video-first distribution becomes a current strategy.
-  - Revival gate: tie it directly to the active education cluster with a concrete content pipeline and distribution hypothesis.
+  - Archive recommendation: yes unless video-first education distribution becomes a current strategy.
+  - Revival gate: direct tie-in to the active education cluster with a concrete generation pipeline and learning outcome target.
 
 ### Reset decision needed before revival work
 
 - `knishioka/simple-bookkeeping`
-  - Archive recommendation: not yet, but do not resume incremental backlog burning in the current shape.
-  - Revival gate: choose one path first, either a minimal blue-return bookkeeping core or a deliberate connection to the finance/MCP cluster. Without that decision, the backlog stays too expensive.
+  - Archive recommendation: not yet, because the domain is still strategically adjacent to finance/reporting work.
+  - Revival gate: choose either a minimal blue-return bookkeeping core or a deliberate finance-cluster integration. Do not resume broad backlog burning without that decision.
 
 ### Private abandoned / on-hold
 
-- `knishioka/line-advisor` and `knishioka/story-bridge` remain classified as Abandoned, but they are on hold and should stay excluded from restart pressure until a clear use case returns.
+- `knishioka/line-advisor` and `knishioka/story-bridge` remain Abandoned/on-hold by classification. Keep them out of restart pressure until a clear use case returns.
 
 ## Portfolio judgement
 
-The portfolio now has **two clusters worth compounding**: the education generator family and the MCP/automation/tooling line. The main drag is not idea scarcity. It is tail maintenance. The best move this month is to protect momentum in those active clusters and make explicit archive-or-reset decisions for the abandoned edge projects, especially `simple-bookkeeping`.
+The portfolio is healthiest where work compounds into two reusable clusters: **education generators** and **MCP/automation tooling**. The risk is tail maintenance: abandoned repos are clear archive candidates, while `simple-bookkeeping` and high-queue MCP repos need queue reduction or a reset decision before new scope is added.
