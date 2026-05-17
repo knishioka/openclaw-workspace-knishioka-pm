@@ -1,0 +1,20 @@
+{"date":"2026-03-28","site":"kanji-practice","settings":{"grade":"1年","type":"読み練習","pages":5,"random":true},"result":"NG","finding":"ページ数リセットバグ","issue":20}
+{"date":"2026-03-28","site":"kanji-practice","settings":{"grade":"3年","type":"書き順","pages":10},"result":"NG","finding":"ページ数リセットバグ","issue":20}
+{"date":"2026-03-28","site":"kanji-practice","settings":{"grade":"6年","type":"同音異字","grid_size":"25mm"},"result":"WARN","finding":"文章の分断/欠落表示"}
+{"date":"2026-03-28","site":"math-worksheet","settings":{"grade":"1年","type":"+1たし算","columns":2,"questions":20},"result":"NG","finding":"列ごとの構造的重複","issue":48}
+{"date":"2026-03-28","site":"math-worksheet","settings":{"grade":"1年","type":"1桁たし算(10まで)","columns":3,"questions":30},"result":"OK","finding":"30問中1件軽微重複のみ"}
+{"date":"2026-03-28","site":"math-worksheet","settings":{"grade":"3年","type":"かけ算","columns":3,"questions":30},"result":"OK"}
+{"date":"2026-03-28","site":"math-worksheet","settings":{"grade":"2年","type":"ひき算","columns":2,"questions":20},"result":"OK","finding":"負の答えなし"}
+{"date":"2026-03-28","site":"math-worksheet","settings":{"grade":"5年","type":"小数","columns":3,"questions":30},"result":"WARN","finding":"未実装表示なのに生成される"}
+{"date":"2026-03-28","site":"english-note-maker","settings":{"mode":"フレーズ練習","age":"7-9歳","category":"あいさつ"},"result":"OK"}
+{"date":"2026-03-28","site":"english-note-maker","settings":{"mode":"フレーズ練習","age":"7-9歳","line_height":"12mm","pages":3},"result":"OK"}
+{"date":"2026-03-28","site":"english-note-maker","settings":{"mode":"アルファベット練習","age":"4-6歳"},"result":"OK"}
+{"date": "2026-04-05", "site": "kanji-practice", "settings": {"pageCount": 5, "mode": "書き順"}, "result": "OK", "finding": "5ページ生成を確認。Issue #20 症状は非再現"}
+{"date": "2026-04-05", "site": "math-worksheet", "settings": {"grade": "1年", "type": "+1のたし算", "columns": 3, "count": 30}, "result": "OK", "finding": "30問が1ページに収まり負数なし"}
+{"date": "2026-04-05", "site": "english-note-maker", "settings": {"mode": "フレーズ練習", "category": "あいさつ", "pages": 5}, "result": "OK", "finding": "5ページ生成と見出し(1/5)...(5/5)を確認"}
+{"date":"2026-04-12","site":"kanji-practice","settings":{"grade":"1年","type":"書き練習","pages":5},"result":"OK","finding":"5ページ/10ページ生成とも正常。Issue #20 のページ数リセット症状は非再現"}
+{"date":"2026-04-12","site":"math-worksheet","settings":{"grade":"1年","type":"+1のたし算","columns":3,"count":30},"result":"OK","finding":"30問3列と20問2列で崩れなし。1桁ひき算サンプルも負数なし"}
+{"date":"2026-04-12","site":"english-note-maker","settings":{"mode":"フレーズ練習","category":"あいさつ","pages":5},"result":"OK","finding":"5ページ生成と(1/5)...(5/5)見出しを再確認。1ページ設定も正常"}
+{"date": "2026-05-17", "site": "kanji-practice", "settings": {"grade": "1年", "type": "書き練習", "pages": 1, "grid_size": "15mm"}, "result": "WARN", "finding": "既知のDebugボタン露出が本番デモに残存。既存 Issue #31 open のため重複作成なし"}
+{"date": "2026-05-17", "site": "math-worksheet", "settings": {"grade": "1年", "type": "+1のたし算", "columns": [1, 2, 3], "questions": [10, 20, 30]}, "result": "OK", "finding": "列切替で10/20/30問が表示。負数なし、明確な崩れなし"}
+{"date": "2026-05-17", "site": "english-note-maker", "settings": {"mode": "フレーズ練習", "category": "あいさつ", "pages": [1, 5, 10]}, "result": "OK", "finding": "見出し(1/5)..(5/5)、(1/10)..(10/10) を確認。明確な崩れなし"}
