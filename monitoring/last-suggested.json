@@ -1,12 +1,17 @@
 {
-  "updated_at": "2026-05-14",
+  "updated_at": "2026-05-18",
   "repos": [
-    "knishioka/kanji-practice"
+    "knishioka/cost-management-mcp",
+    "knishioka/math-worksheet"
   ],
   "issues_created": [
     {
-      "repo": "knishioka/kanji-practice",
-      "issue": 33
+      "repo": "knishioka/cost-management-mcp",
+      "issue": 153
+    },
+    {
+      "repo": "knishioka/math-worksheet",
+      "issue": 70
     }
   ]
 }
