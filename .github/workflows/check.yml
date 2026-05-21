@@ -46,6 +46,15 @@ jobs:
           done
           exit "$fail"
 
+      - name: cron manifest builds (config/cron/jobs.yaml)
+        # Issue #37: config/cron/jobs.yaml is the source-of-truth for cron jobs.
+        # Offline verify confirms it parses and the manifest is self-consistent
+        # (no openclaw runtime needed). PyYAML lets build-cron-jobs.py skip its
+        # `uv run` fallback.
+        run: |
+          python3 -m pip install --quiet pyyaml
+          bash scripts/verify-cron-playbooks.sh --offline
+
       - name: jsonl syntax (tracked *.jsonl)
         run: |
           mapfile -t files < <(git ls-files '*.jsonl')

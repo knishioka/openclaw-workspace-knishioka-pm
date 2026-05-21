@@ -2,6 +2,11 @@
 memory/
 MEMORY.md
 
+# Cron manifest (generated from config/cron/jobs.yaml by scripts/build-cron-jobs.py)
+# The live registry (~/.openclaw/cron/jobs.json + jobs-state.json) is outside
+# this repo and is never tracked; the source-of-truth is config/cron/jobs.yaml.
+build/
+
 # Runtime state
 monitoring/repo-state.json
 monitoring/latest-health.json

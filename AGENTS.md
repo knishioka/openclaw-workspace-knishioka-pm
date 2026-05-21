@@ -146,6 +146,8 @@ Scripts use `gh` CLI for all GitHub API calls. No direct API tokens.
 
 [^codex-wrap]: focus-task は `scripts/codex-resolve.sh` 経由で Codex を起動する（`docs/codex-playbook.md` をプロンプトに injection）。直接 `codex exec` は呼ばない。
 
+ジョブ定義は `config/cron/jobs.yaml` で git 管理する（編集 → 生成 → 検証 → commit）。手順は [docs/cron.md](docs/cron.md) 参照。`~/.openclaw/cron/jobs.json` を手編集しない。
+
 ### CI と cron 自動 PR の関係
 
 - このワークスペースは `.github/workflows/check.yml` で push / PR 時に最低限の lint を回す（markdownlint・actionlint・YAML/JSONL 構文・AGENTS.md サイズ）。所要時間は数十秒以内を想定。
@@ -158,4 +160,5 @@ Scripts use `gh` CLI for all GitHub API calls. No direct API tokens.
 - [docs/output-format.md](docs/output-format.md) — Output Format / Sub-agent Integration
 - [docs/pm-policy.md](docs/pm-policy.md) — Issue Creation / Frequency / Retrospective / Feature Discovery / Escalation / Interactive Mode / Knowledge Rules
 - [docs/codex-playbook.md](docs/codex-playbook.md) — Auto-Resolve via Codex / PR Description Standards / Codex Prompting Guidelines
+- [docs/cron.md](docs/cron.md) — Cron ジョブ定義の git 管理（config/cron/jobs.yaml）/ 編集→生成→検証→commit / state 保持設計
 - [docs/education-qa.md](docs/education-qa.md) — 教育軸チェック / UX軸チェック / Demo Site QA

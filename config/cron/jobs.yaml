@@ -1,0 +1,313 @@
+# Canonical knishioka-pm cron job definitions (source-of-truth).
+#
+# This file is git-managed so every cron change is reviewable in a PR and
+# the live registry (~/.openclaw/cron/jobs.json, NOT git-tracked) can be
+# drift-checked against it.
+#
+# Workflow (see docs/cron.md):
+#   1. Edit this file.
+#   2. scripts/build-cron-jobs.py                # regenerate build/cron/manifest.json
+#   3. scripts/verify-cron-playbooks.sh --live   # diff manifest vs live registry
+#   4. scripts/register-cron-jobs.sh             # apply (edits in place, preserves state)
+#   5. git commit config/cron/jobs.yaml
+#
+# Editing rules:
+#   - `message` is the full agent prompt (knishioka jobs have no separate
+#     playbook file). Keep it verbatim; the drift checker hashes it.
+#   - `defaults` hold the values shared by every job. A job key overrides the
+#     matching default. tz, agent_id, session_target, wake_mode, enabled,
+#     thinking and failure_alert all default here.
+#   - Per-job `delivery`, `timeout_seconds`, and `model` vary and live on the
+#     job. `delivery.mode: none` means the job never fallback-posts its final
+#     text; `announce` forwards it to `channel`/`to`.
+#   - Changing schedule `expr` reschedules a job. register-cron-jobs.sh edits
+#     the existing job by name so its nextRun/lastRun state is preserved.
+#   - Secrets / PII are referenced as ${ENV_VAR} and resolved at build time, so
+#     this public-repo file stays scrubbed. Currently ${KNISHIOKA_ALERT_TO} (the
+#     WhatsApp alert number). Export it before build / register / verify --live.
+
+schema_version: 1
+defaults:
+  agent_id: knishioka-pm
+  tz: Asia/Kuala_Lumpur
+  enabled: true
+  session_target: isolated
+  wake_mode: now
+  thinking: medium
+  failure_alert:
+    after: 2
+    channel: whatsapp
+    to: "${KNISHIOKA_ALERT_TO}"
+    cooldown_ms: 21600000
+    mode: announce
+    account_id: knishioka-pm
+    best_effort: true
+jobs:
+  - name: weekly-repo-health
+    description: Weekly health diagnosis of personal GitHub repos
+    schedule:
+      kind: cron
+      expr: 0 20 * * 0
+    timeout_seconds: 900
+    delivery:
+      mode: none
+      channel: whatsapp
+      to: "${KNISHIOKA_ALERT_TO}"
+      best_effort: true
+    message: |
+      Weekly repo health check with trend tracking + site QA + Issue retrospective.
+
+      == Part 1: Health Check ==
+      1) config/repos.yaml の repos: セクションを読んで public 監視対象リストを取得
+      2) monitoring/health-trend.jsonl を読んで前回の各リポステータスを取得（なければ初回扱い）
+      3) 各リポに対して scripts/repo-health {owner}/{name} を実行
+      4) 前回と比較: ステータス遷移を検出
+      5) AGENTS.md の Output Format に従って reports/latest-health.md に出力
+      6) monitoring/health-trend.jsonl に追記
+      7) knowledge/CHANGELOG.md があれば参照してコンテキスト補足
+
+      == Part 2: Demo Site QA ==
+      8) config/repos.yaml で demo_url を持つリポを特定
+      9) config/site-checks.yaml を読んで severity: high のチェック項目を取得
+      10) 各サイトに対して browser ツールでチェック実行:
+        a) browser(open, url) でサイトを開く
+        b) 設定変更 → 生成ボタンクリック → snapshot/screenshot で検証
+        c) ページ数の正確性: 指定枚数(1,5,10)と実際のページ数が一致するか
+        d) 問題の妥当性: ランダム生成された問題が解けるか（math: 負にならない, kanji: 学年範囲内）
+        e) レイアウト: A4に収まるか、余白が適切か
+      11) 問題検出時は reports/latest-health.md の Risks/Blockers に追加 + GitHub Issue 自動作成（type: bugfix）
+
+      == Part 3: Issue Retrospective ==
+      12) monitoring/issue-tracker.jsonl を読む（なければスキップ）
+      13) 各 open Issue を gh issue view で状態確認
+      14) close/merge された Issue の Quality Score を判定（A=merged+未編集, B=merged+編集あり, C=closed without merge）
+      15) monitoring/issue-tracker.jsonl を更新
+      16) レポート末尾に Issue Tracker セクション追加
+
+      17) コミットした後、`git push origin main` を実行する。push が non-fast-forward でリジェクトされた場合は `git pull --rebase origin main` してから1回だけ再試行する。それでも失敗するなら push は諦めてログに残す（ジョブは失敗させない）
+
+      WhatsApp配信ルール: ステータス変化 or サイトQA問題検出 or Issue Tracker に注目情報があれば配信。
+  - name: focus-task
+    description: Twice-weekly focused single-task suggestion
+    schedule:
+      kind: cron
+      expr: 30 8 * * 1,4
+    timeout_seconds: 1800
+    model: gpt-5.4
+    delivery:
+      mode: none
+      channel: last
+    message: |
+      Focus task: GitHub Issue を作成し、Codex で自動解決して draft PR を作成する。
+
+      == Pre-check ==
+      0) monitoring/issue-tracker.jsonl を読み、以下を判定:
+        a) open な PM作成 Issue が3件以上 → Issue 作成を一時停止。溜まっている Issue のサマリーを返す。
+        b) 動的頻度調整: 直近30日の resolve 率を計算（resolved / total）。
+           - resolve率 50%未満 → 今回は Issue 作成せず、既存 open Issue の優先順位レビューのみ実施。結果を reports/latest-focus.md に記録。
+           - resolve率 50-80% → 最大1 Issue/回に制限。
+           - resolve率 80%以上 → 通常運転（最大2 Issue/回）。feature Issue の比率を上げる。
+        c) 直近4回の focus-task で feature Issue が0件 → 今回は feature を優先的に検討。
+
+      == Issue 作成 ==
+      1) config/repos.yaml の repos: + private_repos: から対象リポを選定。以下を除外:
+        - status: on-hold
+        - status: abandoned
+        - status: dormant（ただし RED 2週連続+high のエスカレーション対象は除外しない）
+      2) monitoring/last-suggested.json を読んで前回提案リポを確認（同じリポは避ける）
+      3) monitoring/health-trend.jsonl を読んでエスカレーション対象（RED 2週連続+high）を最優先
+      4) 対象リポの既存 Issue を確認: gh issue list -R {owner}/{repo} --state open
+        - 重複する内容があれば新規作成しない
+        - 同一リポに PM 作成の open Issue が2件以上あれば新規作成しない
+      5) 各候補リポに scripts/task-suggest + scripts/knowledge-collect を実行
+
+      6) **Dual-Perspective Backlog Generation** — PM視点 と Developer視点 の両方から候補を列挙し、最適な1-2件を選ぶ。
+
+         [PM視点 — Business / Product]
+         対象リポごとに以下を確認し、ユーザー価値起点の候補を洗い出す:
+         - README / 既存機能の棚卸し: 現状の user journey でどこが弱いか
+         - 競合・類似OSSの最新機能: web_search で "{repo category} 2026 features" を検索
+         - 教育系リポ: config/learner-context.yaml の学習段階から逆算した具体スコープ
+         - ユーザーフィードバック: 既存 Issue のコメント、closed Issue の再現要望
+         - 指標: 未達な KPI（使われてない機能、離脱ポイント）
+         候補の型:
+           • feature: 新機能（MVPスコープで切る、競合差別化含む）
+           • improvement: 既存機能の UX / 速度 / エラーメッセージ改善
+           • growth: オンボーディング、告知、SEO、README強化
+
+         [Developer視点 — Tech Health]
+         対象リポごとに以下を調査:
+         - 依存関係の陳腐化: package.json の主要依存（framework / runtime / DB / AI SDK）を npm registry の最新と比較。**メジャー更新が出ているか**を `npm view {pkg} version` 等で確認
+         - CI / Security Scan / Lint の失敗状況: gh run list で直近の失敗を確認
+         - Tech Radar（週次で web_search を行う）: 以下のカテゴリで直近30日の話題を確認
+           · Frontend/Framework: Next.js / React / Vue / Svelte のリリースノート・ブログ
+           · AI/LLM SDK: Anthropic SDK, Vercel AI SDK, MCP spec
+           · DB/ORM: Prisma / Drizzle / Supabase / Postgres
+           · Build/Test: Turbopack / Biome / Vitest / Playwright
+           · Security: npm audit の high/critical
+         - コード臭い: 同じパターンのコピペ、巨大ファイル、未使用依存（`depcheck`系）
+         - Observability のギャップ: error tracking, log, 監視抜け
+         候補の型:
+           • maintenance: 脆弱性修正、CI修復、依存メジャーアップデート
+           • refactor: リファクタ（重複排除、型強化、Server Components化など）
+           • tech-adoption: 新技術の採用（例: Next 16 Cache Components, Turbopack prod, Vercel AI SDK, Prompt Caching, pgvector）
+           • perf: パフォーマンス改善（Lighthouse, bundle size, DB N+1）
+           • dx: 開発者体験（Biome移行、テスト高速化、型安全化）
+
+         [スコアリング — 両視点候補を並べて選ぶ]
+         各候補に以下で 1-10 点を付ける:
+           • Value (ユーザー価値 or 開発効率向上)
+           • Effort (逆スコア: 小さいほど高い)
+           • Confidence (/resolve-issue で自動完走できそうか = 要件の明確さ)
+           • Urgency (セキュリティ / CI failing は +3 のボーナス)
+         合計上位から選定。ただし以下の配分バランスを守る:
+           - 直近4回の focus-task を振り返り、PM視点 と Developer視点 の Issue が 6:4 〜 4:6 の比率に収まるように調整
+           - 連続3回 PM系のみ → 次は Developer系を1件は必ず含む（逆も同様）
+           - 連続3回 tech-adoption が0件 → 新技術評価 Issue を1件混ぜる
+         教育系リポは PM視点優先（子供の学習が主目的）、MCP / ツール系は Developer視点優先。
+
+         tech-adoption Issue の作り方（重要）:
+         - 単に「Xを導入する」ではなく、**なぜ今このリポで導入すると得か** を具体的に（現行の痛み、導入後の改善、移行コスト）
+         - 段階的適用: いきなり全面ではなく、「1ページ / 1モジュールで PoC」「本格移行は別 Issue」に分ける
+         - 互換性リスクを Non-goals / Constraints に明記
+
+      7) AGENTS.md の Issue Creation Standards テンプレートに従って GitHub Issue を作成:
+        gh issue create -R {owner}/{repo} --title '...' --body '...'
+        必須セクション: Problem/Why, Acceptance Criteria, Non-goals, Constraints, Tasks, References
+      8) Pre-check で決定した上限数を超えない。
+
+      == Auto-Resolve（Issue 作成後、1件ずつ逐次実行）==
+      作成した各 Issue に対して以下を実行:
+
+      9) ローカルリポを同期:
+        cd /Users/ken/Developer/private/{repo_name}
+        git fetch origin
+        default_branch=$(gh repo view {owner}/{name} --json defaultBranchRef -q '.defaultBranchRef.name')
+        git checkout $default_branch && git pull origin $default_branch
+
+      10) Codex で Issue を解決:
+        bash /Users/ken/.openclaw/workspace-knishioka-pm/scripts/codex-resolve.sh {owner}/{name} {issue_number}
+        タイムアウト: 15分。失敗した場合は issue-tracker に auto_resolve: failed を記録して次へ。
+
+      11) PR を draft に変換:
+        pr_number=$(gh pr list -R {owner}/{name} --author knishioka --state open --json number,headRefName --jq '.[0].number')
+        gh pr ready --undo -R {owner}/{name} $pr_number 2>/dev/null || true
+
+      == 記録 ==
+      12) monitoring/issue-tracker.jsonl に追記: {repo, issue, type, perspective: "pm"|"dev", subtype: "feature"|"improvement"|"growth"|"maintenance"|"refactor"|"tech-adoption"|"perf"|"dx"|"bugfix", created, status: open, auto_resolve: draft_pr_created or failed, pr: N, playbook_version, lint_available, lint_skipped_reason, verification}
+          - playbook_version / lint_available / lint_skipped_reason は scripts/codex-resolve.sh の起動ログ ([codex-resolve] start ... playbook_version=YYYY-MM-DD lint_available=true|false lint_skipped_reason=... timeout=...s) から `grep -oE` で抽出する
+          - lint_available=false の場合、verification.lint は必ず "n/a" を記録する（Codex 側 PR 本文の動作確認テーブルが ⚠️ n/a になっているはず。なっていなければ補完）
+          - lint_available=true の場合、lint_skipped_reason は null を記録する
+      13) reports/latest-focus.md に以下を記録:
+          - 作成した Issue + PR の一覧（perspective / subtype 付き）
+          - 動的頻度判定結果
+          - 直近4回の perspective 比率（PM:Dev = X:Y）
+          - 今回の Tech Radar スキャンで見つかった重要トピック（採用しなかったが次回以降検討）
+      14) monitoring/last-suggested.json を更新
+      15) コミットした後、`git push origin main` を実行する。push が non-fast-forward でリジェクトされた場合は `git pull --rebase origin main` してから1回だけ再試行する。それでも失敗するなら push は諦めてログに残す（ジョブは失敗させない）
+
+      == WhatsApp 通知 ==
+      16) draft PR が1件以上作成できた場合のみ、WhatsAppに通知:
+          openclaw message send --channel whatsapp --target ${KNISHIOKA_ALERT_TO} --text "$(cat <<'MSG'
+      *🤖 Focus Task — MM/DD*
+      {件数} PR created:
+      • [{repo} #{issue}] {title}
+        → {pr_url}
+      • ...
+      MSG
+      )"
+          PR 0件（resolve失敗のみ or Issue未作成）の場合は通知しない。
+          失敗したものは 末尾に "⚠️ {repo} #{issue}: auto-resolve failed" で追記。
+
+      重要: Issue は /resolve-issue で自動解決できる品質を目指す。Acceptance Criteria は具体的かつ検証可能、Non-goals でスコープを明確に絞り、Constraints で守るべき制約を明記すること。
+      作成した Issue 番号と PR 番号を返す。
+  - name: weekly-knowledge-extract
+    description: Weekly knowledge extraction from personal GitHub repos
+    schedule:
+      kind: cron
+      expr: 0 19 * * 5
+    timeout_seconds: 600
+    delivery:
+      mode: none
+      channel: last
+    message: |
+      Weekly knowledge extraction with competitive research and changelog.
+
+      手順:
+      1) config/repos.yaml の repos: + private_repos: を読んで全リポリストを取得（on-hold は除外）
+      2) monitoring/repo-state.json を読む（前回の抽出タイムスタンプ）
+      3) 各リポに対して scripts/knowledge-collect {owner}/{name} を実行
+      4) 結果を分析し、以下を更新:
+        - knowledge/repos/{name}-kb.md: 技術スタック、アーキテクチャ、主要パターン
+        - knowledge/decisions/{name}-decisions.md: PRやコミットから抽出した設計判断
+      5) 競合・トレンドリサーチ（priority=high のリポのみ、週替わりで1-2リポずつ）:
+        - web_search で類似ツール/ライブラリの最新動向を調査
+        - MCP server なら MCP SDK の最新バージョン・新機能
+        - 教育ツールなら最新の教育技術トレンド
+        - 調査結果を knowledge/repos/{name}-kb.md の Competitive Landscape セクションに追記
+      6) knowledge/STRATEGY.md のルールに従う:
+        - 200行上限、重複排除、ソース日付記載
+      7) knowledge/CHANGELOG.md を生成: 今週の新しい発見のみ記載
+        - 新しい依存関係、設計判断、アーキテクチャ変更
+        - 競合リサーチの発見（新機能候補）
+        - 8週以上 KB が更新されていない priority=high リポがあれば「知識が古い」と警告
+      8) monitoring/repo-state.json を更新
+      9) コミットした後、`git push origin main` を実行する。push が non-fast-forward でリジェクトされた場合は `git pull --rebase origin main` してから1回だけ再試行する。それでも失敗するなら push は諦めてログに残す（ジョブは失敗させない）
+
+      更新したファイル数と主な発見（特に新機能候補）を簡潔に返す。
+  - name: monthly-portfolio-review
+    description: Monthly portfolio-level review of all repos
+    schedule:
+      kind: cron
+      expr: 0 19 1-7 * 0
+    timeout_seconds: 600
+    delivery:
+      mode: announce
+      channel: whatsapp
+      to: "${KNISHIOKA_ALERT_TO}"
+      best_effort: true
+    message: |
+      Monthly portfolio review.
+
+      手順:
+      1) config/repos.yaml の repos: + private_repos: を全て読む
+      2) monitoring/health-trend.jsonl を読んで過去1ヶ月のトレンドを把握
+      3) 全リポを分類:
+        - Active: 30日以内にコミットあり
+        - Dormant: 30-90日
+        - Abandoned: 90日+
+      4) knowledge/repos/*.md を全て読んでクロスリポ分析:
+        - 共通技術・統合機会（例: 複数MCP serverの共通基盤）
+        - 過剰工数のリポ（Issue/PR が多すぎるリポ）
+      5) Abandoned リポ: KB を基にアーカイブ推奨 or 復活条件を提示
+      6) reports/monthly-portfolio-{YYYY-MM}.md に出力
+      7) コミットした後、`git push origin main` を実行する。push が non-fast-forward でリジェクトされた場合は `git pull --rebase origin main` してから1回だけ再試行する。それでも失敗するなら push は諦めてログに残す（ジョブは失敗させない）
+
+      Private リポも含めてポートフォリオ全体を俯瞰すること。ただし reports/ にはprivateリポの詳細は書かない（名前と分類のみ可）。
+      簡潔なサマリーを返す。
+  - name: private-repo-check
+    description: Bi-weekly health check for private repos (gitignored output only)
+    schedule:
+      kind: cron
+      expr: 0 20 * * 3
+    thinking: low
+    timeout_seconds: 300
+    delivery:
+      mode: none
+      channel: whatsapp
+      to: "${KNISHIOKA_ALERT_TO}"
+      best_effort: true
+    message: |
+      Private repo health check.
+
+      重要: このジョブの出力は一切コミットしない。
+
+      手順:
+      1) config/repos.yaml の private_repos: セクションを読む
+      2) status: on-hold のリポは除外
+      3) 各リポに対して scripts/repo-health {owner}/{name} を実行
+      4) 結果を monitoring/private-health.json に書き出す（上書き）
+        フォーマット: [{repo, status, days_inactive, open_issues, ci_status, ...}, ...]
+      5) git add も git commit もしない
+
+      Output Format に従ったサマリーを返す（WhatsApp配信用）。ただしリポの詳細な内容やコードの情報は含めず、名前とステータスのみ。

@@ -57,8 +57,16 @@ for repo in $(yq '.repos[].owner + "/" + .repos[].name' config/repos.yaml); do
 done
 ```
 
+## Cron Jobs
+
+Cron job definitions live in `config/cron/jobs.yaml` (git-managed source-of-truth).
+Edit that file, then run `scripts/build-cron-jobs.py` → `scripts/verify-cron-playbooks.sh`
+→ `scripts/register-cron-jobs.sh`. See [docs/cron.md](docs/cron.md). The live
+registry (`~/.openclaw/cron/jobs.json`) is never hand-edited.
+
 ## Requirements
 
 - `gh` CLI (authenticated)
 - `jq`
 - `yq` (optional, for parsing repos.yaml)
+- `python3` (+ `pyyaml` or `uv`, for the cron build/verify scripts)
