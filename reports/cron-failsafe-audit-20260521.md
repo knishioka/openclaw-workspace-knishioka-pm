@@ -48,7 +48,7 @@ cp -p ~/.openclaw/openclaw.json ~/.openclaw/openclaw.json.bak.2026-05-21
 | monthly-portfolio-review | ✅      | after:2 / WA / 6h cd | true                |
 | private-repo-check       | ✅      | after:2 / WA / 6h cd | true                |
 
-- `failureAlert`: 連続 2 回失敗で WhatsApp (`+819050822879`)、cooldown 6h、`mode: announce`。
+- `failureAlert`: 連続 2 回失敗で WhatsApp (`${KNISHIOKA_ALERT_TO}`)、cooldown 6h、`mode: announce`。
 - 被覆率 **5/5 = 100%**（silent failure を全ジョブで検知可能）。
 
 ## 3. `cron.failureDestination` を設定しない判断（根拠付き）
@@ -85,7 +85,7 @@ per-job/`delivery.to` 依存で knishioka-pm では追加効果がないため�
 #    （本番ジョブには触れない）。例（疑似）:
 openclaw cron add --name _fa-smoke-test --schedule '@once' \
   --message 'exit 1 で失敗させる検証用' \
-  --failure-after 1 --failure-channel whatsapp --failure-to '+819050822879'
+  --failure-after 1 --failure-channel whatsapp --failure-to "${KNISHIOKA_ALERT_TO}"
 openclaw cron run _fa-smoke-test          # 即時実行
 # 2. WhatsApp に "Cron job _fa-smoke-test failed: ..." が 1 通届くことを確認
 # 3. 後始末（必須）

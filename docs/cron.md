@@ -140,13 +140,10 @@ CI（`.github/workflows/check.yml`）は `--offline`（+ PyYAML）で
 | ------------------------ | --- | --------------------------------------------------------------------- |
 | `cron.maxConcurrentRuns` | `3` | 同時 LLM 実行を 3 本に制限。週次ジョブ集中時の CPU/メモリ多重起動保険 |
 
-```jsonc
-// ~/.openclaw/openclaw.json
-{
-  "cron": {
-    "maxConcurrentRuns": 3,
-  },
-}
+`~/.openclaw/openclaw.json` に追記:
+
+```json
+{ "cron": { "maxConcurrentRuns": 3 } }
 ```
 
 - **グローバル設定**のため全ワークスペース（ds-pm / personal / ds-tm / family /
