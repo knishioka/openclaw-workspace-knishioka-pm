@@ -259,7 +259,10 @@ jobs:
     description: Monthly portfolio-level review of all repos
     schedule:
       kind: cron
-      expr: 0 19 1-7 * 0
+      # +0 = Croner AND modifier: fire only when the date is in days 1-7 AND is
+      # Sunday → first Sunday of the month. Plain `0` would be OR (1-7日 OR 毎週
+      # 日曜) and over-fired ~11x/month. See Issue #35.
+      expr: 0 19 1-7 * +0
     timeout_seconds: 600
     delivery:
       mode: announce
