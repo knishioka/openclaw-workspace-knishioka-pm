@@ -259,9 +259,9 @@ jobs:
     description: Monthly portfolio-level review of all repos
     schedule:
       kind: cron
-      # +0 = Croner AND modifier: fire only when the date is in days 1-7 AND is
-      # Sunday → first Sunday of the month. Plain `0` would be OR (1-7日 OR 毎週
-      # 日曜) and over-fired ~11x/month. See Issue #35.
+      # Use the '+' modifier (Croner extension) to force an AND relationship between
+      # the day-of-month (1-7) and day-of-week (0=Sunday) fields, ensuring the
+      # job only fires on the first Sunday of the month.
       expr: 0 19 1-7 * +0
     timeout_seconds: 600
     delivery:
