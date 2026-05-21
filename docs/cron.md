@@ -1,4 +1,4 @@
-<!-- version: 2026-05-21 (Issue #37) -->
+<!-- version: 2026-05-21 (Issue #37, #36) -->
 
 # Cron Job Management
 
@@ -127,3 +127,37 @@ jobs:
 
 CI（`.github/workflows/check.yml`）は `--offline`（+ PyYAML）で
 `config/cron/jobs.yaml` が常にビルド可能であることを保証する。
+
+## グローバル scheduler 設定（`~/.openclaw/openclaw.json` の `cron`）
+
+`jobs.yaml` は **per-job** 定義のソース。一方、スケジューラ**全体**に効く設定
+（同時実行制限・失敗通知の fallback 等）は OpenClaw ランタイム config
+`~/.openclaw/openclaw.json` の `cron` キーに置く。**このファイルは git 追跡外**
+（リポ外の runtime 状態）なので、変更内容は本ドキュメントと `reports/` の監査
+記録でレビュー可能にする。Issue #36 で以下を整備した。
+
+| キー                     | 値  | 意図                                                                  |
+| ------------------------ | --- | --------------------------------------------------------------------- |
+| `cron.maxConcurrentRuns` | `3` | 同時 LLM 実行を 3 本に制限。週次ジョブ集中時の CPU/メモリ多重起動保険 |
+
+`~/.openclaw/openclaw.json` に追記:
+
+```json
+{ "cron": { "maxConcurrentRuns": 3 } }
+```
+
+- **グローバル設定**のため全ワークスペース（ds-pm / personal / ds-tm / family /
+  knishioka-pm、合計約 50 ジョブ）に作用する。
+- gateway は config を**起動時に読む**。変更後は `openclaw gateway restart` で反映。
+- 編集前に `~/.openclaw/openclaw.json.bak.<日付>` を取得すること。
+
+### `cron.failureDestination` を設定しない理由
+
+OpenClaw には失敗通知が 2 経路ある: per-job/global の `failureAlert`
+（連続 N 回失敗で 1 本に解決）と `failureDestination`（**毎回のエラー**で発火、
+`delivery.bestEffort: true` のジョブのみ抑止）。グローバル `failureDestination`
+を足すと、`bestEffort` 未設定の `focus-task` / `weekly-knowledge-extract` が
+失敗のたびに通知し、既存 `failureAlert` と**二重通知**になる。knishioka-pm の
+全ジョブは既に per-job `failureAlert` を持つ（`defaults.failure_alert`）ため、
+**`failureDestination` は設定しない**。詳細・監査結果は
+`reports/cron-failsafe-audit-20260521.md` を参照。
