@@ -46,7 +46,9 @@ BUILD_DIR="$(mktemp -d)"
 trap 'rm -rf "$BUILD_DIR"' EXIT
 MANIFEST="$BUILD_DIR/manifest.json"
 
-if ! python3 "$WORKSPACE_ROOT/scripts/build-cron-jobs.py" --output "$MANIFEST" >/dev/null 2>"$BUILD_DIR/build.err"; then
+# Build with --allow-unset-env so the build never fails on an unset ${ENV}
+# reference; live/snapshot modes enforce resolution explicitly below.
+if ! python3 "$WORKSPACE_ROOT/scripts/build-cron-jobs.py" --allow-unset-env --output "$MANIFEST" >/dev/null 2>"$BUILD_DIR/build.err"; then
   echo "verify-cron-playbooks: BUILD FAILED" >&2
   cat "$BUILD_DIR/build.err" >&2
   exit 1
@@ -56,6 +58,16 @@ if [[ "$MODE" == "offline" ]]; then
   N="$(python3 -c "import json,sys; print(len(json.load(open('$MANIFEST'))['jobs']))")"
   echo "verify-cron-playbooks: offline OK ($N jobs; manifest builds and is self-consistent)"
   exit 0
+fi
+
+# Comparing against the live registry only makes sense once ${ENV} references
+# (e.g. the alert number) are resolved — otherwise every such field reports
+# spurious drift. Fail with an actionable message instead.
+UNRESOLVED="$(python3 -c "import json; print(','.join(json.load(open('$MANIFEST')).get('unresolved_env') or []))")"
+if [[ -n "$UNRESOLVED" ]]; then
+  echo "verify-cron-playbooks: unresolved env var(s): $UNRESOLVED" >&2
+  echo "  export them before running --live/--snapshot (see docs/cron.md)" >&2
+  exit 1
 fi
 
 # Acquire the comparison set.

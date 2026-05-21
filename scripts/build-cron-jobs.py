@@ -56,6 +56,8 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -97,7 +99,37 @@ def _sha256(data: str) -> str:
     return hashlib.sha256(data.encode("utf-8")).hexdigest()
 
 
-def _normalize_delivery(delivery: dict[str, Any] | None) -> dict[str, Any]:
+_ENV_REF = re.compile(r"\$\{([A-Z_][A-Z0-9_]*)\}")
+
+
+def _expand_env(value: Any, unresolved: set[str]) -> Any:
+    """Substitute ``${NAME}`` references from the environment.
+
+    Secrets / PII (e.g. the WhatsApp alert number) live in the environment, not
+    in the committed ``config/cron/jobs.yaml`` (this repo is public). At build
+    time we resolve them so the manifest the registry consumes carries the real
+    value, while the source-of-truth stays scrubbed.
+
+    Names that are not set in the environment are left as the literal
+    ``${NAME}`` and recorded in ``unresolved`` so the caller can decide whether
+    that is fatal (apply / live verify) or acceptable (offline structural check).
+    """
+    if not isinstance(value, str):
+        return value
+
+    def _sub(m: "re.Match[str]") -> str:
+        name = m.group(1)
+        if name in os.environ:
+            return os.environ[name]
+        unresolved.add(name)
+        return m.group(0)
+
+    return _ENV_REF.sub(_sub, value)
+
+
+def _normalize_delivery(
+    delivery: dict[str, Any] | None, unresolved: set[str]
+) -> dict[str, Any]:
     """Normalize a job's delivery block to a canonical shape.
 
     ``mode`` is required (``none`` or ``announce``). ``channel`` defaults to
@@ -113,18 +145,20 @@ def _normalize_delivery(delivery: dict[str, Any] | None) -> dict[str, Any]:
         )
     out: dict[str, Any] = {"mode": mode, "channel": delivery.get("channel", "last")}
     if "to" in delivery and delivery["to"] is not None:
-        out["to"] = delivery["to"]
+        out["to"] = _expand_env(delivery["to"], unresolved)
     if "best_effort" in delivery and delivery["best_effort"] is not None:
         out["best_effort"] = bool(delivery["best_effort"])
     return out
 
 
-def _normalize_failure_alert(fa: dict[str, Any]) -> dict[str, Any]:
+def _normalize_failure_alert(
+    fa: dict[str, Any], unresolved: set[str]
+) -> dict[str, Any]:
     """Pass the failure_alert block through with a stable key order."""
     out = {
         "after": fa["after"],
         "channel": fa["channel"],
-        "to": fa["to"],
+        "to": _expand_env(fa["to"], unresolved),
         "cooldown_ms": fa["cooldown_ms"],
         "mode": fa["mode"],
         "account_id": fa["account_id"],
@@ -134,11 +168,13 @@ def _normalize_failure_alert(fa: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
-def _normalize_job(job: dict[str, Any], defaults: dict[str, Any]) -> dict[str, Any]:
+def _normalize_job(
+    job: dict[str, Any], defaults: dict[str, Any], unresolved: set[str]
+) -> dict[str, Any]:
     schedule = dict(job["schedule"])
     if schedule.get("kind") == "cron" and "tz" not in schedule:
         schedule["tz"] = defaults["tz"]
-    message = job["message"].rstrip()
+    message = _expand_env(job["message"], unresolved).rstrip()
     return {
         "name": job["name"],
         "description": job.get("description", ""),
@@ -149,16 +185,20 @@ def _normalize_job(job: dict[str, Any], defaults: dict[str, Any]) -> dict[str, A
         "thinking": job.get("thinking", defaults.get("thinking")),
         "timeout_seconds": job.get("timeout_seconds"),
         "model": job.get("model"),
-        "delivery": _normalize_delivery(job.get("delivery")),
+        "delivery": _normalize_delivery(job.get("delivery"), unresolved),
         "playbook": job.get("playbook"),
         "message": message,
         "message_hash": _sha256(message),
-        "failure_alert": _normalize_failure_alert(defaults["failure_alert"]),
+        "failure_alert": _normalize_failure_alert(
+            defaults["failure_alert"], unresolved
+        ),
         "enabled": job.get("enabled", defaults["enabled"]),
     }
 
 
-def build(workspace_root: Path, jobs_yaml_path: Path) -> dict[str, Any]:
+def build(
+    workspace_root: Path, jobs_yaml_path: Path, allow_unset_env: bool = False
+) -> dict[str, Any]:
     spec = _load_yaml(jobs_yaml_path)
     if spec.get("schema_version") != 1:
         raise SystemExit(
@@ -179,12 +219,25 @@ def build(workspace_root: Path, jobs_yaml_path: Path) -> dict[str, Any]:
                 f"build-cron-jobs: missing required default '{required}' in {jobs_yaml_path}"
             )
 
+    unresolved: set[str] = set()
     expanded: list[dict[str, Any]] = []
     playbook_paths: set[str] = set()
     for job in spec.get("jobs") or []:
-        expanded.append(_normalize_job(job, defaults))
+        expanded.append(_normalize_job(job, defaults, unresolved))
         if job.get("playbook"):
             playbook_paths.add(job["playbook"])
+
+    # ${ENV} references (e.g. the WhatsApp alert number) must resolve before the
+    # manifest is applied to or compared against the live registry. Offline /
+    # structural checks tolerate unset vars (allow_unset_env=True).
+    if unresolved and not allow_unset_env:
+        names = ", ".join(sorted(unresolved))
+        raise SystemExit(
+            f"build-cron-jobs: unset environment variable(s) referenced in "
+            f"{jobs_yaml_path.name}: {names}\n"
+            f"  export them before build/register/verify --live, "
+            f"or pass --allow-unset-env for a structural-only build."
+        )
 
     # Playbook hashes (knishioka jobs are inline today, so this is usually
     # empty — kept for parity with ds-pm so a future playbook reference is
@@ -219,6 +272,7 @@ def build(workspace_root: Path, jobs_yaml_path: Path) -> dict[str, Any]:
         "schema_version": 1,
         "generated_from": generated_from,
         "playbook_hashes": playbook_hashes,
+        "unresolved_env": sorted(unresolved),
         "jobs": expanded,
     }
 
@@ -243,7 +297,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--check",
         action="store_true",
-        help="Validate and expand without writing output",
+        help="Validate and expand without writing output (implies --allow-unset-env)",
+    )
+    parser.add_argument(
+        "--allow-unset-env",
+        action="store_true",
+        help="Do not fail on unset ${ENV} references (structural-only build)",
     )
     args = parser.parse_args(argv)
 
@@ -261,7 +320,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.input
         else workspace_root / "config" / "cron" / "jobs.yaml"
     )
-    manifest = build(workspace_root, jobs_yaml)
+    manifest = build(
+        workspace_root, jobs_yaml, allow_unset_env=(args.allow_unset_env or args.check)
+    )
 
     if args.check:
         sys.stderr.write(

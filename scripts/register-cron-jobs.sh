@@ -46,6 +46,16 @@ if ! command -v openclaw >/dev/null 2>&1; then
   exit 1
 fi
 
+# Refuse to apply a manifest with unresolved ${ENV} references — that would
+# register a literal "${KNISHIOKA_ALERT_TO}" as a delivery target. Rebuild with
+# the env var exported (see docs/cron.md).
+UNRESOLVED="$(python3 -c "import json,sys;print(','.join(json.load(open(sys.argv[1])).get('unresolved_env') or []))" "$MANIFEST")"
+if [[ -n "$UNRESOLVED" ]]; then
+  echo "register-cron-jobs: manifest has unresolved env var(s): $UNRESOLVED" >&2
+  echo "  export them and re-run scripts/build-cron-jobs.py before registering" >&2
+  exit 1
+fi
+
 # Manifest job names.
 mapfile -t MANIFEST_NAMES < <(python3 -c "import json,sys;print('\n'.join(j['name'] for j in json.load(open(sys.argv[1]))['jobs']))" "$MANIFEST")
 if [[ ${#MANIFEST_NAMES[@]} -eq 0 ]]; then
@@ -83,94 +93,113 @@ if [[ ${#EXTRA[@]} -gt 0 ]]; then
 fi
 echo
 
-# Emit the openclaw flag argv (NUL-delimited) for a manifest job. NUL framing
-# is required because messages contain newlines, '$', and CJK text that would
-# break eval/word-splitting. The leading subcommand (add) or id (edit) is added
-# by the caller, not here.
-emit_args() {
-  local name="$1"
-  MANIFEST="$MANIFEST" JOB_NAME="$name" python3 <<'PY'
+# Emit the openclaw flag argv for EVERY job in a single python invocation
+# (manifest parsed once). NUL framing is required because messages contain
+# newlines, '$', and CJK text that would break eval/word-splitting.
+#
+# Stream layout per job: name, enabled("1"/"0"), argc, then <argc> flag tokens
+# — all NUL-delimited. The count prefix lets bash slice each job's args back
+# out unambiguously even though the args themselves may contain any byte except
+# NUL. The leading subcommand (add) or id (edit) and the enable/disable flag are
+# added by the bash caller, which is the side that knows whether the job exists.
+emit_all_args() {
+  MANIFEST="$MANIFEST" python3 <<'PY'
 import json, os, sys
 
 manifest = json.load(open(os.environ["MANIFEST"]))
-name = os.environ["JOB_NAME"]
-job = next(j for j in manifest["jobs"] if j["name"] == name)
+out = []
 
-args = [
-    "--agent", job["agent_id"],
-    "--name", job["name"],
-    "--description", job.get("description", ""),
-    "--session", job["session_target"],
-    "--wake", job["wake_mode"],
-    "--message", job["message"],
-]
-
-sched = job["schedule"]
-if sched.get("kind") == "cron":
-    args += ["--cron", sched["expr"]]
-    if sched.get("tz"):
-        args += ["--tz", sched["tz"]]
-elif sched.get("kind") == "every":
-    secs = int(sched["every_ms"] / 1000)
-    args += ["--every", f"{secs}s"]
-
-# Payload metadata.
-if job.get("thinking"):
-    args += ["--thinking", str(job["thinking"])]
-if job.get("timeout_seconds") is not None:
-    args += ["--timeout-seconds", str(job["timeout_seconds"])]
-if job.get("model"):
-    args += ["--model", str(job["model"])]
-
-# Delivery.
-d = job.get("delivery") or {}
-if d.get("channel"):
-    args += ["--channel", d["channel"]]
-if d.get("to"):
-    args += ["--to", d["to"]]
-if d.get("best_effort"):
-    args += ["--best-effort-deliver"]
-if d.get("mode") == "announce":
-    args += ["--announce"]
-else:
-    args += ["--no-deliver"]
-
-# Failure alert.
-fa = job.get("failure_alert") or {}
-if fa:
-    ms = int(fa.get("cooldown_ms", 0))
-    if ms and ms % 3600000 == 0:
-        cooldown = f"{ms // 3600000}h"
-    elif ms and ms % 60000 == 0:
-        cooldown = f"{ms // 60000}m"
-    else:
-        cooldown = f"{ms // 1000}s"
-    args += [
-        "--failure-alert",
-        "--failure-alert-after", str(fa["after"]),
-        "--failure-alert-channel", fa["channel"],
-        "--failure-alert-to", fa["to"],
-        "--failure-alert-cooldown", cooldown,
-        "--failure-alert-mode", fa["mode"],
-        "--failure-alert-account-id", fa["account_id"],
+for job in manifest["jobs"]:
+    args = [
+        "--agent", job["agent_id"],
+        "--name", job["name"],
+        "--description", job.get("description", ""),
+        "--session", job["session_target"],
+        "--wake", job["wake_mode"],
+        "--message", job["message"],
     ]
 
-sys.stdout.write("\0".join(args))
+    sched = job["schedule"]
+    if sched.get("kind") == "cron":
+        args += ["--cron", sched["expr"]]
+        if sched.get("tz"):
+            args += ["--tz", sched["tz"]]
+    elif sched.get("kind") == "every":
+        secs = int(sched["every_ms"] / 1000)
+        args += ["--every", f"{secs}s"]
+
+    # Payload metadata.
+    if job.get("thinking"):
+        args += ["--thinking", str(job["thinking"])]
+    if job.get("timeout_seconds") is not None:
+        args += ["--timeout-seconds", str(job["timeout_seconds"])]
+    if job.get("model"):
+        args += ["--model", str(job["model"])]
+
+    # Delivery.
+    d = job.get("delivery") or {}
+    if d.get("channel"):
+        args += ["--channel", d["channel"]]
+    if d.get("to"):
+        args += ["--to", d["to"]]
+    if d.get("best_effort"):
+        args += ["--best-effort-deliver"]
+    if d.get("mode") == "announce":
+        args += ["--announce"]
+    else:
+        args += ["--no-deliver"]
+
+    # Failure alert.
+    fa = job.get("failure_alert") or {}
+    if fa:
+        ms = int(fa.get("cooldown_ms", 0))
+        if ms and ms % 3600000 == 0:
+            cooldown = f"{ms // 3600000}h"
+        elif ms and ms % 60000 == 0:
+            cooldown = f"{ms // 60000}m"
+        else:
+            cooldown = f"{ms // 1000}s"
+        args += [
+            "--failure-alert",
+            "--failure-alert-after", str(fa["after"]),
+            "--failure-alert-channel", fa["channel"],
+            "--failure-alert-to", fa["to"],
+            "--failure-alert-cooldown", cooldown,
+            "--failure-alert-mode", fa["mode"],
+            "--failure-alert-account-id", fa["account_id"],
+        ]
+
+    out.append(job["name"])
+    out.append("1" if job.get("enabled", True) else "0")
+    out.append(str(len(args)))
+    out.extend(args)
+
+sys.stdout.write("\0".join(out))
 PY
 }
 
+# Read the whole stream once, then walk it record by record.
+mapfile -d '' -t TOKENS < <(emit_all_args)
+
 FAILED=()
-for name in "${MANIFEST_NAMES[@]}"; do
-  mapfile -d '' -t args < <(emit_args "$name")
+i=0
+while (( i < ${#TOKENS[@]} )); do
+  name="${TOKENS[i]}"; ((i += 1))
+  enabled="${TOKENS[i]}"; ((i += 1))
+  argc="${TOKENS[i]}"; ((i += 1))
+  args=("${TOKENS[@]:i:argc}"); ((i += argc))
   id="${REGISTERED_BY_NAME[$name]:-}"
 
   if [[ -n "$id" ]]; then
-    # Existing job: patch in place (preserves state). Ensure enabled state.
-    enable_flag="--enable"
+    # Existing job: patch in place (preserves state). Reflect the manifest's
+    # enabled flag rather than forcing --enable.
+    enable_flag=$([[ "$enabled" == "1" ]] && echo "--enable" || echo "--disable")
     op=(openclaw cron edit "$id" "$enable_flag" "${args[@]}")
   else
-    # New job: create.
+    # New job: `add` defaults to enabled; pass --disabled when the manifest
+    # says the job should be off.
     op=(openclaw cron add "${args[@]}")
+    [[ "$enabled" == "0" ]] && op+=(--disabled)
   fi
 
   if [[ $DRY_RUN -eq 1 ]]; then

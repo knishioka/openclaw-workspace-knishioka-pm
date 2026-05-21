@@ -22,6 +22,9 @@
 #     text; `announce` forwards it to `channel`/`to`.
 #   - Changing schedule `expr` reschedules a job. register-cron-jobs.sh edits
 #     the existing job by name so its nextRun/lastRun state is preserved.
+#   - Secrets / PII are referenced as ${ENV_VAR} and resolved at build time, so
+#     this public-repo file stays scrubbed. Currently ${KNISHIOKA_ALERT_TO} (the
+#     WhatsApp alert number). Export it before build / register / verify --live.
 
 schema_version: 1
 defaults:
@@ -34,7 +37,7 @@ defaults:
   failure_alert:
     after: 2
     channel: whatsapp
-    to: "+819050822879"
+    to: "${KNISHIOKA_ALERT_TO}"
     cooldown_ms: 21600000
     mode: announce
     account_id: knishioka-pm
@@ -49,7 +52,7 @@ jobs:
     delivery:
       mode: none
       channel: whatsapp
-      to: "+819050822879"
+      to: "${KNISHIOKA_ALERT_TO}"
       best_effort: true
     message: |
       Weekly repo health check with trend tracking + site QA + Issue retrospective.
@@ -205,7 +208,7 @@ jobs:
 
       == WhatsApp 通知 ==
       16) draft PR が1件以上作成できた場合のみ、WhatsAppに通知:
-          openclaw message send --channel whatsapp --target +819050822879 --text "$(cat <<'MSG'
+          openclaw message send --channel whatsapp --target ${KNISHIOKA_ALERT_TO} --text "$(cat <<'MSG'
       *🤖 Focus Task — MM/DD*
       {件数} PR created:
       • [{repo} #{issue}] {title}
@@ -261,7 +264,7 @@ jobs:
     delivery:
       mode: announce
       channel: whatsapp
-      to: "+819050822879"
+      to: "${KNISHIOKA_ALERT_TO}"
       best_effort: true
     message: |
       Monthly portfolio review.
@@ -292,7 +295,7 @@ jobs:
     delivery:
       mode: none
       channel: whatsapp
-      to: "+819050822879"
+      to: "${KNISHIOKA_ALERT_TO}"
       best_effort: true
     message: |
       Private repo health check.

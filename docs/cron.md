@@ -29,9 +29,33 @@
 | `~/.openclaw/cron/jobs.json`       | OpenClaw ランタイムのライブ登録（リポ外）                          | 無視 |
 | `~/.openclaw/cron/jobs-state.json` | nextRun/lastRun 等のランタイム状態（リポ外）                       | 無視 |
 
+## 環境変数（secret / PII）
+
+このリポは **public** なので、電話番号などの機微情報は `jobs.yaml` に直書きせ
+ず `${ENV_VAR}` 参照で持つ。`build-cron-jobs.py` がビルド時に環境変数から解決
+してマニフェストに埋め込むため、git 追跡されるソースは scrub された状態を保つ。
+解決された実値はライブ登録（register 時）に焼き込まれるので、**cron ランタイ
+ム自体に env を設定する必要はない**（build / register / `verify --live` の実行時
+にだけ必要）。
+
+| 変数                 | 用途                               | 例              |
+| -------------------- | ---------------------------------- | --------------- |
+| `KNISHIOKA_ALERT_TO` | WhatsApp 通知 / failure_alert 宛先 | `+81xxxxxxxxxx` |
+
+```bash
+export KNISHIOKA_ALERT_TO='+81...'   # build / register / verify --live の前に
+```
+
+未設定のまま `build` / `register` / `verify --live` を実行すると、`${...}` が未解
+決である旨のエラーで停止する（literal なプレースホルダーを誤登録しない安全装
+置）。`verify --offline` と `build --check` は構造検証のみなので env なしで通る。
+
 ## 変更手順（編集 → 生成 → 検証 → commit）
 
 ```bash
+# 0. secret/PII の env を設定（docs の「環境変数」参照）
+export KNISHIOKA_ALERT_TO='+81...'
+
 # 1. ソースを編集
 $EDITOR config/cron/jobs.yaml
 
