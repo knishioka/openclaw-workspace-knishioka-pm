@@ -3,42 +3,37 @@
 ## Overview
 
 - Repo: knishioka/kanji-practice
-- Description: Elementary kanji practice sheet generator (A4 PDF)
+- Description: 小学1〜6年生向け漢字練習プリント作成ツール（A4印刷対応、PDF出力）
 - Primary language (GitHub): TypeScript
-- Category / Priority: education / high
-- Status: active
 - License: none
 - Default branch: main
 - Created: 2025-12-30
 - Updated: 2026-05-14
-- Collected: 2026-05-15
+- Collected: 2026-05-22
 
 ## Tech Stack
 
-- Runtime dependencies: @radix-ui/react-checkbox, @radix-ui/react-select, @radix-ui/react-slider, clsx, dompurify, html2canvas, jspdf, react, react-dom, react-to-print, zustand
-- Dev dependencies: @biomejs/biome, @playwright/test, @tailwindcss/vite, @types/dompurify, @types/node, @types/react, @types/react-dom, @vitejs/plugin-react, @vitest/ui, husky, lint-staged, tailwindcss, typescript, vite, vitest
-- npm scripts: build, check, check:fix, dev, format, lint, lint:fix, prepare, preview, test, test:debug, test:ui, test:unit, test:unit:ui, test:unit:watch
+- package.json: present
+- Dependencies (sample): @radix-ui/react-checkbox, @radix-ui/react-select, @radix-ui/react-slider, clsx, dompurify, html2canvas, jspdf, react, react-dom, react-to-print, zustand
+- Dev dependencies (sample): @biomejs/biome, @playwright/test, @tailwindcss/vite, @types/dompurify, @types/node, @types/react, @types/react-dom, @vitejs/plugin-react, @vitest/ui, husky, lint-staged, tailwindcss
+- npm scripts (keys): build, check, check:fix, dev, format, lint, lint:fix, prepare, preview, test, test:debug, test:ui, test:unit, test:unit:ui, test:unit:watch
 - pyproject.toml: not found
 - requirements.txt: not found
-- README signal: # 漢字練習プリント [![GitHub Pages](https://img.shields.io/badge/Demo-GitHub%20Pages-blue?logo=github)](https://knishioka.github.io/kanji-practice/) [![License: MIT](https://img.shields.io/badge/License-MIT-...
 
 ## Architecture / Patterns
 
-- Browser/app code uses package-managed TypeScript/JavaScript workflow with explicit build/test scripts.
-- Learning-content rendering balances pedagogy, layout density, and printable output constraints.
-- Worksheet/problem generation is configuration-driven, with preview/verification loops used to catch A4 overflow.
+- React/Next.js UI
 
-## Competitive Landscape (notes)
+## Tech Decisions (from PRs/commits)
 
-No competitive research captured in this weekly rotation.
+- [2026-03-22] fix: ふりがなフォールバックの送りがな・熟語コンテキスト改善 -- - フォールバック時に辞書形の送りがな込み読みがそのまま付く問題を修正（例: 速く→速(はやい)を速(はや)に） - `okuriganaExamples` の語幹データを活用して送りがな部分を除去 - 隣接する未割り当て漢字がある場合、音読みを優先する熟語コンテキスト判定を追加 - 不足していた例語データ（気持ち、試合、田植え）を追加 (source: PR #19)
+- [2026-03-09] fix: 3モードの問題間マージン最適化で問題数増加 -- - sentence(例文写経)、homophone(同音異字)、readingWriting(読み書き統合)の3モードで問題間マージンを最適化 - 各モード+1問/ページ: sentence 4→5問、homophone 5→6問、readingWriting 5→6問 - A4ページ内の余白(22〜30mm)を有効活用し、印刷効率を向上 (source: PR #18)
+- [2026-03-08] fix: ふりがな生成の3つの問題を修正し回帰テスト追加 -- ## Summary - ひらがな接頭辞の除去（「お寺」→寺(てら)に修正、「おてら」がスパンしていた） - 非連続漢字の読み分割（「買い物」→買(か)+物(もの)、「思い出」→思(おも)+出(で)等） - フォールバック読みのカタカナ→ひらがな変換（190件のカタカナ表示問題を解消） - 全2052例文で問題ゼロを確認する回帰テスト13件を追加 (source: PR #17)
+- [2026-03-08] feat: sentenceモードを穴埋め形式に改善（ふりがな付き・漢字空欄化） -- - 手本行に各漢字のふりがな（訓読み優先）を表示 - 練習行で対象漢字を空欄（グリッドライン付き書き取りマス）に置換 - ひらがな・カタカナ・句読点は練習行でもそのまま表示 (source: PR #16)
+- [2026-03-08] feat: strokeOrderモードにふりがな・読み・例語を追加 -- ## Summary - 書き順モードのSVG横に音読み・訓読み・例語（ふりがな付き）を表示 - 既存のレイアウト計算（`cellSize + 6`）内に収まるコンパクトな表示 - biome-ignoreコメントの不正確な記述（DOMPurify→信頼済みソース）を修正 (source: PR #15)
+- [2026-03-08] feat: 読み書き統合モード（readingWriting）を新設 -- - 1問の中で「読み→書き」を連続して行う新モード `readingWriting` を追加 - 上段に読み問題（漢字→読み）、下段に書き問題（ふりがな→漢字）を配置 - 既存の `ReadingQuestion` / `WritingQuestion` のパターンを組み合わせた `ReadingWritingQuestion` コンポーネントを新規作成 (source: PR #14)
 
-## Tech Decisions (from recent PRs/commits)
+## Competitive Landscape
 
-- [2026-05-14] feat(print): customize first page header fields -- ## 概要 1ページ目ヘッダーの名前欄・日付欄について、表示/非表示とラベル文言を設定パネルから変更できるようにしました。既存設定ロード時はデフォルト値を migration で補完し、2ページ目以降のヘッダー表示は従来どおり維持しています。 Closes #33 ## 変更内容 - `Settings` に `showNameField` /... (source: PR #34)
-- [2026-05-02] feat: harness pack (AGENTS.md / verify.sh / PR template) — Phase B PoC -- ## 概要 knishioka/openclaw-workspace-knishioka-pm#21 (Phase B PoC) の harness pack を kanji-practice に配備する。 workspace 側で整備した SSOT テンプレ (AGENTS.md / PR template / verify.sh) を本リポに写し、... (source: PR #32)
-- [2026-04-25] feat: 例文写経の練習行を全マス書き取り対象に -- ## 背景・狙い 例文写経モードの練習行はこれまで「ターゲット漢字のセルだけ書き取り用の白マス、それ以外は薄字の固定文字を表示（読む対象）」という構成だった。 しかし例文には対象漢字以外にも漢字・ひらがな・カタカナが含まれており、これらもついでに書写練習できれば、1問あたりの運筆練習量を大幅に増やせる。 ## 変更内容 - 練習行:... (source: PR #30)
-- [2026-04-25] feat: 例文写経モードの練習行数を可変化（デフォルト2行・最大3行） -- ## 背景 例文写経モード（PrintMode='sentence'）は従来「お手本1行 + 練習1行」の固定構成で、同じ例文を 1 回しか書写できなかった。学習理論上、写経による定着には 2〜3 回の反復が効果的（`.claude/rules/education/learning-theory.md`）。本 PR は A4 1 ページに最低 2... (source: PR #29)
-- [2026-04-24] fix: Klee Oneフォントをindex.htmlのlinkタグで読み込む（#27の修正） -- ## 背景 PR #27 で `src/index.css` に `@import url(...)` で Klee One を読み込んだが、CSS 仕様上 `@import` は他のすべてのルールより前に配置されている必要があり、`@import "tailwindcss"` の後ろに書かれていたため**本番で無効化**されていた。... (source: PR #28)
-- [2026-04-24] fix: 教科書体フォント(Klee One)をWebフォントとして読み込む -- ## Summary 漢字練習プリントの漢字がゴシック体で表示される問題を修正。`.font-textbook` クラスは Klee One を `local()` のみで指定していたため、フォント未インストール環境（多くの macOS 標準環境含む）では `serif` フォールバックや OS 標準フォントに落ち、教科書体になっていなかった。... (source: PR #27)
-- [2026-04-20] feat: 学習プリセット（9級読み・9級書き取り・8級先取り）を追加 -- ## Summary - add learning preset definitions plus pure apply/match helpers for the three learner flows - add a learning preset selector to the settings panel while keeping... (source: PR #26)
-- [2026-04-12] fix: 写経モードのふりがなをルビ注釈方式でゼロフォールバック化 -- ## Summary 写経モードの例文ふりがなが「フォールバック」推測に依存しており、活用形・音訓選択を誤った読み（例: `何の用？` → `なにのもちいる`）が大量に出ていた問題を根本解決。 - 例文文字列に `{漢字|よみ}` ルビ記法を導入し、ふりがな生成は注釈を最優先するように変更 - 全 2052 例文を機械注釈 + 約 200... (source: PR #24)
+- [2026-05-22] 2026 K-12 edtech coverage continues to frame AI as a teacher assistant for differentiated materials, assessment, and feedback rather than a replacement for foundational practice. Feature candidate: a teacher-facing "differentiate this sheet" flow that keeps printable handwriting practice but varies kanji mix, hints, and review load by grade or error pattern. Sources: EdTech Magazine K-12 AI trends and THE Journal 2026 AI/edtech predictions; searched 2026-05-22.
+- [2026-05-22] Handwriting-focused edtech trends emphasize preserving hand movement while adding progress monitoring, OCR-style feedback, gamified practice, and tablet/stylus workflows. Feature candidate: optional scanned-sheet review or self-check mode that records weak kanji and regenerates a targeted A4 review sheet. Sources: Learning Without Tears handwriting article; PenPoints handwriting/spelling tool coverage; searched 2026-05-22.

@@ -3,36 +3,29 @@
 ## Overview
 
 - Repo: knishioka/td-mcp-server
-- Description: Treasure Data MCP server -- inactive since 2025-08
 - Primary language (GitHub): Python
-- Category / Priority: mcp / low
-- Status: abandoned
 - License: none
 - Default branch: main
 - Created: 2025-05-13
 - Updated: 2025-08-03
-- Collected: 2026-05-15
+- Collected: 2026-05-22
 
 ## Tech Stack
 
-- Runtime dependencies: none detected
+- package.json: not found (or not accessible via GitHub contents API)
 - pyproject.toml: present
 - requirements.txt: present
-- README signal: # Treasure Data MCP Server A Model Context Protocol (MCP) server that provides Treasure Data API integration for Claude Code and Claude Desktop. > **DISCLAIMER**: This is a personal development project and is not...
 
 ## Architecture / Patterns
 
-- MCP server surface should keep tool schemas explicit and API errors predictable for agent callers.
-- Auth/token handling and API quota/error translation are core architecture risks.
+- MCP server / tool integration
+- CLI-style usage
 
-## Competitive Landscape (notes)
+## Tech Decisions (from PRs/commits)
 
-No competitive research captured in this weekly rotation.
-
-## Tech Decisions (from recent PRs/commits)
-
-- [2025-08-03] Fix test expectations for new tool count (source: commit 208b033)
-- [2025-08-03] Improve MCP tool descriptions for better AI comprehension (source: commit 14c52b4)
-- [2025-08-03] Improve workflow retrieval to handle large IDs (source: commit f8c726f)
-- [2025-08-02] Fix test expectations for new tool count (source: commit 5a2394b)
-- [2025-08-02] Temporarily disable mypy in CI to unblock development (source: commit c8063cb)
+- [2025-08-02] Add mypy configuration and fix major type errors -- (Why not stated in PR/commit body) (source: commit 4fb9db6)
+- [2025-08-01] Use pre-commit in CI for consistent linting -- (Why not stated in PR/commit body) (source: commit 0572edd)
+- [2025-08-01] Fix all lint errors and ensure code quality compliance -- (Why not stated in PR/commit body) (source: commit 737d115)
+- [2025-08-01] Add new MCP tools for project analysis and diagnostics -- (Why not stated in PR/commit body) (source: commit 27a7fc5)
+- [2025-08-01] Trigger CI with formatting fixes -- (Why not stated in PR/commit body) (source: commit 8c53388)
+- [2025-08-01] Add search and URL analysis tools for improved MCP functionality -- (Why not stated in PR/commit body) (source: commit 559c0a7)

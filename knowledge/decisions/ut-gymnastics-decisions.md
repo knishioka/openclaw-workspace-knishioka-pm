@@ -1,63 +1,37 @@
 # ut-gymnastics Design Decisions
 
-Updated: 2026-05-15
+## 2026-02-16: feat(news): ニュース記事にMarkdownエディタを統合
 
-## 2026-04-15: fix(nginx): server_name 修正 + ACME challenge 追加（証明書失効対応）
+- **What**: feat(news): ニュース記事にMarkdownエディタを統合
+- **Why**: - ニュース詳細ページの `dangerouslySetInnerHTML` を `MarkdownRenderer` に置換し、XSS脆弱性(#125)を部分的に解消 - ニュース編集・新規作成フォームの `textarea` を `MarkdownEditor` に置換し、Markdownプレビュー・ツールバー・画像アップロード機能を提供 - CSSプロパティホワイトリストを実装し、既存HTML記事の `style` 属性との後方互換性を安全に確保
+- **Source**: PR #137
 
-- **What**: ## Problem 本番サイト https://ob.todai-kunstturnen.net が Chrome で `NET::ERR_CERT_DATE_INVALID`。Let's Encrypt 証明書が 2026-03-19 に失効していた。certbot renew も 502 で失敗。 ## Root cause...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #148
+## 2026-02-16: feat(boards): 掲示板にMarkdownエディタを統合
 
-## 2026-04-15: fix(security): npm audit fix で high 脆弱性を解消 (#146)
+- **What**: feat(boards): 掲示板にMarkdownエディタを統合
+- **Why**: - 掲示板の投稿作成・編集・表示をプレーンテキストからMarkdownエディタ/レンダラーに移行 - MarkdownRendererに検索キーワードハイライト機能を追加（rehypeプラグイン方式） - 既存のプレーンテキスト投稿（28件）の改行をremark-breaksで完全保持
+- **Source**: PR #136
 
-- **What**: ## Summary - `npm audit fix` により依存ツリー内の high 脆弱性をすべて解消 - Security Scan workflow (`npm audit --audit-level high`) が green になる見込み - `package.json` は変更なし、`package-lock.json`...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #147
+## 2026-02-16: feat: コンテンツ画像アップロードAPI（Markdownエディタ用）
 
-## 2026-03-08: chore: Node.jsバージョンを22 LTSに統一
+- **What**: feat: コンテンツ画像アップロードAPI（Markdownエディタ用）
+- **Why**: - Markdownエディタ用のコンテンツ画像アップロードAPIを実装 - `POST /api/content/images` で画像アップロード、WebP変換、3サイズ生成 - `GET /api/images/content/{filename}` で画像配信（既存エンドポイント拡張） - pre-commitのESLint hookをESLint 9.x互換に修正
+- **Source**: PR #135
 
-- **What**: ## Summary - Node.jsバージョンを全箇所で22 LTS (Active LTS) に統一 - 変更前: .nvmrc=20, Dockerfile=20, CI=25, security.yml=20, pre-commit=20 - 変更後: すべて22に統一 ## 変更箇所 | ファイル | 変更前 | 変更後 |...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #145
+## 2026-02-16: feat(ui): 安全なMarkdownRendererコンポーネントの作成
 
-## 2026-02-17: fix(news): HTMLレンダリング修正と作成者変更機能を追加
+- **What**: feat(ui): 安全なMarkdownRendererコンポーネントの作成
+- **Why**: - `react-markdown` ベースの安全なMarkdownRendererコンポーネントを作成 - `rehype-sanitize` によるallowlistベースのXSS対策（script, iframe, event handler, javascript: URL等をブロック） - 既存HTMLコンテンツ（ニュース記事11件）、プレーンテキスト（改行保持）、Markdown（GFMテーブル含む）の3形式をサポート - 外部リンクの `target="_bla
+- **Source**: PR #134
 
-- **What**: ## Summary - インデント付き生HTMLコンテンツがMarkdownのコードブロックとして表示される問題を修正（`/news/OBOG2024` 等） - ニュース記事の作成者(author)を編集・作成フォームから変更できるドロップダウンを追加 - PUT/POST APIに `author_id` パラメータを追加 ## Test...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #144
+## 2026-02-16: feat(ui): MarkdownEditorコンポーネントの作成
 
-## 2026-02-17: docs: CLAUDE.md スリム化と .claude/rules/ 分離
+- **What**: feat(ui): MarkdownEditorコンポーネントの作成
+- **Why**: - `@uiw/react-md-editor` v4.xを使用したMarkdownエディタコンポーネントを新規作成 - dynamic importによるSSRエラー回避・バンドルサイズ最適化 - Error Boundary、画像アップロードハンドラー、ローディングスケルトン等を実装
+- **Source**: PR #133
 
-- **What**: ## Summary - CLAUDE.md が235行に肥大化し AI向けルール・人間向け手順・ゴッチャが混在していたのを整理 - Claude Code ベストプラクティスに従い、パス固有のドメイン知識を `.claude/rules/` に分離 - 古い一回限りドキュメントを削除し、壊れたリンクを修正 ## 変更内容 ### 新規:...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #143
+## 2026-02-15: refactor(performance): optimize Prisma queries and suspense boundaries
 
-## 2026-02-17: feat(security): nginxレート制限の実装（DDoS対策）
-
-- **What**: ## Summary - Issue #56 に基づき、nginxレート制限によるDDoS・ブルートフォース対策を実装 - 7つのレート制限ゾーンをエンドポイント種別ごとに定義 - 認証系エンドポイントに厳格な制限（1r/m）、一般APIに適切な制限（5r/s） ## 変更内容 ### nginx/nginx.conf -...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #142
-
-## 2026-02-17: security(nginx): セキュリティヘッダーの強化
-
-- **What**: ## Summary - nginxセキュリティヘッダーを強化し、OWASP推奨に準拠 - `nginx/security-headers.conf`に設定を分離してメンテナンス性向上 - Next.js側にも同等のヘッダーを設定（バックアップ層） - E2Eテストでヘッダー設定を検証 ## Changes ### nginx/security-...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #141
-
-## 2026-02-17: test: 既存データの互換性テスト(Markdownエディタ移行)
-
-- **What**: ## Summary - MarkdownRendererコンポーネントとHTMLサニタイズユーティリティを作成し、既存データの互換性テストスイートを実装 - ユニットテスト56件（XSS防止14ベクター含む）、E2Eテスト7シナリオ、Admin検証ページを追加 - `sanitize-html`, `marked` 依存追加、pre-commit...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #140
-
-## 2026-02-16: feat(security): nginxで機密ファイルへのアクセスをブロック
-
-- **What**: ## Summary Closes #52 - `.env`, `.git/config` などの機密ファイルへのアクセスをnginxレベルで404ブロック - セキュリティブロック設定を分離ファイル（`security-blocks.conf`）で管理 - デプロイスクリプトにバックアップ・テスト・自動ロールバック機能を実装 ## 変更内容 |...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #139
-
-## 2026-02-16: security(nginx): 悪意のあるパスパターンのブロック設定追加
-
-- **What**: ## Summary - Sentryログで検知された攻撃パターンをnginxレベルでブロックする設定を追加 - PHP/WordPress/暗号通貨API偽装/ステージング環境探索等の6カテゴリをカバー - `proxy_Set_header` タイポも修正 ## Changes ### 新規: `nginx/malicious-path-...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #138
+- **What**: refactor(performance): optimize Prisma queries and suspense boundaries
+- **Why**: ## Summary This PR resolves Issue #115 by reducing redundant database access and expanding Suspense/cache boundaries on performance-sensitive pages and API routes. It removes repeated Prisma role lookups by reusing `session.role`, optimizes
+- **Source**: PR #126

@@ -1,63 +1,37 @@
 # ib-sec-mcp Design Decisions
 
-Updated: 2026-05-15
+## 2026-03-11: docs: add testing rules and update MCP tool guidelines
 
-## 2026-05-01: feat: add earnings calendar MCP tool
+- **What**: docs: add testing rules and update MCP tool guidelines
+- **Why**: ## Summary - **NEW** `.claude/rules/testing.md` (95行): MCP toolテストパターン、mockストラテジー、必須テストチェックリスト、抽出可能性ルール（Wave 14の`check_order_proximity`バグの再発防止） - **UPDATE** `.claude/rules/mcp-tools.md` (100行): External Dependency Pattern追加、Testing Requirem
+- **Source**: PR #91
 
-- **What**: ## Summary - add `get_earnings_calendar` FastMCP tool backed by yfinance calendar data - load symbols from the latest `PositionStore` snapshot when symbols are omitted - return...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #115
+## 2026-03-11: test: add MCP tool-level tests for limit order tools
 
-## 2026-04-20: maintenance: FastMCP 3系へ追従し内部API依存テストを解消する
+- **What**: test: add MCP tool-level tests for limit order tools
+- **Why**: - Add 28 functional tests in `tests/mcp/test_limit_orders.py` covering all 5 limit order MCP tools - Fix symbol resolution bug in `check_order_proximity`: add market suffix mapping (LSE→`.L`, TSE→`.T`) for correct yfinance ticker lookup
+- **Source**: PR #90
 
-- **What**: ## Summary - upgrade the optional `mcp` dependency and lockfile from FastMCP 2.x to FastMCP 3.x - replace MCP tests that depended on `_tool_manager`, `get_tools()`,...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #112
+## 2026-03-11: fix: resolve non-US symbols for Yahoo Finance in check_order_proximity
 
-## 2026-04-11: fix(api): paginate positions and preserve connection errors in CPClient
+- **What**: fix: resolve non-US symbols for Yahoo Finance in check_order_proximity
+- **Why**: - Add `MARKET_YAHOO_SUFFIX` mapping dict to translate IB market identifiers (LSE, TSE, HKG, SGX, ASX, FRA) to Yahoo Finance exchange suffixes (.L, .T, .HK, .SI, .AX, .F) - Guard against double-appending for symbols that already contain the
+- **Source**: PR #89
 
-- **What**: ## Summary Addresses two unresolved review comments from PR #98 (chatgpt-codex-connector): - **Pagination for `get_positions`**: Previously only fetched page 0 (`/positions/0`)....
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #105
+## 2026-03-10: fix: add daily monitor tools to test_server expected tools set
 
-## 2026-04-11: ci(security): fix gitleaks schedule failure on test dummy account IDs
+- **What**: fix: add daily monitor tools to test_server expected tools set
+- **Why**: ## Summary - Add `sync_daily_snapshot` and `get_sync_status` to `EXPECTED_TOOLS` in `test_server.py` - These tools were added in PR #81 but the test was not updated
+- **Source**: PR #85
 
-- **What**: ## Summary - Schedule gitleaks runs now use `--no-git --source .` to scan only the working tree, avoiding false positives from IB account ID patterns (`U\d{7,10}`) in git...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #104
+## 2026-03-10: feat: add /daily-check command with memory file auto-update rules
 
-## 2026-03-21: test: add integration test suite for Client Portal API with Paper Trading
+- **What**: feat: add /daily-check command with memory file auto-update rules
+- **Why**: - Create `/daily-check` slash command (`.claude/commands/daily-check.md`) with complete 8-step workflow for daily portfolio monitoring - Define auto-update rules for 5 memory files: OVERWRITE (snapshot), CONDITIONAL (strategy), APPEND (deci
+- **Source**: PR #83
 
-- **What**: ## Summary - Add `tests/integration/` with 24 integration tests for the Client Portal API using Paper Trading account - Tests cover connection, live orders, order lifecycle...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #102
+## 2026-03-10: feat: add /daily-check slash command for scheduled monitoring
 
-## 2026-03-21: feat(orders): add order placement and management via Client Portal API
-
-- **What**: ## Summary Implements order placement, modification, and cancellation via IB Client Portal Gateway API with multiple safety mechanisms (#97). - **4 MCP tools**: `place_order`,...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #101
-
-## 2026-03-21: feat(sync): add limit order DB sync with live IB orders via CP API
-
-- **What**: ## Summary - Add `ib_sec_mcp/storage/order_sync.py` with IB → local DB sync logic - Add `sync_limit_orders` MCP tool for manual sync trigger - Matching by `symbol + limit_price...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #100
-
-## 2026-03-21: feat(mcp): add live trading tools via Client Portal Gateway API
-
-- **What**: ## Summary - Add 4 MCP tools for real-time IB data via Client Portal Gateway API - `get_live_orders` — active orders with symbol/side/status filters - `get_live_account_balance`...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #99
-
-## 2026-03-21: feat(api): add IB Client Portal API client with session management
-
-- **What**: ## Summary Implements #96 — IB Client Portal API client for real-time account data access through the local IB Gateway. - **CPClient**: Async httpx client with session...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #98
-
-## 2026-03-13: docs: deduplicate and compress documentation (-44%)
-
-- **What**: ## Summary - Rewrite `.claude/README.md` (1,042→140 lines): verbose descriptions → concise tables, remove all duplicated content (architecture, time savings, version history,...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #92
+- **What**: feat: add /daily-check slash command for scheduled monitoring
+- **Why**: - Create `/daily-check` slash command for automated daily portfolio monitoring - Designed for Claude Desktop scheduled tasks (no user interaction required) - Completes in under 3 minutes with parallel price fetching
+- **Source**: PR #82

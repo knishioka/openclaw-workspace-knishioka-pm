@@ -1,63 +1,37 @@
 # math-worksheet Design Decisions
 
-Updated: 2026-05-15
+## 2026-04-16: fix(hissan): 3桁×2桁のかけ算が2枚に分かれる問題と横線の幅を修正
 
-## 2026-05-12: feat(word-en): raise grade 4-6 difficulty for English word problems
+- **What**: fix(hissan): 3桁×2桁のかけ算が2枚に分かれる問題と横線の幅を修正
+- **Why**: 4年生「3桁×2桁のかけ算の筆算」で報告された2つの問題を修正：
+- **Source**: PR #58
 
-- **What**: ## Summary 4年生以上の English Word Problems (`word-en`) のレベルが、数値計算面でも英文構造面でも低すぎたため、Grade 4-6 全体を引き上げ。 -...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #69
+## 2026-04-12: feat: 数字なぞり書きプリント機能（幼児向け）
 
-## 2026-05-12: feat: add equation line option for word problems
+- **What**: feat: 数字なぞり書きプリント機能（幼児向け）
+- **Why**: - 幼児（年長）向けの数字（0〜9）書き方練習プリントを新規追加 - 1行ごとに「数字ラベル | お手本（書き順番号・矢印付き）| なぞり書き×3 | 自由練習×3」を横並びで表示 - 学年セレクターに「幼児（年長）」を追加。選択時は自動で「数字なぞり書き」モードに切り替わる - 文字サイズは既存の列レイアウト（1/2/3列）で調整可能（1列=最大、3列=最小）
+- **Source**: PR #56
 
-- **What**: ## 概要 文章題で立式の練習ができるように、文章題系パターンだけに「式を書く欄」トグルを追加しました。トグルON時は日本語文章題・英語文章題・Singapore Math の各問題で、答え欄の前に式欄を表示します。 Closes #67 ## 変更内容 - `WorksheetSettings` に `showEquationLine`...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #68
+## 2026-04-11: refactor: Singapore Math を教育的に本質的なパターンのみに整理
 
-## 2026-05-10: [codex] Improve answer line spacing
+- **What**: refactor: Singapore Math を教育的に本質的なパターンのみに整理
+- **Why**: Singapore Math のパターンを教育的価値の観点で見直し、本質的なものだけを残しました。
+- **Source**: PR #55
 
-- **What**: ## Summary - Increase the writable area for Japanese word-problem answer lines. - Move the answer line lower for first-grade symbol/counting problems so it uses the blank space...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #66
+## 2026-03-30: feat: Add Singapore Math problems for Grade 4-6 (Primary 4-6)
 
-## 2026-05-05: fix(number-tracing): match reference handwriting strokes
+- **What**: feat: Add Singapore Math problems for Grade 4-6 (Primary 4-6)
+- **Why**: - Add 10 new Singapore Math problem patterns covering Grade 4-6 (Primary 4-6) curriculum - Grade 4: fraction-of-a-set, decimal word problems - Grade 5: ratio, percentage, speed/distance/time, volume - Grade 6: algebra, advanced ratio, circl
+- **Source**: PR #53
 
-- **What**: ## Summary Refines the preschool number tracing digits 7, 8, and 9 to better match the supplied handwriting reference. The new shapes focus on the actual pencil path rather than...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #65
+## 2026-03-29: feat: Add automated verification layer for math problem generators
 
-## 2026-05-04: fix(number-tracing): refine handwritten digit strokes
+- **What**: feat: Add automated verification layer for math problem generators
+- **Why**: ## Summary - Add runtime assertions (`assertValidAnswer`, `assertNoDuplicateNames`, `assertNonEmptyText`) that catch bugs at generation time - Add 110 property-based tests generating 200+ samples per generator/grade — verifying name uniquen
+- **Source**: PR #52
 
-- **What**: ## Summary Refines the preschool number tracing digit paths so the examples behave more like pencil handwriting centerlines instead of print-like vector shapes. ## Related Issue...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #64
+## 2026-03-29: fix: 1年生+1/+2たし算の2列レイアウトで列ごとに問題が重複するバグを修正
 
-## 2026-04-25: feat(tracing): 各数字に2行目の練習マスを追加し余白を活用
-
-- **What**: ## Summary 数字なぞり書きプリントで A4 下部に大きな余白が残っていたため、各数字に **2行目の練習マス（4マス）** を追加して、ページ全体を有効活用しつつ練習量を倍増させました。 ## Before / After | | 1問あたりのセル | 練習マス | 余白 | |---|---|---|---| | Before |...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #63
-
-## 2026-04-25: fix(tracing): ラベルなしのセルでもボックス位置を揃える
-
-- **What**: ## Summary 数字なぞり書きプリントで、各行の最初のセル（おてほん/なぞる/かいてみよう のラベル付き）と、それ以降のラベルなしセルで、ボックスの **上端位置がずれていた** 問題を修正。 ## 原因 `Cell` コンポーネント（`NumberTracingRow.tsx`）でラベルを `{label && (...)}`...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #62
-
-## 2026-04-25: fix(tracing): 数字7の左の棒を下向きに修正
-
-- **What**: ## Summary 教科書体の数字7では、左の短い縦棒は上の横棒から **下へ** 伸ばすのが正しい形（serif）。これまでは横棒の **上** に飛び出していたため修正。 ## Before / After | | path | 説明 | |---|---|---| | Before | `M 22 14 L 22 26` | 横棒(y=26)の...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #61
-
-## 2026-04-25: feat(tracing): 0〜4/5〜9の左右2分割レイアウトと教科書体準拠の数字に刷新
-
-- **What**: ## Summary - 数字なぞり書きプリントを「0〜4 を左、5〜9 を右」の固定2分割レイアウトに変更し、各セルを大きく（44px→70px）してなぞり書きしやすく改善 - 全10字の SVG パスを教科書体（学参フォント系）の字形に再設計。特に数字「7」を鋭角な2画（横線→斜め線）として明確化、数字「1」に教科書体らしい上部フラッグを追加 -...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #60
-
-## 2026-04-16: fix(fraction): 分数パターンがbasicテンプレにフォールバックしてA4から溢れる問題を修正
-
-- **What**: ## Summary \`fix/hissan-mult-advanced-layout\` (#58) で3桁×2桁のかけ算を修正した流れで、全問題パターンを Playwright で俯瞰監査したところ、**5つの分数パターンが A4 から 312px も溢れる**ことが判明。原因は \`getEffectiveProblemType\`...
-- **Why**: Inferred from PR text/commit history; preserves product behavior while improving user-facing workflow, correctness, or maintainability.
-- **Source**: PR #59
+- **What**: fix: 1年生+1/+2たし算の2列レイアウトで列ごとに問題が重複するバグを修正
+- **Why**: ## Summary - `generateAddPlusN`で問題数がプール（0〜9の10通り）を超えた場合、同じシャッフル順で巡回するため2列目が1列目の丸コピーになっていたバグを修正 - プール使い切り時に再シャッフルすることで、列ごとの構造的重複を防止 - 同じパターンを持つ`generateAddTo10`も併せて修正
+- **Source**: PR #51
