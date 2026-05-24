@@ -1,41 +1,43 @@
-As of: 2026-05-17
+As of: 2026-05-24
 Summary: RED 4 / YELLOW 0 / GREEN 6
 
 >> Changes this week:
-  None: repo health status is unchanged from 2026-05-10.
+  knishioka/kanji-practice: GREEN -> GREEN (CI success, last update 10 days ago; QA found a content correctness bug and Issue #35 was created)
+  knishioka/math-worksheet: GREEN -> GREEN (PR #71 merged; last update 1 day ago)
+  knishioka/cost-management-mcp: GREEN -> GREEN (PR #154 merged and dependabot update landed; open PR count cleared)
+  No status color transitions from 2026-05-17.
 
 >> Risks / Blockers:
-  knishioka/kanji-practice  Demo QA: production demo still shows a floating `Debug` control. Existing Issue #31 remains open; no duplicate Issue created. [site QA WARN]
-  knishioka/simple-bookkeeping  127 days inactive, 37 open issues, 8 open PRs. [RED 6週連続]
-  knishioka/td-mcp-server  287 days inactive, abandoned; no new Issue per policy. [RED継続]
-  knishioka/meditation-chrome-extension  321 days inactive, no CI. [RED継続]
-  knishioka/remotion-math-education  334 days inactive, no CI. [RED継続]
+  knishioka/kanji-practice  Site QA: 1年生書き練習で `曜` など対象学年外の漢字を含む例語が出る。Issue #35 created [QA HIGH]
+  knishioka/kanji-practice  Production preview still exposes `Debug` entrypoint. Existing Issue #31 remains open [QA MEDIUM]
+  knishioka/simple-bookkeeping  inactivity 134 days, open issues 37, open PRs 8 [RED 7+ weeks]
+  knishioka/td-mcp-server  inactivity 294 days, open PRs 2 [RED 7+ weeks]
+  knishioka/meditation-chrome-extension  inactivity 328 days, no CI signal [RED 7+ weeks]
+  knishioka/remotion-math-education  inactivity 341 days, no CI signal [RED 7+ weeks]
 
 >> Next actions:
-  knishioka/kanji-practice: Resolve existing production Debug overlay Issue #31 → pending
-  knishioka/simple-bookkeeping: dormant repo; no new Issue per frequency/status policy → pending manual portfolio decision
-  knishioka/td-mcp-server / meditation-chrome-extension / remotion-math-education: abandoned repos; keep silent unless portfolio review recommends archive
+  knishioka/kanji-practice: restrict low-grade example words to learned kanji or kana fallback -> Issue #35 created
+  knishioka/kanji-practice: hide production Debug overlay entrypoint -> Issue #31 pending
+  knishioka/simple-bookkeeping: no new Issue; repo is dormant and already has high open issue/PR backlog
 
 >> Confirmed:
-  knishioka/kanji-practice  最終更新3日前 GREEN / CI success / open issues 1 / PRs 0
-  knishioka/math-worksheet  最終更新5日前 GREEN / CI success / open issues 1 / PRs 1
-  knishioka/ib-sec-mcp  最終更新16日前 GREEN / CI success / open issues 0 / PRs 5
-  knishioka/freee-mcp  最終更新11日前 GREEN / CI success / open issues 1 / PRs 11
-  knishioka/cost-management-mcp  最終更新5日前 GREEN / CI success / open issues 3 / PRs 3
-  knishioka/english-note-maker  最終更新13日前 GREEN / CI success / open issues 0 / PRs 0
+  knishioka/kanji-practice  last update 10 days ago GREEN; page counts 1/5/10 matched generated pages after slider change
+  knishioka/math-worksheet  last update 1 day ago GREEN; problem counts 15/20/30 matched; subtraction-with-borrow generated 30 non-negative problems
+  knishioka/ib-sec-mcp  last update 23 days ago GREEN
+  knishioka/freee-mcp  last update 18 days ago GREEN
+  knishioka/cost-management-mcp  last update 1 day ago GREEN
+  knishioka/english-note-maker  last update 20 days ago GREEN; page counts 1/5/10 reflected in generated phrase-practice preview
 
 >> Demo Site QA:
-  knishioka/kanji-practice: WARN — default 1-page generation renders, but `Debug` button is visible in production demo. Existing Issue #31 covers this.
-  knishioka/math-worksheet: OK — +1 addition checked across 1/2/3 columns; 10/20/30 questions render and sample answers are non-negative.
-  knishioka/english-note-maker: OK — phrase practice checked for 1/5/10 pages; page headings and content render consistently.
+  knishioka/kanji-practice: FAIL content-correctness. Page count and generation flow OK; low-grade vocabulary filtering needs fix (#35).
+  knishioka/math-worksheet: OK. 15/20/30 problem counts matched; subtraction-with-borrow sample had no negative answers; no console errors observed.
+  knishioka/english-note-maker: OK. Page count 1/5/10 generated matching preview sections; phrase content was grammatical and category-appropriate; no console errors observed.
 
 >> Issue Tracker:
-  Updated this run:
-    knishioka/cost-management-mcp #151 → merged via PR #152, Quality Score A
-    knishioka/math-worksheet #67 → merged via PR #68, Quality Score A
-    knishioka/kanji-practice #33 → merged via PR #34, Quality Score A
-  Still open:
-    knishioka/kanji-practice #31 — production Debug overlay entrypoint remains visible
+  knishioka/cost-management-mcp#153 -> merged via PR #154 on 2026-05-23, Quality Score A
+  knishioka/math-worksheet#70 -> merged via PR #71 on 2026-05-23, Quality Score A
+  knishioka/kanji-practice#31 remains open
+  knishioka/kanji-practice#35 opened from this QA run
 
-Context from knowledge/CHANGELOG.md:
-  Recent merged work includes kanji-practice PR #34 header customization, math-worksheet PRs #68/#69 for equation lines and harder Grade 4-6 English word problems, and cost-management-mcp PR #152 Security Scan hardening.
+>> Context:
+  knowledge/CHANGELOG.md notes recent competitive findings for kanji-practice around AI-assisted differentiation while preserving handwriting practice. The new QA finding is narrower: grade-appropriate worksheet vocabulary.
