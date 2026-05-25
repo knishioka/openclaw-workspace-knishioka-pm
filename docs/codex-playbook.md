@@ -1,4 +1,4 @@
-<!-- version: 2026-05-01 -->
+<!-- version: 2026-05-25 -->
 
 # Codex Playbook
 
@@ -131,6 +131,62 @@ fi
 `lint_skipped_reason` の値: `lint_available=false` のときのみ設定。`"no_lint_configured"` (script 未定義) / `"command_not_found"` (バイナリ不在) / `null` (lint_available=true)。
 
 JSONL は **append-only**。既存レコードに新フィールドを遡及追加しない（`playbook_version` 不在の旧レコードはそのまま残す）。
+
+## Auto-Feedback Loop (gemini-code-assist)
+
+`focus-task` cron が draft PR を作成すると、その直後に **+5min の one-shot ジョブ** を `openclaw cron add --at +5m --delete-after-run` で予約する。gemini-code-assist (GitHub App, org 全体にインストール済) は PR open 後 typically 1-3 分で初回 review を投稿するため、5 分待てば review コメントが揃っている前提で `/resolve-feedback` を走らせる。
+
+### 流れ
+
+1. focus-task が `codex-resolve.sh` 経由で draft PR を作成
+2. focus-task が `openclaw cron add` で one-shot 登録 (job name: `fb-{repo}-{pr}-{ts}`)
+3. 5 分後、isolated agent session が起動し以下を実行:
+   - `scripts/codex-feedback.sh {owner}/{repo} {pr_number}`
+   - tracker (`monitoring/pr-feedback-tracker.jsonl`) を main に commit + push
+4. one-shot job は `--delete-after-run` で自動消滅 (drift checker のノイズにならない)
+
+### `scripts/codex-feedback.sh` の責務
+
+- ChatGPT subscription guard (`lib/require-codex-subscription.sh`)
+- `gh api .../comments` と `.../reviews` で **gemini-code-assist** の発言数を事前集計
+  - 0 件なら `nothing_to_do` を tracker に記録して exit 0 (codex は呼ばない)
+- `gh pr checkout {pr_number}` で PR ブランチへ切替
+- `codex exec --full-auto "/resolve-feedback ..."` を 10 分タイムアウトで実行
+- 完了後に default branch へ戻す (next focus-task が clean な main から開始するため)
+- 失敗時のみ WhatsApp `⚠️ codex-feedback failed: ...` を best-effort で送信
+
+### 設定方針
+
+- draft PR は **draft 維持** (`gh pr ready` を呼ばない)。Ken の手動 ready 化で merge gate を確保する
+- gemini-code-assist 以外のレビュアー (人間 / 他Bot) のコメントは触らない (skill 側プロンプトで明示)
+- 自己修正コミット上限は 3 回 (resolve-feedback skill 既定)
+- 5 分待っても gemini コメント 0 件なら silent 終了 (WhatsApp 通知しない)
+
+### `monitoring/pr-feedback-tracker.jsonl` スキーマ
+
+```jsonc
+{
+  "pr": 42, // PR 番号
+  "repo": "knishioka/kanji-practice",
+  "ran_at": "2026-05-25T13:35:00Z", // codex-feedback.sh 実行時刻 (UTC)
+  "action": "applied", // 後述
+  "comments_found": 3, // gemini-code-assist の inline + reviews 合計
+  "inline": 2,
+  "reviews": 1, // 内訳 (action != "skipped" のとき)
+  "duration_sec": 187, // codex exec の経過秒数
+  "exit_code": 0, // codex exec の exit code
+}
+```
+
+`action` の値:
+
+- `applied` — codex exec 成功 (適用 or 部分適用)
+- `nothing_to_do` — gemini コメント 0 件で no-op (codex は呼んでいない)
+- `skipped` — PR が既に CLOSED/MERGED 等で対象外 (`reason` フィールドあり)
+- `failed` — codex exec が非 0 exit code で失敗 (`exit_code` あり)
+- `timeout` — 10 分タイムアウト (exit_code=124)
+
+JSONL は append-only。issue-tracker.jsonl 側に `feedback_scheduled_at` を持たせて join 可能にしている。
 
 ## PR Description Standards (Codex Auto-PR)
 
