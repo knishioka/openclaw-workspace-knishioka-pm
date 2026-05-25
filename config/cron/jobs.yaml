@@ -193,8 +193,46 @@ jobs:
         pr_number=$(gh pr list -R {owner}/{name} --author knishioka --state open --json number,headRefName --jq '.[0].number')
         gh pr ready --undo -R {owner}/{name} $pr_number 2>/dev/null || true
 
+      11.5) gemini-code-assist のレビュー解決を +5min で one-shot 予約:
+        gemini-code-assist (GitHub App) は PR open 後 typically 1-3 分で初回 review を投稿する。
+        余裕をみて 5 分後に isolated agent session を起動し、scripts/codex-feedback.sh で
+        /resolve-feedback を実行する。one-shot は --delete-after-run で自動消滅するため
+        verify-cron-playbooks.sh の drift には現れない。
+
+        ts=$(date +%s)
+        job_name="fb-{repo_name}-${pr_number}-${ts}"
+        openclaw cron add \
+          --name "$job_name" \
+          --agent knishioka-pm \
+          --session isolated \
+          --at "+5m" \
+          --delete-after-run \
+          --timeout-seconds 900 \
+          --thinking low \
+          --no-deliver \
+          --tz Asia/Kuala_Lumpur \
+          --message "$(cat <<MSG
+        PR feedback resolution one-shot ({owner}/{name}#${pr_number}).
+
+        手順:
+        1) bash /Users/ken/.openclaw/workspace-knishioka-pm/scripts/codex-feedback.sh {owner}/{name} ${pr_number}
+           - script が subscription guard / gemini コメント検出 / codex exec /resolve-feedback /
+             monitoring/pr-feedback-tracker.jsonl 追記 / 失敗時 WhatsApp alert を担う
+           - exit 0 で正常 (no-op の nothing_to_do を含む) / 非 0 はログに残るが本ジョブは失敗扱いにしない
+        2) tracker を main に commit + push:
+           cd /Users/ken/.openclaw/workspace-knishioka-pm
+           if ! git diff --quiet monitoring/pr-feedback-tracker.jsonl; then
+             git add monitoring/pr-feedback-tracker.jsonl
+             git commit -m "chore(feedback): pr-feedback tracker update for {repo_name}#${pr_number}"
+             git push origin main || (git pull --rebase origin main && git push origin main) || true
+           fi
+        3) tracker の最終行 (該当 PR) を 1 行サマリで返す。
+        MSG
+        )" || echo "WARN: failed to schedule feedback one-shot for ${pr_number}" >&2
+
       == 記録 ==
-      12) monitoring/issue-tracker.jsonl に追記: {repo, issue, type, perspective: "pm"|"dev", subtype: "feature"|"improvement"|"growth"|"maintenance"|"refactor"|"tech-adoption"|"perf"|"dx"|"bugfix", created, status: open, auto_resolve: draft_pr_created or failed, pr: N, playbook_version, lint_available, lint_skipped_reason, verification}
+      12) monitoring/issue-tracker.jsonl に追記: {repo, issue, type, perspective: "pm"|"dev", subtype: "feature"|"improvement"|"growth"|"maintenance"|"refactor"|"tech-adoption"|"perf"|"dx"|"bugfix", created, status: open, auto_resolve: draft_pr_created or failed, pr: N, playbook_version, lint_available, lint_skipped_reason, verification, feedback_scheduled_at: "<+5min ISO>" or null}
+          - feedback_scheduled_at: 11.5 の one-shot 予約に成功した場合のみ ISO8601 で記録 (例: "2026-05-25T13:35:00+08:00")。予約に失敗 or PR 0 件の場合は null。後続の resolve-feedback 実行結果は monitoring/pr-feedback-tracker.jsonl 側で追跡する (issue 番号と PR 番号で join 可能)。
           - playbook_version / lint_available / lint_skipped_reason は scripts/codex-resolve.sh の起動ログ ([codex-resolve] start ... playbook_version=YYYY-MM-DD lint_available=true|false lint_skipped_reason=... timeout=...s) から `grep -oE` で抽出する
           - lint_available=false の場合、verification.lint は必ず "n/a" を記録する（Codex 側 PR 本文の動作確認テーブルが ⚠️ n/a になっているはず。なっていなければ補完）
           - lint_available=true の場合、lint_skipped_reason は null を記録する
