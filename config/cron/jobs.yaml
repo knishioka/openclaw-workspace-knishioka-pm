@@ -221,7 +221,10 @@ jobs:
            - exit 0 で正常 (no-op の nothing_to_do を含む) / 非 0 はログに残るが本ジョブは失敗扱いにしない
         2) tracker を main に commit + push:
            cd /Users/ken/.openclaw/workspace-knishioka-pm
-           if ! git diff --quiet monitoring/pr-feedback-tracker.jsonl; then
+           # `git status --porcelain` は tracked diff だけでなく **untracked** も拾うので、
+           # codex-feedback.sh が初回 invocation で新規ファイルを作った場合も
+           # 取りこぼさず commit できる (旧 `git diff --quiet` は untracked を見逃した)。
+           if [ -n "$(git status --porcelain monitoring/pr-feedback-tracker.jsonl)" ]; then
              git add monitoring/pr-feedback-tracker.jsonl
              git commit -m "chore(feedback): pr-feedback tracker update for {repo_name}#${pr_number}"
              git push origin main || (git pull --rebase origin main && git push origin main) || true

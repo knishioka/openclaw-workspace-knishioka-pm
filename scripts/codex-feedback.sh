@@ -115,11 +115,39 @@ if [ "$PR_STATE" != "OPEN" ]; then
 fi
 
 # --- Count gemini-code-assist feedback (inline comments + summary reviews) ---
+# Use --paginate so PRs with >30 comments don't silently drop pages, and treat
+# gh api failures (auth / network / rate-limit) as hard errors instead of "0
+# feedback found" — otherwise transient failures would record nothing_to_do and
+# silently skip /resolve-feedback, defeating the loop's purpose.
 GEMINI_LOGIN_PREFIX="gemini-code-assist"
-INLINE=$(gh api "repos/${OWNER_REPO}/pulls/${PR_NUMBER}/comments" \
-  --jq "[.[] | select(.user.login | startswith(\"${GEMINI_LOGIN_PREFIX}\"))] | length" 2>/dev/null || echo 0)
-REVIEWS=$(gh api "repos/${OWNER_REPO}/pulls/${PR_NUMBER}/reviews" \
-  --jq "[.[] | select(.user.login | startswith(\"${GEMINI_LOGIN_PREFIX}\"))] | length" 2>/dev/null || echo 0)
+
+count_gemini_from_endpoint() {
+  # Args: <endpoint-suffix>  (e.g. "comments" or "reviews")
+  # Stdout: integer count (sum across all pages)
+  # Exit: 0 on success, non-zero on gh api failure
+  local endpoint="$1"
+  local raw rc
+  raw=$(gh api --paginate "repos/${OWNER_REPO}/pulls/${PR_NUMBER}/${endpoint}" \
+    --jq "[.[] | select(.user.login | startswith(\"${GEMINI_LOGIN_PREFIX}\"))] | length" 2>&1)
+  rc=$?
+  if [ "$rc" -ne 0 ]; then
+    echo "[codex-feedback] gh api ${endpoint} failed (rc=${rc}): ${raw}" >&2
+    return "$rc"
+  fi
+  # --paginate yields one "length" per page; sum them.
+  printf '%s\n' "$raw" | awk '{s+=$1} END {print s+0}'
+}
+
+if ! INLINE=$(count_gemini_from_endpoint "comments"); then
+  append_tracker "failed" "\"reason\":\"gh_api_inline_failed\""
+  alert_failure "⚠️ codex-feedback: gh api comments failed for ${OWNER_REPO}#${PR_NUMBER}"
+  exit 2
+fi
+if ! REVIEWS=$(count_gemini_from_endpoint "reviews"); then
+  append_tracker "failed" "\"reason\":\"gh_api_reviews_failed\",\"inline\":${INLINE}"
+  alert_failure "⚠️ codex-feedback: gh api reviews failed for ${OWNER_REPO}#${PR_NUMBER}"
+  exit 2
+fi
 TOTAL=$((INLINE + REVIEWS))
 
 echo "[codex-feedback] start repo=${OWNER_REPO} pr=${PR_NUMBER} gemini_inline=${INLINE} gemini_reviews=${REVIEWS} timeout=${CODEX_TIMEOUT}s" >&2
@@ -193,9 +221,11 @@ set -e
 END_EPOCH="$(date +%s)"
 DURATION=$((END_EPOCH - START_EPOCH))
 
-# --- Hygiene: switch back to default branch (best-effort) ---
+# --- Hygiene: switch back to default branch (best-effort, force) ---
+# -f to recover even if codex exec left the working tree dirty; this is the
+# last action on the local clone, so destructive reset is acceptable here.
 DEFAULT_BRANCH="$(gh repo view "$OWNER_REPO" --json defaultBranchRef -q '.defaultBranchRef.name' 2>/dev/null || echo "main")"
-git checkout "$DEFAULT_BRANCH" >/dev/null 2>&1 || true
+git checkout -f "$DEFAULT_BRANCH" >/dev/null 2>&1 || true
 
 # --- Classify outcome ---
 if [ "$EXIT_CODE" -eq 0 ]; then
