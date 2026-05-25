@@ -41,14 +41,6 @@ repos:
 
   # --- Moderately Active ---
   - owner: knishioka
-    name: simple-bookkeeping
-    language: TypeScript
-    priority: medium
-    category: fintech
-    status: dormant
-    notes: "Double-entry bookkeeping for Japanese tax filing (blue return)"
-
-  - owner: knishioka
     name: english-note-maker
     language: JavaScript
     priority: low
