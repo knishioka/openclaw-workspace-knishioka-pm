@@ -1,17 +1,17 @@
 {
-  "updated_at": "2026-05-18",
+  "updated_at": "2026-05-25",
   "repos": [
-    "knishioka/cost-management-mcp",
-    "knishioka/math-worksheet"
+    "knishioka/freee-mcp",
+    "knishioka/english-note-maker"
   ],
   "issues_created": [
     {
-      "repo": "knishioka/cost-management-mcp",
-      "issue": 153
+      "repo": "knishioka/freee-mcp",
+      "issue": 193
     },
     {
-      "repo": "knishioka/math-worksheet",
-      "issue": 70
+      "repo": "knishioka/english-note-maker",
+      "issue": 35
     }
   ]
 }
