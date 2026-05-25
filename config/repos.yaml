@@ -39,6 +39,13 @@ repos:
     category: mcp
     notes: "Unified cloud cost management MCP server"
 
+  - owner: knishioka
+    name: ai-books
+    language: Python
+    priority: high
+    category: mcp
+    notes: "AI-first accounting MCP server — successor to simple-bookkeeping"
+
   # --- Moderately Active ---
   - owner: knishioka
     name: english-note-maker
