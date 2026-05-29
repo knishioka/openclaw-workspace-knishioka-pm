@@ -1,37 +1,37 @@
 # ut-gymnastics Design Decisions
 
-## 2026-02-16: feat(news): ニュース記事にMarkdownエディタを統合
+## 2026-04-15: fix(nginx): server_name 修正 + ACME challenge 追加（証明書失効対応）
 
-- **What**: feat(news): ニュース記事にMarkdownエディタを統合
-- **Why**: - ニュース詳細ページの `dangerouslySetInnerHTML` を `MarkdownRenderer` に置換し、XSS脆弱性(#125)を部分的に解消 - ニュース編集・新規作成フォームの `textarea` を `MarkdownEditor` に置換し、Markdownプレビュー・ツールバー・画像アップロード機能を提供 - CSSプロパティホワイトリストを実装し、既存HTML記事の `style` 属性との後方互換性を安全に確保
-- **Source**: PR #137
+- **What**: fix(nginx): server_name 修正 + ACME challenge 追加（証明書失効対応）
+- **Why**: 本番サイト https://ob.todai-kunstturnen.net が Chrome で `NET::ERR_CERT_DATE_INVALID`。Let's Encrypt 証明書が 2026-03-19 に失効していた。certbot renew も 502 で失敗。 
+- **Source**: PR #148
 
-## 2026-02-16: feat(boards): 掲示板にMarkdownエディタを統合
+## 2026-04-15: fix(security): npm audit fix で high 脆弱性を解消 (#146)
 
-- **What**: feat(boards): 掲示板にMarkdownエディタを統合
-- **Why**: - 掲示板の投稿作成・編集・表示をプレーンテキストからMarkdownエディタ/レンダラーに移行 - MarkdownRendererに検索キーワードハイライト機能を追加（rehypeプラグイン方式） - 既存のプレーンテキスト投稿（28件）の改行をremark-breaksで完全保持
-- **Source**: PR #136
+- **What**: fix(security): npm audit fix で high 脆弱性を解消 (#146)
+- **Why**: - `npm audit fix` により依存ツリー内の high 脆弱性をすべて解消 - Security Scan workflow (`npm audit --audit-level high`) が green になる見込み - `package.json` は変更なし、`package-lock.json` のみ更新（非破壊） 
+- **Source**: PR #147
 
-## 2026-02-16: feat: コンテンツ画像アップロードAPI（Markdownエディタ用）
+## 2026-02-17: fix(news): HTMLレンダリング修正と作成者変更機能を追加
 
-- **What**: feat: コンテンツ画像アップロードAPI（Markdownエディタ用）
-- **Why**: - Markdownエディタ用のコンテンツ画像アップロードAPIを実装 - `POST /api/content/images` で画像アップロード、WebP変換、3サイズ生成 - `GET /api/images/content/{filename}` で画像配信（既存エンドポイント拡張） - pre-commitのESLint hookをESLint 9.x互換に修正
-- **Source**: PR #135
+- **What**: fix(news): HTMLレンダリング修正と作成者変更機能を追加
+- **Why**: - インデント付き生HTMLコンテンツがMarkdownのコードブロックとして表示される問題を修正（`/news/OBOG2024` 等） - ニュース記事の作成者(author)を編集・作成フォームから変更できるドロップダウンを追加 - PUT/POST APIに `author_id` パラメータを追加 
+- **Source**: PR #144
 
-## 2026-02-16: feat(ui): 安全なMarkdownRendererコンポーネントの作成
+## 2026-02-17: feat(security): nginxレート制限の実装（DDoS対策）
 
-- **What**: feat(ui): 安全なMarkdownRendererコンポーネントの作成
-- **Why**: - `react-markdown` ベースの安全なMarkdownRendererコンポーネントを作成 - `rehype-sanitize` によるallowlistベースのXSS対策（script, iframe, event handler, javascript: URL等をブロック） - 既存HTMLコンテンツ（ニュース記事11件）、プレーンテキスト（改行保持）、Markdown（GFMテーブル含む）の3形式をサポート - 外部リンクの `target="_bla
-- **Source**: PR #134
+- **What**: feat(security): nginxレート制限の実装（DDoS対策）
+- **Why**: - Issue #56 に基づき、nginxレート制限によるDDoS・ブルートフォース対策を実装 - 7つのレート制限ゾーンをエンドポイント種別ごとに定義 - 認証系エンドポイントに厳格な制限（1r/m）、一般APIに適切な制限（5r/s） 
+- **Source**: PR #142
 
-## 2026-02-16: feat(ui): MarkdownEditorコンポーネントの作成
+## 2026-02-17: security(nginx): セキュリティヘッダーの強化
 
-- **What**: feat(ui): MarkdownEditorコンポーネントの作成
-- **Why**: - `@uiw/react-md-editor` v4.xを使用したMarkdownエディタコンポーネントを新規作成 - dynamic importによるSSRエラー回避・バンドルサイズ最適化 - Error Boundary、画像アップロードハンドラー、ローディングスケルトン等を実装
-- **Source**: PR #133
+- **What**: security(nginx): セキュリティヘッダーの強化
+- **Why**: - nginxセキュリティヘッダーを強化し、OWASP推奨に準拠 - `nginx/security-headers.conf`に設定を分離してメンテナンス性向上 - Next.js側にも同等のヘッダーを設定（バックアップ層） - E2Eテストでヘッダー設定を検証 
+- **Source**: PR #141
 
-## 2026-02-15: refactor(performance): optimize Prisma queries and suspense boundaries
+## 2026-02-16: feat(security): nginxで機密ファイルへのアクセスをブロック
 
-- **What**: refactor(performance): optimize Prisma queries and suspense boundaries
-- **Why**: ## Summary This PR resolves Issue #115 by reducing redundant database access and expanding Suspense/cache boundaries on performance-sensitive pages and API routes. It removes repeated Prisma role lookups by reusing `session.role`, optimizes
-- **Source**: PR #126
+- **What**: feat(security): nginxで機密ファイルへのアクセスをブロック
+- **Why**: - `.env`, `.git/config` などの機密ファイルへのアクセスをnginxレベルで404ブロック - セキュリティブロック設定を分離ファイル（`security-blocks.conf`）で管理 - デプロイスクリプトにバックアップ・テスト・自動ロールバック機能を実装 
+- **Source**: PR #139

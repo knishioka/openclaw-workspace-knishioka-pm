@@ -1,37 +1,37 @@
 # jgrants-app Design Decisions
 
-## 2025-11-03: enhance: Standardize error handling and response format (#66)
+## 2026-04-15: feat(ai): Anthropic prompt caching for Claude routes (#94)
 
-- **What**: enhance: Standardize error handling and response format (#66)
-- **Why**: APIエンドポイント全体で統一されたエラーハンドリングとレスポンス形式を実装しました。これにより、エラー発生時の原因特定が容易になり、ユーザー体験と開発者体験の両方が向上します。
-- **Source**: PR #74
+- **What**: feat(ai): Anthropic prompt caching for Claude routes (#94)
+- **Why**: ## Summary - Mark system prompts with `cache_control: { type: 'ephemeral' }` in `generate-section` (streaming + non-streaming), `generate-schedule`, and `ClaudeClient` so repeated calls against the same subsidy context can reuse the cached  
+- **Source**: PR #96
 
-## 2025-11-02: enhance: Add tab navigation to application detail page (#64)
+## 2025-11-23: enhance: Implement password reset with Resend (#89)
 
-- **What**: enhance: Add tab navigation to application detail page (#64)
-- **Why**: 申請作成後、ユーザーがスケジュール管理や書類編集機能に迷わずアクセスできるよう、申請詳細ページにタブナビゲーションと編集リンクを追加しました。
-- **Source**: PR #65
+- **What**: enhance: Implement password reset with Resend (#89)
+- **Why**: OWASP準拠のパスワードリセット機能を実装しました。ユーザーがパスワードを忘れた際に、Resendによるメール送信でセルフリカバリーできる機能を提供し、サポート負荷を削減します。 
+- **Source**: PR #90
 
-## 2025-11-02: enhance: Add application creation flow from subsidy pages (#58)
+## 2025-11-07: test: Add E2E and integration tests for Claude API
 
-- **What**: enhance: Add application creation flow from subsidy pages (#58)
-- **Why**: Implement comprehensive user flow from subsidy discovery to application creation, addressing the "cannot find where to start application" user pain point identified in Issue #58.
-- **Source**: PR #63
+- **What**: test: Add E2E and integration tests for Claude API
+- **Why**: Issue #87 の対応として、Claude API を活用した補助金申請機能（スケジュール生成・書類生成）の E2E テストおよび統合テストを実装しました。 
+- **Source**: PR #88
 
-## 2025-11-02: enhance: Implement skeleton UI for organization info on subsidies page (#57)
+## 2025-11-06: test: add comprehensive test coverage for organization management APIs (#72)
 
-- **What**: enhance: Implement skeleton UI for organization info on subsidies page (#57)
-- **Why**: Implements skeleton UI for the organization information block on the subsidies search page to improve loading UX and prevent layout shift.
-- **Source**: PR #62
+- **What**: test: add comprehensive test coverage for organization management APIs (#72)
+- **Why**: This PR adds comprehensive test coverage for 4 organization management API endpoints that were previously untested: 
+- **Source**: PR #86
 
-## 2025-11-02: fix: Fix favorite button not working due to missing subsidy auto-save (#59)
+## 2025-11-06: enhance: Add audit logging for critical operations (#71)
 
-- **What**: fix: Fix favorite button not working due to missing subsidy auto-save (#59)
-- **Why**: 補助金検索結果からお気に入りボタンをクリックしても、補助金がお気に入りに追加されない404エラーを修正しました。jGrants APIから取得した補助金情報がローカルDBに保存されていなかったため、お気に入り追加時の外部キー制約チェックで失敗していました。
-- **Source**: PR #61
+- **What**: enhance: Add audit logging for critical operations (#71)
+- **Why**: 重要な操作（削除・更新・権限変更）の監査ログを記録し、コンプライアンス対応とセキュリティインシデント調査を可能にする機能を実装しました。 
+- **Source**: PR #85
 
-## 2025-11-01: enhance: Implement skeleton UI for dashboard loading (#56)
+## 2025-11-06: fix: Prevent authenticated users from accessing login/register pages (#80)
 
-- **What**: enhance: Implement skeleton UI for dashboard loading (#56)
-- **Why**: Replaced simple spinner with skeleton UI to improve perceived performance and prevent layout shift (CLS improvement) on the dashboard page.
-- **Source**: PR #60
+- **What**: fix: Prevent authenticated users from accessing login/register pages (#80)
+- **Why**: 認証済みユーザーが `/login` および `/register` ページにアクセスした際、自動的に `/dashboard` にリダイレクトする機能を追加しました。 
+- **Source**: PR #84

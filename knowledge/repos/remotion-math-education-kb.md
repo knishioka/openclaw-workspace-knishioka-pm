@@ -9,7 +9,7 @@
 - Default branch: main
 - Created: 2025-06-17
 - Updated: 2025-06-17
-- Collected: 2026-05-22
+- Collected: 2026-05-29
 
 ## Tech Stack
 
@@ -26,4 +26,5 @@
 
 ## Tech Decisions (from PRs/commits)
 
-- (No non-routine design decisions detected in recent PRs/commits)
+- [2025-06-17] Update .gitignore to explicitly exclude all video file formats -- (Why not stated in PR/commit body) (source: commit de2472e)
+- [2025-06-17] Initial commit: Remotion-based math education video generator -- (Why not stated in PR/commit body) (source: commit 6c32f01)

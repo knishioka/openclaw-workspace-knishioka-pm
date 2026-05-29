@@ -1,37 +1,37 @@
 # td-mcp-server Design Decisions
 
-## 2025-08-02: Add mypy configuration and fix major type errors
+## 2025-08-03: Fix test expectations for new tool count
 
-- **What**: Add mypy configuration and fix major type errors
-- **Why**: Not explicitly stated in PR/commit body (see source)
-- **Source**: commit 4fb9db6
+- **What**: Fix test expectations for new tool count
+- **Why**: Not explicitly stated in PR/commit body (see source) 
+- **Source**: commit 208b033
 
-## 2025-08-01: Use pre-commit in CI for consistent linting
+## 2025-08-03: Improve MCP tool descriptions for better AI comprehension
 
-- **What**: Use pre-commit in CI for consistent linting
-- **Why**: Not explicitly stated in PR/commit body (see source)
-- **Source**: commit 0572edd
+- **What**: Improve MCP tool descriptions for better AI comprehension
+- **Why**: Not explicitly stated in PR/commit body (see source) 
+- **Source**: commit 14c52b4
 
-## 2025-08-01: Fix all lint errors and ensure code quality compliance
+## 2025-08-03: Improve workflow retrieval to handle large IDs
 
-- **What**: Fix all lint errors and ensure code quality compliance
-- **Why**: Not explicitly stated in PR/commit body (see source)
-- **Source**: commit 737d115
+- **What**: Improve workflow retrieval to handle large IDs
+- **Why**: Not explicitly stated in PR/commit body (see source) 
+- **Source**: commit f8c726f
 
-## 2025-08-01: Add new MCP tools for project analysis and diagnostics
+## 2025-08-02: Fix test expectations for new tool count
 
-- **What**: Add new MCP tools for project analysis and diagnostics
-- **Why**: Not explicitly stated in PR/commit body (see source)
-- **Source**: commit 27a7fc5
+- **What**: Fix test expectations for new tool count
+- **Why**: Not explicitly stated in PR/commit body (see source) 
+- **Source**: commit 5a2394b
 
-## 2025-08-01: Trigger CI with formatting fixes
+## 2025-08-02: Temporarily disable mypy in CI to unblock development
 
-- **What**: Trigger CI with formatting fixes
-- **Why**: Not explicitly stated in PR/commit body (see source)
-- **Source**: commit 8c53388
+- **What**: Temporarily disable mypy in CI to unblock development
+- **Why**: Not explicitly stated in PR/commit body (see source) 
+- **Source**: commit c8063cb
 
-## 2025-08-01: Add search and URL analysis tools for improved MCP functionality
+## 2025-07-12: Add gitleaks for Treasure Data API key protection
 
-- **What**: Add search and URL analysis tools for improved MCP functionality
-- **Why**: Not explicitly stated in PR/commit body (see source)
-- **Source**: commit 559c0a7
+- **What**: Add gitleaks for Treasure Data API key protection
+- **Why**: Not explicitly stated in PR/commit body (see source) 
+- **Source**: commit e3015c7

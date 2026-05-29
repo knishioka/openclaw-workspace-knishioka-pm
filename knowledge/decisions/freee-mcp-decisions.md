@@ -1,37 +1,37 @@
 # freee-mcp Design Decisions
 
-## 2026-03-06: feat(tools): add freee_account_item_context tool
+## 2026-05-05: test: migrate Jest suite to Vitest
 
-- **What**: feat(tools): add freee_account_item_context tool
-- **Why**: ## Summary - Add `freee_account_item_context` MCP tool that provides account item (勘定科目) recommendation context for transactions - Analyzes past deal patterns by partner, aggregates usage frequency, finds similar amounts, and enriches with
-- **Source**: PR #166
+- **What**: test: migrate Jest suite to Vitest
+- **Why**: Jest + ts-jest のテスト実行環境を Vitest 3 に移行し、ESM/TypeScript 向けの設定を簡素化しました。既存テストの振る舞いは維持しつつ、テストスクリプトとカバレッジ生成を Vitest ベースに更新しています。 
+- **Source**: PR #180
 
-## 2026-03-06: feat(advisory): add freee_accounting_policy_context tool
+## 2026-04-29: feat(kpi): add structured dashboard output
 
-- **What**: feat(advisory): add freee_accounting_policy_context tool
-- **Why**: - Add `freee_accounting_policy_context` MCP tool that provides accounting policy context for decision support (#146) - Returns similar past journal patterns from general ledger, fixed asset capitalization patterns, and relevant account item
-- **Source**: PR #165
+- **What**: feat(kpi): add structured dashboard output
+- **Why**: ## Summary - Upgrade @modelcontextprotocol/sdk to ^1.29.0. - Return structuredContent from freee_kpi_dashboard with company_id, period, and profitability / safety / efficiency / liquidity KPI sections while preserving the existing JSON text 
+- **Source**: PR #178
 
-## 2026-03-06: feat(advisory): add freee_item_suggestion_context tool
+## 2026-04-16: refactor(schema): migrate tool registration to Zod 4
 
-- **What**: feat(advisory): add freee_item_suggestion_context tool
-- **Why**: - Add `freee_item_suggestion_context` MCP tool that provides item (品目) suggestion context based on partner transaction history - Fetches item master list and aggregates item usage from past deals with a specified partner - Returns recommend
-- **Source**: PR #164
+- **What**: refactor(schema): migrate tool registration to Zod 4
+- **Why**: ## Summary - upgrade `zod` from `^3.25.28` to `^4.3.6` and refresh the lockfile - replace the `any`-based `registerTool` shim with a typed generic wrapper while keeping tool names and input argument names unchanged - update focused regressi 
+- **Source**: PR #176
 
-## 2026-03-06: feat(advisory): add freee_master_context tool for bulk master data retrieval
+## 2026-03-31: fix(security): pin axios to 1.14.0 to avoid compromised 1.14.1
 
-- **What**: feat(advisory): add freee_master_context tool for bulk master data retrieval
-- **Why**: - Add `freee_master_context` tool that bulk-fetches all master/reference data (account items, tags, sections, segments, items, partners) in a single call using `Promise.all` with caching - Supports optional `include` parameter to fetch only
-- **Source**: PR #163
+- **What**: fix(security): pin axios to 1.14.0 to avoid compromised 1.14.1
+- **Why**: - **axios 1.14.1** was published as a malicious version containing a remote access trojan (RAT) via the `plain-crypto-js` dependency ([StepSecurity advisory](https://www.stepsecurity.io/blog/axios-compromised-on-npm-malicious-versions-drop- 
+- **Source**: PR #173
 
-## 2026-03-06: feat(reports): add freee_multiyear_comparison tool
+## 2026-03-06: feat(analysis): add freee_partner_analysis tool
 
-- **What**: feat(reports): add freee_multiyear_comparison tool
-- **Why**: - Add `freee_multiyear_comparison` MCP tool that leverages freee's native multi-year trial balance APIs (`trial_pl_two_years`, `trial_pl_three_years`, `trial_bs_two_years`, `trial_bs_three_years`) - Supports 2-year and 3-year comparisons fo
-- **Source**: PR #162
+- **What**: feat(analysis): add freee_partner_analysis tool
+- **Why**: - Add `freee_partner_analysis` MCP tool for partner-level revenue/expense analysis with concentration risk assessment - Aggregates deals by partner using auto-pagination, computes top N rankings with share %, monthly breakdown, and concentr 
+- **Source**: PR #172
 
-## 2026-03-06: feat(reports): add freee_get_general_ledger tool for 総勘定元帳
+## 2026-03-06: feat(tools): add freee_kpi_dashboard tool
 
-- **What**: feat(reports): add freee_get_general_ledger tool for 総勘定元帳
-- **Why**: - Add `freee_get_general_ledger` MCP tool to retrieve general ledger (総勘定元帳) data from freee API endpoint `GET /api/1/reports/general_ledgers` - Support filtering by `account_item_id` to reduce response size - Support `compact` mode that re
-- **Source**: PR #161
+- **What**: feat(tools): add freee_kpi_dashboard tool
+- **Why**: ## Summary - Add `freee_kpi_dashboard` MCP tool that aggregates KPI data from PL, BS, and walletables in a single call - Computes profitability (operating/ordinary profit margins), safety (current/equity ratios), efficiency (receivable/paya 
+- **Source**: PR #171

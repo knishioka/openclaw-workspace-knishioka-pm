@@ -1,37 +1,37 @@
 # market-lens-studio Design Decisions
 
-## 2026-05-17: chore(hooks): add gh exemption and migrate PreToolUse to hookSpecificOutput envelope
+## 2026-05-29: fix(note): enforce suggest --auto mandate compliance and headless safety
 
-- **What**: chore(hooks): add gh exemption and migrate PreToolUse to hookSpecificOutput envelope
-- **Why**: Two surgical, independent improvements to `.claude/hooks/block-inline-scripts.sh`. Salvaged from closed PR #179 after the rest of that PR became obsolete due to the strategic shift introduced by #177 / #178.
-- **Source**: PR #181
+- **What**: fix(note): enforce suggest --auto mandate compliance and headless safety
+- **Why**: 2026-05-29 朝の自動運用（launchd → `claude -p "/note:suggest --auto"`）が**記事を公開せず停止**した。エラーではなく、ワークフロー設計の穴2点の合わせ技： 
+- **Source**: PR #273
 
-## 2026-04-09: fix(ci): show API cost and article URL in Slack notification
+## 2026-05-28: fix(automation): detect summary table success logs
 
-- **What**: fix(ci): show API cost and article URL in Slack notification
-- **Why**: ## Summary - **Cost not displayed**: `extract_cost.sh` failed on pretty-printed JSON from `claude-code-action` — `tail -1` got `}` instead of the full object, and the grep pattern `"total_cost_usd":[0-9.]*` didn't match `"total_cost_usd": 3
-- **Source**: PR #160
+- **What**: fix(automation): detect summary table success logs
+- **Why**: ## Summary - Expand notify_workflow_failure.sh phase-row detection to handle new markdown summary rows like `| 5. Publishing |`. - Treat `Workflow Complete`, `Published Article: https://note.com/`, `Draft -> Notion synced`, and `public publ 
+- **Source**: PR #270
 
-## 2026-04-05: fix(note): resize eyecatch to 1280x670 aspect ratio
+## 2026-05-27: feat(automation): add morning launchd status dashboard
 
-- **What**: fix(note): resize eyecatch to 1280x670 aspect ratio
-- **Why**: - Added `fit_to_note_eyecatch()` to resize/center-crop Gemini-generated 16:9 images (1376x768) to note.com's required 1280x670 aspect ratio - Fixed `upload_eyecatch()` to detect error JSON in HTTP 201 responses (note.com returns 201 with `{
-- **Source**: PR #158
+- **What**: feat(automation): add morning launchd status dashboard
+- **Why**: ## Summary - Add purpose headers to the three launchd plist templates for Layer 1 / 1.5 / 1.7. - Enhance `scripts/dev/list_morning_jobs.sh` with fixed layer names, schedules, launchd state, last exit code, and purpose text. - Add `scripts/d 
+- **Source**: PR #268
 
-## 2026-04-04: fix(note): widen hook allowlist and harden eyecatch upload
+## 2026-05-27: fix: accept new codex auth doctor output
 
-- **What**: fix(note): widen hook allowlist and harden eyecatch upload
-- **Why**: ## Summary - **Hook allowlist fix**: `block-inline-scripts.sh` only matched `~/.claude/skills/` paths but `/note:write` workflow uses `bash .claude/skills/...` (relative). Widened regex to match both absolute and relative paths, eliminating
-- **Source**: PR #157
+- **What**: fix: accept new codex auth doctor output
+- **Why**: ## Summary - update setup_codex_fallback.sh auth check to accept legacy `auth: OK`, new `auth is configured`, and `stored auth mode` outputs - add mocked setup tests for authenticated and logged-out Codex doctor scenarios - refresh automati 
+- **Source**: PR #265
 
-## 2026-03-23: feat(note): improve article quality across visuals, engagement, and SEO
+## 2026-05-27: feat(automation): add Codex fallback Wave D orchestrator
 
-- **What**: feat(note): improve article quality across visuals, engagement, and SEO
-- **Why**: 66記事を3ヶ月で投稿してきたが、平均1いいね/記事、コメント0件と低エンゲージメント。データ分析に基づいて**ビジュアル品質**、**コンテンツ戦略**、**エンゲージメント施策**の3領域を全方位改善。
-- **Source**: PR #156
+- **What**: feat(automation): add Codex fallback Wave D orchestrator
+- **Why**: ## Summary - add shared morning lock helpers and wire Layer 1 / Layer 1.5 scripts through them - add shared Slack notifier with same-day layer/type dedup plus Wave D payload templates - add publish retry policy, phase runner, idempotency ch 
+- **Source**: PR #261
 
-## 2026-03-09: fix(note): replace touch workaround with Read-before-Write for /tmp files
+## 2026-05-27: feat(quality): add Codex fact-check quality gates
 
-- **What**: fix(note): replace touch workaround with Read-before-Write for /tmp files
-- **Why**: - Replace `touch` + `Read` + `Write` pattern with simpler `Read` (error OK) + `Write` for new `/tmp/` files in the note:write workflow - Add forbidden→correct pattern substitution table to `file-writing-rules.md` to prevent LLM from generat
-- **Source**: PR #155
+- **What**: feat(quality): add Codex fact-check quality gates
+- **Why**: ## Summary - Add Tier 1 deterministic article lint for NG words, markdown/caption/image/source/data/numeric checks - Add Tier 2 Codex fact-check wrapper with schema output and mock mode - Add fact-check result merger that preserves Claude-c 
+- **Source**: PR #260

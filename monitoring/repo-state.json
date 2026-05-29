@@ -1,57 +1,35 @@
 {
-  "generated_at_utc": "2026-05-22T11:00:00Z",
-  "previous_generated_at_utc": "2026-05-15T11:00:00Z",
+  "generated_at_utc": "2026-05-29T11:00:00Z",
+  "previous_generated_at_utc": "2026-05-22T11:00:00Z",
   "summary": {
     "updated_repo_count": 15,
     "research_focus": [
-      "knishioka/ib-sec-mcp",
-      "knishioka/kanji-practice"
+      "knishioka/ai-books",
+      "knishioka/market-lens-studio"
     ]
   },
   "repos": {
-    "knishioka/cost-management-mcp": {
-      "section": "repos",
-      "priority": "medium",
-      "category": "mcp",
-      "status": "active",
-      "source_updated_at": "2026-05-12T05:45:42Z",
-      "last_collected": "2026-05-22",
-      "knowledge_file": "knowledge/repos/cost-management-mcp-kb.md",
-      "decisions_file": "knowledge/decisions/cost-management-mcp-decisions.md",
-      "competitive_research_at": null
-    },
-    "knishioka/english-note-maker": {
-      "section": "repos",
-      "priority": "low",
-      "category": "education",
-      "status": "active",
-      "source_updated_at": "2026-05-04T14:57:33Z",
-      "last_collected": "2026-05-22",
-      "knowledge_file": "knowledge/repos/english-note-maker-kb.md",
-      "decisions_file": "knowledge/decisions/english-note-maker-decisions.md",
-      "competitive_research_at": null
-    },
-    "knishioka/freee-mcp": {
+    "knishioka/kanji-practice": {
       "section": "repos",
       "priority": "high",
-      "category": "mcp",
+      "category": "education",
       "status": "active",
-      "source_updated_at": "2026-05-06T00:50:44Z",
-      "last_collected": "2026-05-22",
-      "knowledge_file": "knowledge/repos/freee-mcp-kb.md",
-      "decisions_file": "knowledge/decisions/freee-mcp-decisions.md",
-      "competitive_research_at": "2026-05-15"
+      "source_updated_at": "2026-05-14T05:17:23Z",
+      "last_collected": "2026-05-29",
+      "knowledge_file": "knowledge/repos/kanji-practice-kb.md",
+      "decisions_file": "knowledge/decisions/kanji-practice-decisions.md",
+      "competitive_research_at": "2026-05-22"
     },
-    "knishioka/household-finance": {
-      "section": "private_repos",
-      "priority": "medium",
-      "category": "fintech",
+    "knishioka/math-worksheet": {
+      "section": "repos",
+      "priority": "high",
+      "category": "education",
       "status": "active",
-      "source_updated_at": "2026-03-09T00:04:58Z",
-      "last_collected": "2026-05-22",
-      "knowledge_file": "knowledge/repos/household-finance-kb.md",
-      "decisions_file": "knowledge/decisions/household-finance-decisions.md",
-      "competitive_research_at": null
+      "source_updated_at": "2026-05-27T04:57:04Z",
+      "last_collected": "2026-05-29",
+      "knowledge_file": "knowledge/repos/math-worksheet-kb.md",
+      "decisions_file": "knowledge/decisions/math-worksheet-decisions.md",
+      "competitive_research_at": "2026-05-15"
     },
     "knishioka/ib-sec-mcp": {
       "section": "repos",
@@ -59,54 +37,65 @@
       "category": "mcp",
       "status": "active",
       "source_updated_at": "2026-05-01T11:26:02Z",
-      "last_collected": "2026-05-22",
+      "last_collected": "2026-05-29",
       "knowledge_file": "knowledge/repos/ib-sec-mcp-kb.md",
       "decisions_file": "knowledge/decisions/ib-sec-mcp-decisions.md",
       "competitive_research_at": "2026-05-22"
     },
-    "knishioka/jgrants-app": {
-      "section": "private_repos",
-      "priority": "low",
-      "category": "tool",
-      "status": "active",
-      "source_updated_at": "2026-04-15T23:05:02Z",
-      "last_collected": "2026-05-22",
-      "knowledge_file": "knowledge/repos/jgrants-app-kb.md",
-      "decisions_file": "knowledge/decisions/jgrants-app-decisions.md",
-      "competitive_research_at": null
-    },
-    "knishioka/kanji-practice": {
+    "knishioka/freee-mcp": {
       "section": "repos",
       "priority": "high",
-      "category": "education",
+      "category": "mcp",
       "status": "active",
-      "source_updated_at": "2026-05-14T05:17:23Z",
-      "last_collected": "2026-05-22",
-      "knowledge_file": "knowledge/repos/kanji-practice-kb.md",
-      "decisions_file": "knowledge/decisions/kanji-practice-decisions.md",
-      "competitive_research_at": "2026-05-22"
-    },
-    "knishioka/market-lens-studio": {
-      "section": "private_repos",
-      "priority": "high",
-      "category": "tool",
-      "status": "active",
-      "source_updated_at": "2026-05-17T10:53:36Z",
-      "last_collected": "2026-05-22",
-      "knowledge_file": "knowledge/repos/market-lens-studio-kb.md",
-      "decisions_file": "knowledge/decisions/market-lens-studio-decisions.md",
-      "competitive_research_at": null
-    },
-    "knishioka/math-worksheet": {
-      "section": "repos",
-      "priority": "high",
-      "category": "education",
-      "status": "active",
-      "source_updated_at": "2026-05-12T23:49:11Z",
-      "last_collected": "2026-05-22",
-      "knowledge_file": "knowledge/repos/math-worksheet-kb.md",
-      "decisions_file": "knowledge/decisions/math-worksheet-decisions.md",
+      "source_updated_at": "2026-05-06T00:50:44Z",
+      "last_collected": "2026-05-29",
+      "knowledge_file": "knowledge/repos/freee-mcp-kb.md",
+      "decisions_file": "knowledge/decisions/freee-mcp-decisions.md",
       "competitive_research_at": "2026-05-15"
+    },
+    "knishioka/cost-management-mcp": {
+      "section": "repos",
+      "priority": "medium",
+      "category": "mcp",
+      "status": "active",
+      "source_updated_at": "2026-05-23T11:50:16Z",
+      "last_collected": "2026-05-29",
+      "knowledge_file": "knowledge/repos/cost-management-mcp-kb.md",
+      "decisions_file": "knowledge/decisions/cost-management-mcp-decisions.md",
+      "competitive_research_at": null
+    },
+    "knishioka/ai-books": {
+      "section": "repos",
+      "priority": "high",
+      "category": "mcp",
+      "status": "active",
+      "source_updated_at": "2026-05-25T05:56:35Z",
+      "last_collected": "2026-05-29",
+      "knowledge_file": "knowledge/repos/ai-books-kb.md",
+      "decisions_file": "knowledge/decisions/ai-books-decisions.md",
+      "competitive_research_at": "2026-05-29"
+    },
+    "knishioka/english-note-maker": {
+      "section": "repos",
+      "priority": "low",
+      "category": "education",
+      "status": "active",
+      "source_updated_at": "2026-05-04T14:57:33Z",
+      "last_collected": "2026-05-29",
+      "knowledge_file": "knowledge/repos/english-note-maker-kb.md",
+      "decisions_file": "knowledge/decisions/english-note-maker-decisions.md",
+      "competitive_research_at": null
+    },
+    "knishioka/td-mcp-server": {
+      "section": "repos",
+      "priority": "low",
+      "category": "mcp",
+      "status": "abandoned",
+      "source_updated_at": "2025-08-03T03:40:41Z",
+      "last_collected": "2026-05-29",
+      "knowledge_file": "knowledge/repos/td-mcp-server-kb.md",
+      "decisions_file": "knowledge/decisions/td-mcp-server-decisions.md",
+      "competitive_research_at": null
     },
     "knishioka/meditation-chrome-extension": {
       "section": "repos",
@@ -114,7 +103,7 @@
       "category": "tool",
       "status": "abandoned",
       "source_updated_at": "2025-06-30T00:57:21Z",
-      "last_collected": "2026-05-22",
+      "last_collected": "2026-05-29",
       "knowledge_file": "knowledge/repos/meditation-chrome-extension-kb.md",
       "decisions_file": "knowledge/decisions/meditation-chrome-extension-decisions.md",
       "competitive_research_at": null
@@ -125,31 +114,42 @@
       "category": "education",
       "status": "abandoned",
       "source_updated_at": "2025-06-17T23:30:10Z",
-      "last_collected": "2026-05-22",
+      "last_collected": "2026-05-29",
       "knowledge_file": "knowledge/repos/remotion-math-education-kb.md",
       "decisions_file": "knowledge/decisions/remotion-math-education-decisions.md",
       "competitive_research_at": null
     },
-    "knishioka/simple-bookkeeping": {
-      "section": "repos",
+    "knishioka/market-lens-studio": {
+      "section": "private_repos",
+      "priority": "high",
+      "category": "tool",
+      "status": "active",
+      "source_updated_at": "2026-05-29T04:56:28Z",
+      "last_collected": "2026-05-29",
+      "knowledge_file": "knowledge/repos/market-lens-studio-kb.md",
+      "decisions_file": "knowledge/decisions/market-lens-studio-decisions.md",
+      "competitive_research_at": "2026-05-29"
+    },
+    "knishioka/workflow-engine": {
+      "section": "private_repos",
       "priority": "medium",
-      "category": "fintech",
-      "status": "dormant",
-      "source_updated_at": "2026-01-10T13:40:45Z",
-      "last_collected": "2026-05-22",
-      "knowledge_file": "knowledge/repos/simple-bookkeeping-kb.md",
-      "decisions_file": "knowledge/decisions/simple-bookkeeping-decisions.md",
+      "category": "tool",
+      "status": "active",
+      "source_updated_at": "2026-05-12T23:40:15Z",
+      "last_collected": "2026-05-29",
+      "knowledge_file": "knowledge/repos/workflow-engine-kb.md",
+      "decisions_file": "knowledge/decisions/workflow-engine-decisions.md",
       "competitive_research_at": null
     },
-    "knishioka/td-mcp-server": {
-      "section": "repos",
-      "priority": "low",
-      "category": "mcp",
-      "status": "abandoned",
-      "source_updated_at": "2025-08-03T03:40:41Z",
-      "last_collected": "2026-05-22",
-      "knowledge_file": "knowledge/repos/td-mcp-server-kb.md",
-      "decisions_file": "knowledge/decisions/td-mcp-server-decisions.md",
+    "knishioka/household-finance": {
+      "section": "private_repos",
+      "priority": "medium",
+      "category": "fintech",
+      "status": "active",
+      "source_updated_at": "2026-03-09T00:04:58Z",
+      "last_collected": "2026-05-29",
+      "knowledge_file": "knowledge/repos/household-finance-kb.md",
+      "decisions_file": "knowledge/decisions/household-finance-decisions.md",
       "competitive_research_at": null
     },
     "knishioka/ut-gymnastics": {
@@ -158,69 +158,69 @@
       "category": "web",
       "status": "active",
       "source_updated_at": "2026-04-15T22:42:45Z",
-      "last_collected": "2026-05-22",
+      "last_collected": "2026-05-29",
       "knowledge_file": "knowledge/repos/ut-gymnastics-kb.md",
       "decisions_file": "knowledge/decisions/ut-gymnastics-decisions.md",
       "competitive_research_at": null
     },
-    "knishioka/workflow-engine": {
+    "knishioka/jgrants-app": {
       "section": "private_repos",
-      "priority": "medium",
+      "priority": "low",
       "category": "tool",
       "status": "active",
-      "source_updated_at": "2026-05-12T23:40:15Z",
-      "last_collected": "2026-05-22",
-      "knowledge_file": "knowledge/repos/workflow-engine-kb.md",
-      "decisions_file": "knowledge/decisions/workflow-engine-decisions.md",
+      "source_updated_at": "2026-04-15T23:05:02Z",
+      "last_collected": "2026-05-29",
+      "knowledge_file": "knowledge/repos/jgrants-app-kb.md",
+      "decisions_file": "knowledge/decisions/jgrants-app-decisions.md",
       "competitive_research_at": null
     }
   },
-  "updated_at_utc": "2026-05-22T11:00:00Z",
+  "updated_at_utc": "2026-05-29T11:00:00Z",
   "knowledge_extract": {
     "knishioka/kanji-practice": {
-      "last_collected_at": "2026-05-22"
+      "last_collected_at": "2026-05-29"
     },
     "knishioka/math-worksheet": {
-      "last_collected_at": "2026-05-22"
+      "last_collected_at": "2026-05-29"
     },
     "knishioka/ib-sec-mcp": {
-      "last_collected_at": "2026-05-22"
+      "last_collected_at": "2026-05-29"
     },
     "knishioka/freee-mcp": {
-      "last_collected_at": "2026-05-22"
+      "last_collected_at": "2026-05-29"
     },
     "knishioka/cost-management-mcp": {
-      "last_collected_at": "2026-05-22"
+      "last_collected_at": "2026-05-29"
     },
-    "knishioka/simple-bookkeeping": {
-      "last_collected_at": "2026-05-22"
+    "knishioka/ai-books": {
+      "last_collected_at": "2026-05-29"
     },
     "knishioka/english-note-maker": {
-      "last_collected_at": "2026-05-22"
+      "last_collected_at": "2026-05-29"
     },
     "knishioka/td-mcp-server": {
-      "last_collected_at": "2026-05-22"
+      "last_collected_at": "2026-05-29"
     },
     "knishioka/meditation-chrome-extension": {
-      "last_collected_at": "2026-05-22"
+      "last_collected_at": "2026-05-29"
     },
     "knishioka/remotion-math-education": {
-      "last_collected_at": "2026-05-22"
+      "last_collected_at": "2026-05-29"
     },
     "knishioka/market-lens-studio": {
-      "last_collected_at": "2026-05-22"
+      "last_collected_at": "2026-05-29"
     },
     "knishioka/workflow-engine": {
-      "last_collected_at": "2026-05-22"
+      "last_collected_at": "2026-05-29"
     },
     "knishioka/household-finance": {
-      "last_collected_at": "2026-05-22"
+      "last_collected_at": "2026-05-29"
     },
     "knishioka/ut-gymnastics": {
-      "last_collected_at": "2026-05-22"
+      "last_collected_at": "2026-05-29"
     },
     "knishioka/jgrants-app": {
-      "last_collected_at": "2026-05-22"
+      "last_collected_at": "2026-05-29"
     }
   }
 }
