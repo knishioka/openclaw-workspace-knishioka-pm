@@ -66,10 +66,17 @@ jobs:
       6) monitoring/health-trend.jsonl に追記
       7) knowledge/CHANGELOG.md があれば参照してコンテキスト補足
 
-      == Part 2: Demo Site QA ==
+      == Part 2: Demo Site QA（best-effort / ジョブ全体を失敗させない）==
+      重要: このパート全体は best-effort。QA の各ステップが失敗・例外・タイムアウトしても
+      握りつぶして Risks/Blockers に "Site QA could not run: <理由>" と記録するだけにし、
+      **run 全体を error にしない**（Part 1 のレポートが正本。Part 2 はあくまで付加情報）。
       8) config/repos.yaml で demo_url を持つリポを特定
       9) config/site-checks.yaml を読んで severity: high のチェック項目を取得
-      10) 各サイトに対して browser ツールでチェック実行:
+      10) 各サイトに対して **`browser` ツールのみ** でチェック実行する。
+        ⚠️ 禁止: npm init / npm install / puppeteer・playwright 等の依存導入 /
+        ヘッドレスブラウザの自前起動 / `node` インラインスクリプト(heredoc)での DOM 操作。
+        これらは過去に run を error 化させた原因なので絶対に使わない。`browser` ツールが
+        使えない／途中で失敗した場合は、そのサイトの QA をスキップして次へ進む（job は継続）。
         a) browser(open, url) でサイトを開く
         b) 設定変更 → 生成ボタンクリック → snapshot/screenshot で検証
         c) ページ数の正確性: 指定枚数(1,5,10)と実際のページ数が一致するか
