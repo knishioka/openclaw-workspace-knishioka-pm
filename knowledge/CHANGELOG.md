@@ -1,28 +1,54 @@
-# Knowledge Changelog - 2026-05-29
+# Knowledge Changelog - 2026-06-05
 
-Only new findings since 2026-05-22 are listed.
+Only new findings since 2026-05-29 are listed.
+
+## knishioka/ib-sec-mcp
+
+- [2026-06-04] Unify live CP and historical Flex positions via reconciliation view (PR #150)
+- [2026-06-04] Add position-decision synthesis tool (PR #149)
+- [2026-06-04] Integrate earnings, ex-dividend, and macro event feeds into daily checks (PR #151/#153)
+- [2026-06-04] Add portfolio time-series and benchmark-relative tracking (PR #148)
 
 ## knishioka/ai-books
 
-- [2026-05-25] New high-priority repo added to monitoring: AI-first accounting MCP server with Python 3.12+, `uv`, stdio MCP server, and SQLite-oriented roadmap.
-- [2026-05-25] Initial design direction: MCP is the primary UX, with human-facing output limited to reports; non-goals explicitly exclude web data-entry UI, multi-tenant SaaS/RLS, and tax filing.
+- [2026-06-05] Adopt retro-ADRs and ADR process (PR #100)
+- [2026-06-05] Use module map and testing-guarantees inventory as contribution guide (PR #99)
+- [2026-06-05] Map KOA210 operating-outside interest expense to AMF00330 and defer KOA220/240 (PR #97)
+- [2026-06-05] Add hooks, guardrails, and project subagents for dev workflow (PR #101/#102)
+- [2026-06-05] Eliminate general-ledger N+1 queries in whole-book path (PR #95)
 
-## knishioka/math-worksheet
+## knishioka/ai-english-daily-podcast
 
-- [2026-05-27] PR #72 aligned English word problems with elementary curriculum by grade, including grade-bounded templates and answer rendering that supports fractions/decimals/remainders.
-- [2026-05-23] PR #71 added partial-product rows for advanced hissan multiplication, improving Grade 4 written-calculation practice.
+- [2026-06-05] Maintain daily episode generation cadence (commits a43cd98..01c2d0c)
+
+## knishioka/english-note-maker
+
+- [2026-05-31] Expand cloze vocabulary and variation (PR #36)
 
 ## knishioka/market-lens-studio
 
-- [2026-05-29] PR #273 tightened `/note:suggest --auto` headless behavior so the morning automation cannot stop before publishing because of mandate ambiguity.
-- [2026-05-27] PR #260 added deterministic article lint plus Codex fact-check quality gates; PR #261 added Codex fallback orchestration with locking, notification dedup, retry, and idempotency controls.
+- [2026-06-04] Deny ScheduleWakeup during headless note runs (PR #279)
+- [2026-05-30] Bound morning suggest with a hard wall-clock timeout (PR #275)
+- [2026-05-30] Prevent duplicate posts and surface the real failure reason (PR #277)
+
+## knishioka/workflow-engine
+
+- [2026-05-31] Add keyless Vertex AI image generation endpoint (PR #155)
+- [2026-05-31] Send reference images via stdin (PR #156)
+- [2026-05-30] Restrict manual workflow invocation by source IP (PR #154)
+
+## knishioka/ut-gymnastics
+
+- [2026-06-04] Standardize API domains with zod, services, guards, and wrapper (PR #172/#176/#177/#178)
+- [2026-06-04] Make production-build E2E a merge gate (PR #185/#188)
+- [2026-06-04] Invalidate cache after mutations across pages (PR #190)
+- [2026-06-03] Replace role magic numbers with UserRole constants (PR #170)
 
 ## Competitive Research Findings
 
-- ai-books: MCP Python SDK `mcp` is v1.27.1 (2026-05-08) and TypeScript SDK is v1.29.0 (2026-03-30); Python v1.x remains the stable line while v2 is pre-alpha. Feature candidates: SDK pin/watch, MCP transport compatibility tests, and stable-v1 migration notes before exposing write tools.
-- ai-books: accounting automation is converging on workflow-integrated close/bookkeeping with human review rather than fully autonomous posting. Feature candidates: uncertain-mapping review queue, journal-entry validation explanations, and CSV import dry-run with debit/credit proof.
-- market-lens-studio: AI market research tools are moving toward always-on monitoring and cited synthesis. Feature candidates: watchlist-based daily signal digest, source freshness score, and persisted evidence packs per generated article.
-- market-lens-studio: Google Finance expanded AI-powered market research globally on 2026-04-08, making generic stock Q&A less differentiated. Stronger moat: Japan-market workflow depth, note/X publishing automation, audit trails, and deterministic quality gates.
+- math-worksheet: 2026 education/worksheet tools are moving toward AI-assisted generation, curriculum/objective metadata, answer keys, and progress tracking; research risk suggests preserving productive struggle with hints/worked-space rather than student-facing answer generation.
+- freee-mcp: Official hosted freee-mcp now covers about 270 operations across five domains, so differentiation should shift to safer local workflows, audit/dry-run behavior, release-note watch, and schema-drift tests.
+- freee-mcp: MCP TypeScript SDK production guidance remains v1.x while v2 is pre-alpha toward Q3 2026; add v2 compatibility watch before migrating.
 
 ## Staleness Warnings
 

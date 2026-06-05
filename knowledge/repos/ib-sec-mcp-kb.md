@@ -1,17 +1,15 @@
 # ib-sec-mcp Knowledge Base
 
 ## Overview
-
 - Repo: knishioka/ib-sec-mcp
 - Primary language (GitHub): Python
 - License: none
 - Default branch: main
 - Created: 2025-10-07
-- Updated: 2026-05-01
-- Collected: 2026-05-29
+- Updated: 2026-06-04
+- Collected: 2026-06-05
 
 ## Tech Stack
-
 - package.json: not found (or not accessible via GitHub contents API)
 - pyproject.toml: present
 - requirements.txt: not found
@@ -19,9 +17,16 @@
 ## Architecture / Patterns
 
 - MCP server / tool integration
+- Portfolio analytics MCP tools
+- Event-driven investment decision support
+- Client Portal/Flex position reconciliation
 
 ## Tech Decisions (from PRs/commits)
 
+- [2026-06-04] Unify live CP and historical Flex positions via reconciliation view -- Live Client Portal positions and historical Flex snapshots are treated as complementary sources; the repo now exposes a reconciliation view instead of forcing one source of truth. (source: PR #150)
+- [2026-06-04] Add position-decision synthesis tool -- Advisor output now combines positions, analytics, sentiment, and upcoming events into an MCP tool for decision support rather than isolated data fetches. (source: PR #149)
+- [2026-06-04] Integrate earnings, ex-dividend, and macro event feeds into daily checks -- Upcoming events became a first-class input for daily checks and position decisions, including interest-rate events in `get_upcoming_events`. (source: PR #151/#153)
+- [2026-06-04] Add portfolio time-series and benchmark-relative tracking -- Portfolio snapshots now support TWR/cumulative time series and benchmark-relative analysis. (source: PR #148)
 - [2026-05-01] feat: add earnings calendar MCP tool -- ## Summary - add `get_earnings_calendar` FastMCP tool backed by yfinance calendar data - load symbols from the latest `PositionStore` snapshot when symbols are omitted - return per-symbol error entries and filter events by `days_ahead` - ad (source: PR #115)
 - [2026-04-20] maintenance: FastMCP 3系へ追従し内部API依存テストを解消する -- ## Summary - upgrade the optional `mcp` dependency and lockfile from FastMCP 2.x to FastMCP 3.x - replace MCP tests that depended on `_tool_manager`, `get_tools()`, `get_resources()`, and `get_resource_templates()` with public FastMCP APIs  (source: PR #112)
 - [2026-04-11] fix(api): paginate positions and preserve connection errors in CPClient -- Addresses two unresolved review comments from PR #98 (chatgpt-codex-connector): (source: PR #105)

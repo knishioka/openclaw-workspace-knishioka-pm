@@ -1,17 +1,15 @@
 # market-lens-studio Knowledge Base
 
 ## Overview
-
 - Repo: knishioka/market-lens-studio
 - Primary language (GitHub): Python
 - License: none
 - Default branch: main
 - Created: 2025-11-14
-- Updated: 2026-05-29
-- Collected: 2026-05-29
+- Updated: 2026-06-04
+- Collected: 2026-06-05
 
 ## Tech Stack
-
 - package.json: not found (or not accessible via GitHub contents API)
 - pyproject.toml: present
 - requirements.txt: present
@@ -19,9 +17,14 @@
 ## Architecture / Patterns
 
 - (No clear patterns inferred from README/dependencies in this snapshot)
+- Headless publishing hardening
+- Duplicate-post prevention
 
 ## Tech Decisions (from PRs/commits)
 
+- [2026-06-04] Deny ScheduleWakeup during headless note runs -- Morning automation now blocks wakeup scheduling so headless runs cannot silently end before publishing. (source: PR #279)
+- [2026-05-30] Bound morning suggest with a hard wall-clock timeout -- Automation now fails boundedly instead of hanging or drifting beyond its publishing window. (source: PR #275)
+- [2026-05-30] Prevent duplicate posts and surface the real failure reason -- CI/write-article handling now favors idempotency and diagnosable failures over retrying into duplicate publication. (source: PR #277)
 - [2026-05-29] fix(note): enforce suggest --auto mandate compliance and headless safety -- 2026-05-29 朝の自動運用（launchd → `claude -p "/note:suggest --auto"`）が**記事を公開せず停止**した。エラーではなく、ワークフロー設計の穴2点の合わせ技： (source: PR #273)
 - [2026-05-28] fix(automation): detect summary table success logs -- ## Summary - Expand notify_workflow_failure.sh phase-row detection to handle new markdown summary rows like `| 5. Publishing |`. - Treat `Workflow Complete`, `Published Article: https://note.com/`, `Draft -> Notion synced`, and `public publ (source: PR #270)
 - [2026-05-27] feat(automation): add morning launchd status dashboard -- ## Summary - Add purpose headers to the three launchd plist templates for Layer 1 / 1.5 / 1.7. - Enhance `scripts/dev/list_morning_jobs.sh` with fixed layer names, schedules, launchd state, last exit code, and purpose text. - Add `scripts/d (source: PR #268)

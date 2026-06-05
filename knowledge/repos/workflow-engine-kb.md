@@ -1,18 +1,16 @@
 # workflow-engine Knowledge Base
 
 ## Overview
-
 - Repo: knishioka/workflow-engine
 - Description: Convert Zapier workflows to Claude Code, Agent SDK, or API implementations
 - Primary language (GitHub): Python
 - License: MIT
 - Default branch: master
 - Created: 2025-10-19
-- Updated: 2026-05-12
-- Collected: 2026-05-29
+- Updated: 2026-05-31
+- Collected: 2026-06-05
 
 ## Tech Stack
-
 - package.json: not found (or not accessible via GitHub contents API)
 - pyproject.toml: present
 - requirements.txt: present
@@ -20,9 +18,14 @@
 ## Architecture / Patterns
 
 - (No clear patterns inferred from README/dependencies in this snapshot)
+- Keyless Vertex AI image endpoint
+- Manual workflow IP allowlisting
 
 ## Tech Decisions (from PRs/commits)
 
+- [2026-05-31] Add keyless Vertex AI image generation endpoint -- Image generation moved toward keyless Vertex AI access, reducing secret handling for generated media workflows. (source: PR #155)
+- [2026-05-31] Send reference images via stdin -- Reference image transfer avoids shell argument length limits by using stdin instead of argv. (source: PR #156)
+- [2026-05-30] Restrict manual workflow invocation by source IP -- Manual workflow execution now uses an allowlist guard to reduce accidental or unauthorized invocation. (source: PR #154)
 - [2026-05-11] feat(actions): bundle multi-item LINE notifications via batch mode -- ファミリーカレンダーで一度に多数の予定変更が起きた際、現状はイベントごとに個別の LINE push が走り、`max_per_execution=10` の rate limiter で10件目以降が失敗する（2026-05-11 06:00 UTC で実際に発生）。 (source: PR #152)
 - [2026-05-02] feat(notion): auto-close Notion tasks when their GitHub PR is merged -- ## Summary - Adds new trigger `notion_pr_tasks` and action `notion_close_task_if_pr_merged` that periodically scan the Notion `tasks` DB for incomplete tasks with GitHub PR URLs and mark them Done once the PR is merged/closed. - Cleans up t (source: PR #151)
 - [2026-04-28] fix(github_pr_to_notion): skip Notion task creation for merged/closed PRs -- - Trigger fetch から action 実行までの間に PR が merge/close されると、古い `open` スナップショットで Notion task が作られてしまう問題を修正 - `GitHubPRToNotionAction` に optional config `github_account` を追加。設定時は LLM 解析前に `GET /repos/{owner}/{repo}/pulls/{number}` で PR 最新状態を再 fet (source: PR #149)
