@@ -46,6 +46,13 @@ repos:
     category: mcp
     notes: "AI-first accounting MCP server — successor to simple-bookkeeping"
 
+  - owner: knishioka
+    name: ai-english-daily-podcast
+    language: Python
+    priority: medium
+    category: education
+    notes: "AI-generated daily English podcast"
+
   # --- Moderately Active ---
   - owner: knishioka
     name: english-note-maker
@@ -116,6 +123,25 @@ private_repos:
     priority: low
     category: tool
     notes: "jGrants API subsidy application support"
+
+  - owner: knishioka
+    name: 1000haku
+    language: Python
+    priority: medium
+    category: tool
+    notes: "1000haku (用途は要追記)"
+
+  - owner: knishioka
+    name: kagoshima-community-kl
+    language: TypeScript
+    priority: low
+    category: web
+    notes: "Kagoshima community site (KL)"
+
+  # NOTE: D-stats org repos are intentionally NOT monitored here. SOUL.md limits
+  # this agent to Ken's personal projects and explicitly excludes business
+  # projects (D-stats 等). private-repo-check runs repo-health on every
+  # private_repos entry, so listing them would pull D-stats into scope.
 
   - owner: knishioka
     name: line-advisor

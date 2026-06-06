@@ -3,19 +3,19 @@
 ## 2026-05-04: fix(security): resolve fast-xml-parser audit finding
 
 - **What**: fix(security): resolve fast-xml-parser audit finding
-- **Why**: `@aws-sdk/xml-builder` 経由で解決されていた脆弱な `fast-xml-parser` を npm `overrides` で安全版へ固定し、Security Scan の `npm audit --production` 失敗を解消します。AWS SDK 本体の広範な更新は行わず、Node.js >=18 の互換性を維持する最小差分にしています。 
+- **Why**: `@aws-sdk/xml-builder` 経由で解決されていた脆弱な `fast-xml-parser` を npm `overrides` で安全版へ固定し、Security Scan の `npm audit --production` 失敗を解消します。AWS SDK 本体の広範な更新は行わず、Node.js >=18 の互換性を維持する最小差分にしています。
 - **Source**: PR #150
 
 ## 2025-11-04: Upgrade Zod to v4 and update schema handling
 
 - **What**: Upgrade Zod to v4 and update schema handling
-- **Why**: ## Summary - bump the Zod dependency to v4.1.12 and refresh the lockfile - adjust environment and tool schemas for the Zod v4 API changes - tighten Anthropic usage handling by replacing the loose any cast with typed helpers 
+- **Why**: ## Summary - bump the Zod dependency to v4.1.12 and refresh the lockfile - adjust environment and tool schemas for the Zod v4 API changes - tighten Anthropic usage handling by replacing the loose any cast with typed helpers
 - **Source**: PR #140
 
 ## 2025-11-03: docs: add AGENTS handbook for repository operations
 
 - **What**: docs: add AGENTS handbook for repository operations
-- **Why**: ## Summary - add repository-wide AGENTS guide outlining project overview, setup, operational commands, and governance rules for future agents 
+- **Why**: ## Summary - add repository-wide AGENTS guide outlining project overview, setup, operational commands, and governance rules for future agents
 - **Source**: PR #136
 
 ## 2025-11-01: Add protocol-level MCP handler tests
@@ -27,11 +27,11 @@
 ## 2025-11-01: Centralize provider definitions and tool routing
 
 - **What**: Centralize provider definitions and tool routing
-- **Why**: ## Summary - add a shared SUPPORTED_PROVIDERS constant and reuse it across configuration and provider listing - refactor the MCP server to pull tool metadata and handlers from a dedicated registry - expand provider listing coverage/tests to 
+- **Why**: ## Summary - add a shared SUPPORTED_PROVIDERS constant and reuse it across configuration and provider listing - refactor the MCP server to pull tool metadata and handlers from a dedicated registry - expand provider listing coverage/tests to
 - **Source**: PR #134
 
 ## 2025-11-01: Fix TypeScript any usage in caching and analytics utilities
 
 - **What**: Fix TypeScript any usage in caching and analytics utilities
-- **Why**: ## Summary - add structured cache key typing and key enumeration support to the cache manager - tighten common error, logging, and type definitions to remove `any` usage - update cost analysis tools to rely on typed metadata and provider na 
+- **Why**: ## Summary - add structured cache key typing and key enumeration support to the cache manager - tighten common error, logging, and type definitions to remove `any` usage - update cost analysis tools to rely on typed metadata and provider na
 - **Source**: PR #133

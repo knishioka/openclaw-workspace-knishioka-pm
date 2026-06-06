@@ -21,7 +21,7 @@
 
 | パス                               | 役割                                                               | git  |
 | ---------------------------------- | ------------------------------------------------------------------ | ---- |
-| `config/cron/jobs.yaml`            | 宣言的ソース（5 ジョブ）。**編集するのはここだけ**                 | 追跡 |
+| `config/cron/jobs.yaml`            | 宣言的ソース（7 ジョブ）。**編集するのはここだけ**                 | 追跡 |
 | `scripts/build-cron-jobs.py`       | jobs.yaml → `build/cron/manifest.json` を生成（message_hash 付き） | 追跡 |
 | `scripts/verify-cron-playbooks.sh` | manifest とライブ登録内容を比較し drift を検出（読み取り専用）     | 追跡 |
 | `scripts/register-cron-jobs.sh`    | manifest をライブに適用。**既存ジョブは id を保ったまま edit**     | 追跡 |

@@ -28,10 +28,22 @@ DRY_RUN=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --manifest) MANIFEST="$2"; shift 2 ;;
-    --dry-run) DRY_RUN=1; shift ;;
-    -h|--help) sed -n '1,/^set -euo/p' "$0" | sed 's/^# \?//'; exit 0 ;;
-    *) echo "register-cron-jobs: unknown arg '$1'" >&2; exit 1 ;;
+    --manifest)
+      MANIFEST="$2"
+      shift 2
+      ;;
+    --dry-run)
+      DRY_RUN=1
+      shift
+      ;;
+    -h | --help)
+      sed -n '1,/^set -euo/p' "$0" | sed 's/^# \?//'
+      exit 0
+      ;;
+    *)
+      echo "register-cron-jobs: unknown arg '$1'" >&2
+      exit 1
+      ;;
   esac
 done
 
@@ -41,7 +53,7 @@ if [[ ! -f "$MANIFEST" ]]; then
   exit 1
 fi
 
-if ! command -v openclaw >/dev/null 2>&1; then
+if ! command -v openclaw > /dev/null 2>&1; then
   echo "register-cron-jobs: 'openclaw' CLI not on PATH" >&2
   exit 1
 fi
@@ -103,7 +115,7 @@ echo
 # NUL. The leading subcommand (add) or id (edit) and the enable/disable flag are
 # added by the bash caller, which is the side that knows whether the job exists.
 emit_all_args() {
-  MANIFEST="$MANIFEST" python3 <<'PY'
+  MANIFEST="$MANIFEST" python3 << 'PY'
 import json, os, sys
 
 manifest = json.load(open(os.environ["MANIFEST"]))
@@ -182,13 +194,90 @@ PY
 mapfile -d '' -t TOKENS < <(emit_all_args)
 
 FAILED=()
+
+strip_failure_alert_args() {
+  local out=()
+  local skip_next=0
+  local token
+  for token in "$@"; do
+    if [[ $skip_next -eq 1 ]]; then
+      skip_next=0
+      continue
+    fi
+    case "$token" in
+      --failure-alert)
+        ;;
+      --failure-alert-after | --failure-alert-channel | --failure-alert-to | --failure-alert-cooldown | --failure-alert-mode | --failure-alert-account-id)
+        skip_next=1
+        ;;
+      *)
+        out+=("$token")
+        ;;
+    esac
+  done
+  # Guard: with an empty array, `printf '%s\0'` still fires once and emits a lone
+  # NUL, which mapfile -d '' would read back as a single empty element (making
+  # ${#arr[@]} == 1 instead of 0). Only print when there is something to print.
+  [[ ${#out[@]} -gt 0 ]] && printf '%s\0' "${out[@]}"
+}
+
+extract_failure_alert_args() {
+  local out=()
+  local take_next=0
+  local token
+  for token in "$@"; do
+    if [[ $take_next -eq 1 ]]; then
+      out+=("$token")
+      take_next=0
+      continue
+    fi
+    case "$token" in
+      --failure-alert)
+        out+=("$token")
+        ;;
+      --failure-alert-after | --failure-alert-channel | --failure-alert-to | --failure-alert-cooldown | --failure-alert-mode | --failure-alert-account-id)
+        out+=("$token")
+        take_next=1
+        ;;
+    esac
+  done
+  # Guard: with an empty array, `printf '%s\0'` still fires once and emits a lone
+  # NUL, which mapfile -d '' would read back as a single empty element (making
+  # ${#arr[@]} == 1 instead of 0). Only print when there is something to print.
+  [[ ${#out[@]} -gt 0 ]] && printf '%s\0' "${out[@]}"
+}
+
+lookup_live_job_id() {
+  local job_name="$1"
+  # NOTE: must use `python3 -c`, not a `<<'PY'` heredoc. A heredoc redirects the
+  # program text onto stdin, which clobbers the piped `cron list --json` — then
+  # `json.load(sys.stdin)` sees no data, the lookup returns empty, and newly
+  # added jobs never get their failure alert applied (codex P1).
+  openclaw cron list --json | JOB_NAME="$job_name" AGENT_ID="$AGENT_ID" python3 -c '
+import json
+import os
+import sys
+
+data = json.load(sys.stdin)
+for job in data.get("jobs", []):
+    if job.get("agentId") == os.environ["AGENT_ID"] and job.get("name") == os.environ["JOB_NAME"]:
+        print(job["id"])
+        break
+'
+}
+
 i=0
-while (( i < ${#TOKENS[@]} )); do
-  name="${TOKENS[i]}"; ((i += 1))
-  enabled="${TOKENS[i]}"; ((i += 1))
-  argc="${TOKENS[i]}"; ((i += 1))
-  args=("${TOKENS[@]:i:argc}"); ((i += argc))
+while ((i < ${#TOKENS[@]})); do
+  name="${TOKENS[i]}"
+  ((i += 1))
+  enabled="${TOKENS[i]}"
+  ((i += 1))
+  argc="${TOKENS[i]}"
+  ((i += 1))
+  args=("${TOKENS[@]:i:argc}")
+  ((i += argc))
   id="${REGISTERED_BY_NAME[$name]:-}"
+  alert_args=()
 
   if [[ -n "$id" ]]; then
     # Existing job: patch in place (preserves state). Reflect the manifest's
@@ -198,16 +287,31 @@ while (( i < ${#TOKENS[@]} )); do
   else
     # New job: `add` defaults to enabled; pass --disabled when the manifest
     # says the job should be off.
-    op=(openclaw cron add "${args[@]}")
+    # `openclaw cron add` currently does not accept --failure-alert* flags
+    # (edit does). Create first, then patch alerts once the job has an id.
+    mapfile -d '' -t add_args < <(strip_failure_alert_args "${args[@]}")
+    mapfile -d '' -t alert_args < <(extract_failure_alert_args "${args[@]}")
+    op=(openclaw cron add "${add_args[@]}")
     [[ "$enabled" == "0" ]] && op+=(--disabled)
   fi
 
   if [[ $DRY_RUN -eq 1 ]]; then
-    printf '+'; printf ' %q' "${op[@]}"; printf '\n'
+    printf '+'
+    printf ' %q' "${op[@]}"
+    printf '\n'
   else
-    if ! "${op[@]}" >/dev/null; then
+    if ! "${op[@]}" > /dev/null; then
       FAILED+=("$name")
     else
+      if [[ -z "$id" && ${#alert_args[@]} -gt 0 ]]; then
+        new_id="$(lookup_live_job_id "$name")"
+        if [[ -n "$new_id" ]]; then
+          if ! openclaw cron edit "$new_id" "${alert_args[@]}" > /dev/null; then
+            FAILED+=("$name")
+            continue
+          fi
+        fi
+      fi
       echo "register-cron-jobs: $([[ -n "$id" ]] && echo edited || echo added) $name"
     fi
   fi

@@ -1,0 +1,424 @@
+#!/usr/bin/env python3
+"""Evaluate local Ollama models for private repo health summaries.
+
+The input and outputs include private repo names, so write only to gitignored
+monitoring files. This script intentionally uses Ollama's native /api/chat
+endpoint so `think:false` and `num_ctx` are honored for Gemma/Qwen models.
+"""
+
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import json
+import os
+import re
+import statistics
+import sys
+import time
+import urllib.error
+import urllib.request
+from pathlib import Path
+from typing import Any
+
+
+DEFAULT_HOST = "http://100.86.194.4:11434"
+DEFAULT_MODELS = [
+    "qwen3-coder:30b",
+    "gemma4:31b-mlx",
+    "glm4:9b",
+    "qwen3.5:4b-mlx",
+]
+OUTPUT_JSONL = Path("monitoring/ollama-summary-eval.jsonl")
+OUTPUT_REPORT = Path("monitoring/ollama-summary-eval-report.md")
+
+
+def now_utc() -> dt.datetime:
+    # dt.UTC is 3.11+; use dt.timezone.utc for 3.10 compatibility.
+    return dt.datetime.now(dt.timezone.utc)
+
+
+def post_json(host: str, path: str, payload: dict[str, Any], timeout: int) -> dict[str, Any]:
+    req = urllib.request.Request(
+        host.rstrip("/") + path,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return json.loads(resp.read().decode("utf-8"))
+
+
+def unload_models(host: str, models: list[str], timeout: int = 30) -> None:
+    for model in models:
+        try:
+            post_json(host, "/api/generate", {"model": model, "keep_alive": 0}, timeout)
+        except Exception:
+            pass
+
+
+def load_health(path: Path) -> list[dict[str, Any]]:
+    if not path.is_file():
+        raise SystemExit(f"missing private health file: {path}")
+    data = json.loads(path.read_text())
+    if not isinstance(data, list):
+        raise SystemExit(f"private health file must be a JSON array: {path}")
+    return data
+
+
+def row_value(row: dict[str, Any], dotted: str, default: Any = None) -> Any:
+    cur: Any = row
+    for part in dotted.split("."):
+        if not isinstance(cur, dict):
+            return default
+        cur = cur.get(part, default)
+    return cur
+
+
+def health_tsv(rows: list[dict[str, Any]]) -> str:
+    lines = [
+        "\t".join(
+            [
+                "repo",
+                "status",
+                "dependabot_alerts",
+                "ci_status",
+                "days_inactive",
+                "open_issues",
+                "open_prs",
+            ]
+        )
+    ]
+    for row in rows:
+        lines.append(
+            "\t".join(
+                [
+                    str(row.get("repo", "")),
+                    str(row.get("status", "")),
+                    str(row_value(row, "security.dependabot_alerts", 0)),
+                    str(row_value(row, "ci.last_status", "unknown")),
+                    str(row_value(row, "activity.days_inactive", "")),
+                    str(row_value(row, "issues.open_count", "")),
+                    str(row_value(row, "pull_requests.open_count", "")),
+                ]
+            )
+        )
+    return "\n".join(lines)
+
+
+def expected(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    statuses = {"RED": [], "YELLOW": [], "GREEN": []}
+    for row in rows:
+        status = str(row.get("status", "UNKNOWN"))
+        if status in statuses:
+            statuses[status].append(str(row.get("repo", "")))
+
+    def urgency_key(row: dict[str, Any]) -> tuple[int, int, int, int]:
+        status_rank = {"RED": 3, "YELLOW": 2, "GREEN": 1}.get(str(row.get("status")), 0)
+        alerts = int(row_value(row, "security.dependabot_alerts", 0) or 0)
+        ci_bad = 1 if str(row_value(row, "ci.last_status", "")) in {"failure", "skipped", "none"} else 0
+        inactive = int(row_value(row, "activity.days_inactive", 0) or 0)
+        return (status_rank, alerts, ci_bad, inactive)
+
+    urgent = max(rows, key=urgency_key)["repo"] if rows else ""
+    return {
+        "counts": {k: len(v) for k, v in statuses.items()},
+        "urgent": urgent,
+        "yellow": statuses["YELLOW"],
+        "green": statuses["GREEN"],
+    }
+
+
+def build_prompt(tsv: str) -> str:
+    return f"""あなたは repo health のPM監視エージェントです。以下のTSVだけを根拠に、日本語で短いサマリーを出してください。
+
+必須フォーマット:
+Summary: RED x / YELLOW y / GREEN z
+Urgent: <repo> - <理由>
+Watch: <YELLOW repoをカンマ区切り> - <理由>
+Stable: <GREEN repoの傾向を短く>
+Next: <次の1アクション>
+
+制約:
+- GREENをWatchに入れない
+- 最緊急はREDかつdependabot_alerts/ci_statusを重視
+- 120〜180字程度
+
+TSV:
+{tsv}"""
+
+
+def names_for(repo: str) -> set[str]:
+    base = repo.rsplit("/", 1)[-1]
+    return {repo, base}
+
+
+def contains_repo(text: str, repo: str) -> bool:
+    # Empty repo would make `"" in text` always True; guard against false positives.
+    if not repo:
+        return False
+    return any(name in text for name in names_for(repo))
+
+
+def evaluate_text(text: str, exp: dict[str, Any]) -> dict[str, Any]:
+    count_match = re.search(
+        r"RED\s*(\d+)\s*/\s*YELLOW\s*(\d+)\s*/\s*GREEN\s*(\d+)", text, re.I
+    )
+    parsed_counts = None
+    counts_correct = False
+    if count_match:
+        parsed_counts = {
+            "RED": int(count_match.group(1)),
+            "YELLOW": int(count_match.group(2)),
+            "GREEN": int(count_match.group(3)),
+        }
+        counts_correct = parsed_counts == exp["counts"]
+
+    urgent_correct = contains_repo(text, exp["urgent"])
+    watch_match = re.search(r"^Watch:\s*(.+)$", text, re.I | re.M)
+    watch_text = watch_match.group(1) if watch_match else text
+    yellow_missing = [repo for repo in exp["yellow"] if not contains_repo(watch_text, repo)]
+    green_in_watch = [repo for repo in exp["green"] if contains_repo(watch_text, repo)]
+    yellow_correct = not yellow_missing
+    watch_clean = not green_in_watch
+
+    checks = {
+        "counts_correct": counts_correct,
+        "urgent_correct": urgent_correct,
+        "yellow_correct": yellow_correct,
+        "watch_clean": watch_clean,
+    }
+    return {
+        "score": sum(1 for value in checks.values() if value),
+        "max_score": len(checks),
+        "checks": checks,
+        "parsed_counts": parsed_counts,
+        "yellow_missing": yellow_missing,
+        "green_in_watch": green_in_watch,
+        "watch_text": watch_text,
+    }
+
+
+def run_model(
+    host: str,
+    model: str,
+    prompt: str,
+    exp: dict[str, Any],
+    num_ctx: int,
+    timeout: int,
+) -> dict[str, Any]:
+    payload = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "stream": False,
+        "think": False,
+        "keep_alive": "0",
+        "options": {
+            "temperature": 0,
+            "num_ctx": num_ctx,
+            "num_predict": 240,
+        },
+    }
+    started = time.time()
+    try:
+        body = post_json(host, "/api/chat", payload, timeout)
+        elapsed = time.time() - started
+        message = body.get("message") or {}
+        text = (message.get("content") or "").strip()
+        eval_count = int(body.get("eval_count") or 0)
+        eval_duration = int(body.get("eval_duration") or 0)
+        prompt_eval_count = int(body.get("prompt_eval_count") or 0)
+        prompt_eval_duration = int(body.get("prompt_eval_duration") or 0)
+        result = {
+            "ok": bool(text),
+            "error": None if text else "empty_response",
+            "seconds": round(elapsed, 2),
+            "prompt_tokens": prompt_eval_count,
+            "output_tokens": eval_count,
+            "tok_s": round(eval_count / (eval_duration / 1e9), 2)
+            if eval_duration
+            else None,
+            "prompt_tok_s": round(prompt_eval_count / (prompt_eval_duration / 1e9), 2)
+            if prompt_eval_duration
+            else None,
+            "summary": text,
+        }
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+        result = {
+            "ok": False,
+            "error": repr(exc),
+            "seconds": round(time.time() - started, 2),
+            "prompt_tokens": 0,
+            "output_tokens": 0,
+            "tok_s": None,
+            "prompt_tok_s": None,
+            "summary": "",
+        }
+
+    result["evaluation"] = evaluate_text(result["summary"], exp) if result["ok"] else None
+    return result
+
+
+def run_eval(args: argparse.Namespace) -> int:
+    host = args.host
+    models = args.models
+    unload_models(host, models + args.extra_unload_models)
+    rows = load_health(args.health_file)
+    exp = expected(rows)
+    prompt = build_prompt(health_tsv(rows))
+    ts = now_utc().isoformat()
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+
+    records = []
+    for model in models:
+        unload_models(host, models + args.extra_unload_models)
+        result = run_model(host, model, prompt, exp, args.num_ctx, args.timeout)
+        record = {
+            "ts": ts,
+            "host": host,
+            "model": model,
+            "num_ctx": args.num_ctx,
+            "health_file": str(args.health_file),
+            "health_checked_at": sorted({row.get("checked_at") for row in rows if row.get("checked_at")}),
+            "expected": exp,
+            **result,
+        }
+        records.append(record)
+        with args.output.open("a") as f:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+        score = record["evaluation"]["score"] if record.get("evaluation") else 0
+        print(
+            f"{model}: ok={record['ok']} score={score}/4 "
+            f"seconds={record['seconds']} tok_s={record['tok_s']}"
+        )
+
+    unload_models(host, models + args.extra_unload_models)
+    best = sorted(
+        records,
+        key=lambda r: (
+            (r.get("evaluation") or {}).get("score", 0),
+            -float(r.get("seconds") or 9999),
+        ),
+        reverse=True,
+    )[0]
+    print(f"best={best['model']} score={(best.get('evaluation') or {}).get('score', 0)}/4")
+    return 0
+
+
+def parse_jsonl(path: Path) -> list[dict[str, Any]]:
+    records = []
+    if not path.is_file():
+        return records
+    for line in path.read_text().splitlines():
+        if not line.strip():
+            continue
+        try:
+            records.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    return records
+
+
+def report(args: argparse.Namespace) -> int:
+    cutoff = now_utc() - dt.timedelta(days=args.days)
+    records = []
+    for record in parse_jsonl(args.input):
+        try:
+            record_ts = dt.datetime.fromisoformat(record["ts"])
+        except Exception:
+            continue
+        if record_ts >= cutoff:
+            records.append(record)
+
+    by_model: dict[str, list[dict[str, Any]]] = {}
+    for record in records:
+        by_model.setdefault(record["model"], []).append(record)
+
+    rows = []
+    for model, model_records in sorted(by_model.items()):
+        scores = [
+            (r.get("evaluation") or {}).get("score", 0)
+            for r in model_records
+            if r.get("ok")
+        ]
+        latencies = [float(r["seconds"]) for r in model_records if r.get("ok")]
+        failures = sum(1 for r in model_records if not r.get("ok"))
+        rows.append(
+            {
+                "model": model,
+                "runs": len(model_records),
+                "failures": failures,
+                "avg_score": statistics.mean(scores) if scores else 0,
+                "perfect": sum(1 for score in scores if score == 4),
+                "avg_seconds": statistics.mean(latencies) if latencies else 0,
+            }
+        )
+
+    ranked = sorted(rows, key=lambda r: (r["avg_score"], r["perfect"], -r["avg_seconds"]), reverse=True)
+    winner = ranked[0]["model"] if ranked else "n/a"
+    generated = now_utc().isoformat()
+
+    lines = [
+        f"# Ollama Summary Eval Report",
+        "",
+        f"- generated_at_utc: {generated}",
+        f"- window_days: {args.days}",
+        f"- records: {len(records)}",
+        f"- recommended_for_repo_health_summary: {winner}",
+        "",
+        "| model | runs | failures | avg_score | perfect | avg_seconds |",
+        "| --- | ---: | ---: | ---: | ---: | ---: |",
+    ]
+    for row in ranked:
+        lines.append(
+            "| {model} | {runs} | {failures} | {avg_score:.2f}/4 | {perfect} | {avg_seconds:.2f} |".format(
+                **row
+            )
+        )
+
+    latest_good = {}
+    for record in records:
+        if record.get("ok"):
+            latest_good[record["model"]] = record
+    if latest_good:
+        lines += ["", "## Latest Good Summaries", ""]
+        for model in sorted(latest_good):
+            summary = latest_good[model].get("summary", "").strip()
+            lines += [f"### {model}", "", "```text", summary, "```", ""]
+
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text("\n".join(lines).rstrip() + "\n")
+    print(f"wrote {args.output}")
+    print(f"recommended={winner}")
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    sub = parser.add_subparsers(dest="cmd", required=True)
+
+    run_p = sub.add_parser("run", help="Run one model comparison and append JSONL")
+    run_p.add_argument("--host", default=os.environ.get("OLLAMA_HOST", DEFAULT_HOST))
+    run_p.add_argument("--health-file", type=Path, default=Path("monitoring/private-health.json"))
+    run_p.add_argument("--output", type=Path, default=OUTPUT_JSONL)
+    run_p.add_argument("--models", nargs="+", default=DEFAULT_MODELS)
+    run_p.add_argument(
+        "--extra-unload-models",
+        nargs="+",
+        default=["gemma4:31b", "mistral-nemo:latest", "mistral-small3.2:latest"],
+    )
+    run_p.add_argument("--num-ctx", type=int, default=8192)
+    run_p.add_argument("--timeout", type=int, default=300)
+    run_p.set_defaults(func=run_eval)
+
+    report_p = sub.add_parser("report", help="Write a rolling evaluation report")
+    report_p.add_argument("--input", type=Path, default=OUTPUT_JSONL)
+    report_p.add_argument("--output", type=Path, default=OUTPUT_REPORT)
+    report_p.add_argument("--days", type=int, default=7)
+    report_p.set_defaults(func=report)
+
+    args = parser.parse_args(argv)
+    return args.func(args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
