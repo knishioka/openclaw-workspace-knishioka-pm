@@ -34,7 +34,8 @@ OUTPUT_REPORT = Path("monitoring/ollama-summary-eval-report.md")
 
 
 def now_utc() -> dt.datetime:
-    return dt.datetime.now(dt.UTC)
+    # dt.UTC is 3.11+; use dt.timezone.utc for 3.10 compatibility.
+    return dt.datetime.now(dt.timezone.utc)
 
 
 def post_json(host: str, path: str, payload: dict[str, Any], timeout: int) -> dict[str, Any]:
@@ -152,6 +153,9 @@ def names_for(repo: str) -> set[str]:
 
 
 def contains_repo(text: str, repo: str) -> bool:
+    # Empty repo would make `"" in text` always True; guard against false positives.
+    if not repo:
+        return False
     return any(name in text for name in names_for(repo))
 
 

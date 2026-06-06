@@ -138,33 +138,10 @@ private_repos:
     category: web
     notes: "Kagoshima community site (KL)"
 
-  - owner: D-stats
-    name: nobull-ai
-    language: TypeScript
-    priority: medium
-    category: tool
-    notes: "NoBull AI (D-stats org)"
-
-  - owner: D-stats
-    name: ens-homepage
-    language: TypeScript
-    priority: medium
-    category: web
-    notes: "EnsoSpark homepage (D-stats org)"
-
-  - owner: D-stats
-    name: ds-homepage
-    language: HTML
-    priority: medium
-    category: web
-    notes: "D-stats homepage (D-stats org)"
-
-  - owner: D-stats
-    name: team-spark-ai
-    language: TypeScript
-    priority: medium
-    category: tool
-    notes: "Team Spark AI (D-stats org)"
+  # NOTE: D-stats org repos are intentionally NOT monitored here. SOUL.md limits
+  # this agent to Ken's personal projects and explicitly excludes business
+  # projects (D-stats 等). private-repo-check runs repo-health on every
+  # private_repos entry, so listing them would pull D-stats into scope.
 
   - owner: knishioka
     name: line-advisor
