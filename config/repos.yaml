@@ -46,6 +46,13 @@ repos:
     category: mcp
     notes: "AI-first accounting MCP server — successor to simple-bookkeeping"
 
+  - owner: knishioka
+    name: ai-english-daily-podcast
+    language: Python
+    priority: medium
+    category: education
+    notes: "AI-generated daily English podcast"
+
   # --- Moderately Active ---
   - owner: knishioka
     name: english-note-maker
@@ -116,6 +123,48 @@ private_repos:
     priority: low
     category: tool
     notes: "jGrants API subsidy application support"
+
+  - owner: knishioka
+    name: 1000haku
+    language: Python
+    priority: medium
+    category: tool
+    notes: "1000haku (用途は要追記)"
+
+  - owner: knishioka
+    name: kagoshima-community-kl
+    language: TypeScript
+    priority: low
+    category: web
+    notes: "Kagoshima community site (KL)"
+
+  - owner: D-stats
+    name: nobull-ai
+    language: TypeScript
+    priority: medium
+    category: tool
+    notes: "NoBull AI (D-stats org)"
+
+  - owner: D-stats
+    name: ens-homepage
+    language: TypeScript
+    priority: medium
+    category: web
+    notes: "EnsoSpark homepage (D-stats org)"
+
+  - owner: D-stats
+    name: ds-homepage
+    language: HTML
+    priority: medium
+    category: web
+    notes: "D-stats homepage (D-stats org)"
+
+  - owner: D-stats
+    name: team-spark-ai
+    language: TypeScript
+    priority: medium
+    category: tool
+    notes: "Team Spark AI (D-stats org)"
 
   - owner: knishioka
     name: line-advisor

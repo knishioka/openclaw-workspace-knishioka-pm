@@ -84,14 +84,26 @@ jobs:
         e) レイアウト: A4に収まるか、余白が適切か
       11) 問題検出時は reports/latest-health.md の Risks/Blockers に追加 + GitHub Issue 自動作成（type: bugfix）
 
-      == Part 3: Issue Retrospective ==
+      == Part 3: Issue Retrospective（best-effort / ジョブ全体を失敗させない）==
+      重要: このパート全体は best-effort。各ステップが失敗・例外しても握りつぶし、
+      レポートに "Issue retrospective skipped: <理由>" と記録するだけにして
+      **run 全体を error にしない**（Part 1 のレポートが正本）。
       12) monitoring/issue-tracker.jsonl を読む（なければスキップ）
-      13) 各 open Issue を gh issue view で状態確認
+      13) 各 open Issue を gh issue view で状態確認。**個々の `gh issue view` が
+        失敗（削除済み Issue・権限エラー等）してもエラーを握りつぶし、その Issue を
+        skip して次へ進む（run を error にしない）**。
       14) close/merge された Issue の Quality Score を判定（A=merged+未編集, B=merged+編集あり, C=closed without merge）
       15) monitoring/issue-tracker.jsonl を更新
       16) レポート末尾に Issue Tracker セクション追加
 
       17) コミットした後、`git push origin main` を実行する。push が non-fast-forward でリジェクトされた場合は `git pull --rebase origin main` してから1回だけ再試行する。それでも失敗するなら push は諦めてログに残す（ジョブは失敗させない）
+
+      == 完了ルール（最後に必ず守る）==
+      18) Part 1 のレポート生成・コミットが成功していれば、このジョブは成功扱い。
+        lint / `gh issue view` / `git diff` などの検証系コマンドが失敗しても
+        run を error にしない。**最後のアクションは必ずクリーンな1行サマリーの返却**
+        とし、失敗するツール呼び出しでセッションを終えないこと（最後のツール呼び出しが
+        非0終了すると run 全体が error 扱いになるため）。
 
       WhatsApp配信ルール: ステータス変化 or サイトQA問題検出 or Issue Tracker に注目情報があれば配信。
   - name: focus-task
@@ -302,6 +314,14 @@ jobs:
       8) monitoring/repo-state.json を更新
       9) コミットした後、`git push origin main` を実行する。push が non-fast-forward でリジェクトされた場合は `git pull --rebase origin main` してから1回だけ再試行する。それでも失敗するなら push は諦めてログに残す（ジョブは失敗させない）
 
+      == 完了ルール（最後に必ず守る）==
+      10) ナレッジ抽出とコミットが成功していれば、このジョブは成功扱い。
+        `markdownlint-cli2` / `npx ...` lint / `git diff` などの**検証系コマンドを
+        最後に実行して失敗させないこと**。これらは過去に「作業は成功しているのに
+        最後のツール呼び出しが非0終了して run 全体が error 扱い」になった原因。
+        lint をかけたい場合は best-effort（失敗を握りつぶす）にし、いずれにせよ
+        **最後のアクションは下記サマリーのテキスト返却**で終えること。
+
       更新したファイル数と主な発見（特に新機能候補）を簡潔に返す。
   - name: monthly-portfolio-review
     description: Monthly portfolio-level review of all repos
@@ -340,9 +360,13 @@ jobs:
     description: Bi-weekly health check for private repos (gitignored output only)
     schedule:
       kind: cron
-      expr: 0 20 * * 3
+      # 深夜帯に実行（mbpは常時起動のためローカルollamaが確実に使われ、長時間ランも無害）。
+      expr: 0 3 * * 3
     thinking: low
-    timeout_seconds: 300
+    # ローカルollama(mbp/Tailscale)を主・cloudをフォールバックに使いトークンを節約。
+    # ローカル30Bはツールコール・ループが遅いため timeout を広く取る（週1・深夜可なので許容）。
+    timeout_seconds: 1800
+    model: ollama/qwen3-coder:30b
     delivery:
       mode: none
       channel: whatsapp
@@ -360,5 +384,70 @@ jobs:
       4) 結果を monitoring/private-health.json に書き出す（上書き）
         フォーマット: [{repo, status, days_inactive, open_issues, ci_status, ...}, ...]
       5) git add も git commit もしない
+      6) monitoring/private-health.json を書き終えたら、それで完了。以下を厳守する:
+         - サマリーや整形は一切不要。jq / ruby / python / node などのスクリプトを書いて実行してはならない。
+         - 追加のツール呼び出し・再読み込み・再チェックをしない。
+         - 最後に「DONE」とだけ一言返して即座に終了する。
+      （成果物は private-health.json のみ。要約はどこにも配信されないため作る必要がない。）
+  - name: ollama-summary-eval
+    description: Daily local Ollama model comparison for repo-health summaries
+    schedule:
+      kind: cron
+      # private-repo-check(水03:00)の後に走らせる。その他の日は最新private-healthで同一条件比較。
+      expr: 45 3 * * *
+    thinking: low
+    timeout_seconds: 900
+    model: ollama/qwen3-coder:30b
+    delivery:
+      mode: none
+      channel: whatsapp
+      to: "${KNISHIOKA_ALERT_TO}"
+      best_effort: true
+    message: |
+      Ollama summary model evaluation.
 
-      Output Format に従ったサマリーを返す（WhatsApp配信用）。ただしリポの詳細な内容やコードの情報は含めず、名前とステータスのみ。
+      重要:
+      - このジョブは private リポ名を含むため、結果は gitignored の monitoring/ollama-summary-eval.jsonl にのみ保存する。
+      - git add / git commit / git push は実行しない。
+      - Ollama native API の検証が目的。OpenAI互換 /v1 は使わない。
+
+      手順:
+      1) cd /Users/ken/.openclaw/workspace-knishioka-pm
+      2) python3 scripts/ollama-summary-eval run を実行
+         - qwen3-coder:30b / gemma4:31b-mlx / glm4:9b / qwen3.5:4b-mlx を比較
+         - 各モデルは keep_alive=0 で前後にアンロード
+         - num_ctx=8192 / think=false / temperature=0
+      3) python の exit code を見るだけでよい。成果物
+         (monitoring/ollama-summary-eval.jsonl) が書けていれば成功。
+
+      重要（ローカル30Bの暴走防止 / private-repo-check と同じ縛り）:
+      - step 2 のあと、追加のツール呼び出し・再読み込み・jsonl の再パース・整形を
+        一切しない。jq / ruby / python / node でサマリーを作ってはならない。
+      - 最後に「DONE」または「FAILED」とだけ一言返して即座に終了する。
+        （30B は要約させると暴走して run が `⏰ Cron failed` になるため、
+        最小限の返答に絞る。詳細な集計は週次の ollama-summary-review が行う）
+  - name: ollama-summary-review
+    description: Weekly review of local Ollama summary model comparison results
+    schedule:
+      kind: cron
+      # 2026-06-01 08:05 KUL時点では当日分を過ぎているため、初回は2026-06-08に走る。
+      expr: 50 7 * * 1
+    thinking: low
+    timeout_seconds: 300
+    model: ollama/qwen3-coder:30b
+    delivery:
+      mode: none
+      channel: whatsapp
+      to: "${KNISHIOKA_ALERT_TO}"
+      best_effort: true
+    message: |
+      Ollama summary model weekly review.
+
+      重要:
+      - private リポ名を含むため、集計結果は gitignored の monitoring/ollama-summary-eval-report.md にのみ保存する。
+      - git add / git commit / git push は実行しない。
+
+      手順:
+      1) cd /Users/ken/.openclaw/workspace-knishioka-pm
+      2) python3 scripts/ollama-summary-eval report --days 7 を実行
+      3) 生成された monitoring/ollama-summary-eval-report.md の recommended_for_repo_health_summary とモデル別スコアを短く返す。
