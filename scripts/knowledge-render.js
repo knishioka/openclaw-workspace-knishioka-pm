@@ -225,7 +225,7 @@ function toDecisionsMarkdown({ decisions }) {
     lines.push(`## ${d.date}: ${d.title}`);
     lines.push('');
     lines.push(`- **What**: ${d.title}`);
-    lines.push(`- **Why**: ${d.why || 'Not explicitly stated in PR/commit body (see source)'} `);
+    lines.push(`- **Why**: ${d.why || 'Not explicitly stated in PR/commit body (see source)'}`);
     lines.push(`- **Source**: ${d.source}`);
     lines.push('');
   }
@@ -240,6 +240,14 @@ function cap200Lines(md) {
   const head = lines.slice(0, 40);
   const tail = lines.slice(lines.length - 140);
   return [...head, '', '_...older entries summarized/omitted to keep within 200 lines..._', '', ...tail].join('\n');
+}
+
+// Strip trailing whitespace from every line. Commit/PR bodies (and templates)
+// can introduce stray trailing spaces that trip markdownlint MD009, which fails
+// the required CI check on every PR. Sanitizing the generated output keeps the
+// knowledge files lint-clean at the source instead of via manual cleanup.
+function stripTrailingWs(md) {
+  return md.replace(/[ \t]+$/gm, '');
 }
 
 // --- Build decisions list ---
@@ -294,8 +302,8 @@ const patterns = inferPatterns({ repo, meta, pkg, readme: data.readme_excerpt })
 const kbPath = path.join(reposDir, `${name}-kb.md`);
 const decisionsPath = path.join(decisionsDir, `${name}-decisions.md`);
 
-const kbMd = cap200Lines(toKbMarkdown({ repo, collectedAt, meta, pkg, patterns, decisions }));
-const decMd = cap200Lines(toDecisionsMarkdown({ decisions }));
+const kbMd = stripTrailingWs(cap200Lines(toKbMarkdown({ repo, collectedAt, meta, pkg, patterns, decisions })));
+const decMd = stripTrailingWs(cap200Lines(toDecisionsMarkdown({ decisions })));
 
 const kbPrev = fs.existsSync(kbPath) ? fs.readFileSync(kbPath, 'utf8') : null;
 const decPrev = fs.existsSync(decisionsPath) ? fs.readFileSync(decisionsPath, 'utf8') : null;
