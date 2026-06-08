@@ -1,27 +1,30 @@
-# Focus Task Report — 2026-06-01
+# Focus Task Report — 2026-06-08
 
-As of: 2026-06-01
-Summary: issue creation paused
+As of: 2026-06-08
+Summary: 1 issue created, 0 PRs created
 
->> Changes this run:
-  focus-task gate hit: open PM-tracked issues = 4 (threshold: 3)
-  no new GitHub issues created
-  no Codex auto-resolve run
-  no draft PR created
+>> Dynamic frequency decision:
+  open PM-created issues tracked in monitoring/issue-tracker.jsonl = 2 (`freee-mcp` #193, `english-note-maker` #35), so the hard stop did not trigger
+  30-day resolve rate = 4/7 = 57.1%, so this run was capped at max 1 new issue
+  last 4 focus-task perspective ratio = PM:Dev 4:2, so this run favored a Developer-side issue
+  feature-priority override not triggered; the last 4 focus-task runs already included 4 feature issues
 
->> Risks / Blockers:
-  knishioka/freee-mcp  #193 `maintenance: make the TypeScript 6 upgrade branch CI-green` remains open; prior auto-resolve failed before playbook start because `codex login status` was not authenticated
-  knishioka/english-note-maker  #35 `feature: persist and manage custom sentence examples for repeat classroom use` remains open; prior auto-resolve failed before playbook start because `codex login status` was not authenticated
-  knishioka/kanji-practice  #31 `bugfix: hide Debug overlay entrypoint from production preview` remains open
-  knishioka/kanji-practice  #35 `bugfix: 低学年プリントの例語に学年範囲外の漢字を出さない` remains open
+>> Created this run:
+  knishioka/cost-management-mcp #164 `maintenance: complete TypeScript 6 migration without deprecated moduleResolution`
+    perspective: dev
+    subtype: maintenance
+    auto_resolve: failed before playbook start (`codex login status` not authenticated)
+    pr: none
 
->> Next actions:
-  backlog first: review/resolve the 4 open PM-tracked issues before creating new work
-  Codex auth: restore automation login before the next auto-resolve attempt
-  priority order: freee-mcp #193, english-note-maker #35, kanji-practice #35, kanji-practice #31
+>> Why this issue won:
+  Developer candidate selected over PM candidates because the repo has a fresh, reproducible CI failure on Dependabot PR #160 (`typescript` 5.9.3 -> 6.0.3)
+  failure is narrow and concrete: CI on 2026-06-01 fails with `TS5107` because `moduleResolution: node` maps to deprecated `node10` under TypeScript 6
+  high confidence for future auto-resolve once Codex auth is restored; low duplication risk versus existing open issues
 
->> Confirmed:
-  30-day resolve rate = 7/10 = 70% (capacity band would be max 1 issue/run, but paused by backlog gate)
-  last 4 focus-task perspective ratio = PM:Dev 2:2
-  feature-priority override not triggered; the last 4 focus-task issues include 2 feature issues
-  tech radar scan skipped in this run because pre-check gate stopped issue generation
+>> Tech radar / backlog notes:
+  TypeScript 6.0 release notes now explicitly deprecate `moduleResolution: node` / `node10` and change several defaults such as `rootDir`; this strengthens the case for landing the migration soon
+  MCP ecosystem is still moving quickly; the official MCP spec repo and release/blog activity remained active through May 2026, so MCP server repos should keep dependency and transport choices narrow and current
+  PM-side competitor scan for worksheet tools continues to show strong emphasis on answer keys, teacher customization, and print-ready export, which remains relevant for future `math-worksheet` / `kanji-practice` feature selection
+
+>> Blockers:
+  Codex auto-resolve is still blocked by local auth state; `scripts/codex-resolve.sh` aborted immediately because `codex login status` returned `Not logged in`
