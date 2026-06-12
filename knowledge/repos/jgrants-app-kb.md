@@ -8,13 +8,13 @@
 - License: none
 - Default branch: main
 - Created: 2025-10-26
-- Updated: 2026-04-15
-- Collected: 2026-05-29
+- Updated: 2026-06-08
+- Collected: 2026-06-12
 
 ## Tech Stack
 
 - package.json: present
-- Dependencies (sample): @anthropic-ai/sdk, @react-email/render, @supabase/ssr, @supabase/supabase-js, @types/diff-match-patch, clsx, date-fns, diff-match-patch, dompurify, file-type, isomorphic-dompurify, jszip
+- Dependencies (sample): @anthropic-ai/sdk, @radix-ui/react-checkbox, @radix-ui/react-dialog, @radix-ui/react-label, @radix-ui/react-select, @react-email/render, @supabase/ssr, @supabase/supabase-js, @types/diff-match-patch, class-variance-authority, clsx, date-fns
 - Dev dependencies (sample): @peculiar/webcrypto, @playwright/test, @testing-library/jest-dom, @testing-library/react, @testing-library/user-event, @types/dompurify, @types/jest, @types/jszip, @types/node, @types/react, @types/react-dom, @types/uuid
 - npm scripts (keys): build, dev, lint, prepare, start, test, test:all, test:api, test:api:prod, test:coverage, test:e2e, test:e2e:debug, test:e2e:headed, test:e2e:ui, test:integration
 - pyproject.toml: not found
@@ -28,9 +28,9 @@
 
 ## Tech Decisions (from PRs/commits)
 
-- [2026-04-15] feat(ai): Anthropic prompt caching for Claude routes (#94) -- ## Summary - Mark system prompts with `cache_control: { type: 'ephemeral' }` in `generate-section` (streaming + non-streaming), `generate-schedule`, and `ClaudeClient` so repeated calls against the same subsidy context can reuse the cached  (source: PR #96)
-- [2025-11-23] enhance: Implement password reset with Resend (#89) -- OWASP準拠のパスワードリセット機能を実装しました。ユーザーがパスワードを忘れた際に、Resendによるメール送信でセルフリカバリーできる機能を提供し、サポート負荷を削減します。 (source: PR #90)
-- [2025-11-07] test: Add E2E and integration tests for Claude API -- Issue #87 の対応として、Claude API を活用した補助金申請機能（スケジュール生成・書類生成）の E2E テストおよび統合テストを実装しました。 (source: PR #88)
-- [2025-11-06] test: add comprehensive test coverage for organization management APIs (#72) -- This PR adds comprehensive test coverage for 4 organization management API endpoints that were previously untested: (source: PR #86)
-- [2025-11-06] enhance: Add audit logging for critical operations (#71) -- 重要な操作（削除・更新・権限変更）の監査ログを記録し、コンプライアンス対応とセキュリティインシデント調査を可能にする機能を実装しました。 (source: PR #85)
-- [2025-11-06] fix: Prevent authenticated users from accessing login/register pages (#80) -- 認証済みユーザーが `/login` および `/register` ページにアクセスした際、自動的に `/dashboard` にリダイレクトする機能を追加しました。 (source: PR #84)
+- [2026-06-08] fix(schedule): タイムゾーン安全な日付ヘルパー（off-by-one 修正） -- `lib/schedule/utils.ts` の日付ヘルパーが、UTC より西のタイムゾーンで**カレンダー日が1日ずれる**バグを修正します。 (source: PR #118)
+- [2026-06-07] fix(security): npm audit 脆弱性解消（critical×1 + high×5 含む 15件） -- `npm audit fix`（`--force` なし／**非破壊的修正のみ**）で脆弱性を解消しました。すべて既存の `package.json` semver 範囲内で解決できたため、**変更は `package-lock.json` のみ**（直接依存のレンジ変更なし）。 (source: PR #111)
+- [2026-06-07] feat(ui): improve list loading and error states -- - Replaced spinner-only loading on favorites and applications list pages with card/grid skeletons. - Kept existing list data visible during refetches with `aria-busy` and reduced opacity to reduce flicker. - Replaced favorites page `alert() (source: PR #108)
+- [2026-06-07] refactor(ui): replace native dialogs with toasts -- ## Summary - Add a reusable ConfirmDialog with focus trapping, Escape/backdrop close, and destructive action styling - Add a global react-hot-toast provider and replace in-scope native alert/confirm calls with toast notifications and confir (source: PR #107)
+- [2026-06-07] fix(ui): add organization creation page -- Issue #97 の対応として、`/organizations/new` のデッドリンクを解消し、ログイン後に新しい組織を作成できる導線を追加しました。 (source: PR #106)
+- [2026-06-07] feat(ui): 登録フォームのリアルタイムバリデーション＋都道府県47件化 -- ## Summary - add field-level realtime validation for required register fields using zod - show inline red-border error states on change, blur, and submit without duplicate password messaging - expand the prefecture select to all 47 prefectu (source: PR #105)

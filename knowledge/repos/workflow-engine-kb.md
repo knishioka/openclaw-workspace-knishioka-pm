@@ -1,16 +1,18 @@
 # workflow-engine Knowledge Base
 
 ## Overview
+
 - Repo: knishioka/workflow-engine
 - Description: Convert Zapier workflows to Claude Code, Agent SDK, or API implementations
 - Primary language (GitHub): Python
 - License: MIT
 - Default branch: master
 - Created: 2025-10-19
-- Updated: 2026-05-31
-- Collected: 2026-06-05
+- Updated: 2026-06-11
+- Collected: 2026-06-12
 
 ## Tech Stack
+
 - package.json: not found (or not accessible via GitHub contents API)
 - pyproject.toml: present
 - requirements.txt: present
@@ -18,17 +20,12 @@
 ## Architecture / Patterns
 
 - (No clear patterns inferred from README/dependencies in this snapshot)
-- Keyless Vertex AI image endpoint
-- Manual workflow IP allowlisting
 
 ## Tech Decisions (from PRs/commits)
 
-- [2026-05-31] Add keyless Vertex AI image generation endpoint -- Image generation moved toward keyless Vertex AI access, reducing secret handling for generated media workflows. (source: PR #155)
-- [2026-05-31] Send reference images via stdin -- Reference image transfer avoids shell argument length limits by using stdin instead of argv. (source: PR #156)
-- [2026-05-30] Restrict manual workflow invocation by source IP -- Manual workflow execution now uses an allowlist guard to reduce accidental or unauthorized invocation. (source: PR #154)
-- [2026-05-11] feat(actions): bundle multi-item LINE notifications via batch mode -- ファミリーカレンダーで一度に多数の予定変更が起きた際、現状はイベントごとに個別の LINE push が走り、`max_per_execution=10` の rate limiter で10件目以降が失敗する（2026-05-11 06:00 UTC で実際に発生）。 (source: PR #152)
-- [2026-05-02] feat(notion): auto-close Notion tasks when their GitHub PR is merged -- ## Summary - Adds new trigger `notion_pr_tasks` and action `notion_close_task_if_pr_merged` that periodically scan the Notion `tasks` DB for incomplete tasks with GitHub PR URLs and mark them Done once the PR is merged/closed. - Cleans up t (source: PR #151)
-- [2026-04-28] fix(github_pr_to_notion): skip Notion task creation for merged/closed PRs -- - Trigger fetch から action 実行までの間に PR が merge/close されると、古い `open` スナップショットで Notion task が作られてしまう問題を修正 - `GitHubPRToNotionAction` に optional config `github_account` を追加。設定時は LLM 解析前に `GET /repos/{owner}/{repo}/pulls/{number}` で PR 最新状態を再 fet (source: PR #149)
-- [2026-04-20] fix(github_pr_events): prevent duplicate Notion tasks and skip merged PRs -- ## Summary - `GitHub PR → Notion` ワークフローで同じ PR から Notion タスクが2個作られる問題と、cron 起動時に既に merged/closed の PR でもタスクが作られる問題を修正 - 新規テスト4件追加 (全1265件 pass) (source: PR #147)
-- [2026-04-16] fix(scripts): migrate sync_and_deploy.py from Secret Manager to GCS tokens.json -- After the Secret Manager → GCS migration (89f7552, 630be37), `scripts/sync_and_deploy.py` was left pointing at the obsolete Secret Manager API. Re-running it would update Secret Manager versions while Cloud Run kept reading the unchanged GC (source: PR #144)
-- [2026-03-18] perf(state): add in-memory TTL cache for GCS state reads -- - Add module-level state cache with 45s TTL to eliminate redundant GCS reads on warm Cloud Run instances - 90%+ of executions (no new items) now hit cache instead of GCS - Returns deep copies to prevent mutation of cached data - Cache updat (source: PR #142)
+- [2026-06-11] Use AWS billing role for cloud cost reporting -- ## Summary - Replace the stored AWS Cost Explorer access key path with GCP runtime SA OIDC -> AWS STS `AssumeRoleWithWebIdentity`. - Configure Cloud Run deploys with `AWS_COST_ROLE_ARN=arn:aws:iam::980831117329:role/nishioka-hermes-cloud-co (source: PR #164)
+- [2026-06-11] fix(deploy): run service as workflow-runner SA and stop clobbering env vars -- The auto-deploy for #162 (run 27334264476) failed: revision `workflow-runner-00165-cvl` crashed at startup with `403 storage.objects.get` on `gs://nishioka-workflow-engine-state/config/workflows.yaml`. Root cause is **not** the merged code  (source: PR #163)
+- [2026-06-11] feat(cloud-cost): add group_by enum (service|sku|day) for finer cost analysis -- Follow-up to #161. The personal-agent (Hermes on mm) hit the granularity ceiling of `/cloud-cost` in a real conversation: it could see a Vertex AI spike (¥784 of a ¥795 month, concentrated on 4 days) but could **not** answer "was this image (source: PR #162)
+- [2026-06-10] feat(cloud-cost): read-only /cloud-cost endpoint (AWS CE + GCP billing export) -- Hermes Agent（Telegram経由のパーソナルエージェント、Mac mini `mm` 上で稼働）から「今月のAWS/GCPの費用は？」に答えられるようにする。クラウド認証情報をエージェント側ホストに置かないため、**workflow-engine を認証境界（credential proxy）にする** — `/generate-image` が確立した「高権限アクセスはサーバー側、呼び出し側はキーを持たない」パターンの踏襲です。 (source: PR #161)
+- [2026-06-06] fix(gmail): harden /gmail/bookings (sender-spoofing, thread-safety, retry, path) -- マージ済み #158/#159 への gemini/codex レビュー指摘に対応するフォローアップ。 (source: PR #160)
+- [2026-06-06] fix(gmail): build read-only Gmail service directly (no userinfo scope) -- ## 背景 初回デプロイ後、`/gmail/bookings` が `gmail_init_failed`（`KeyError: 'email'`）になった。 (source: PR #159)

@@ -1,37 +1,37 @@
 # jgrants-app Design Decisions
 
-## 2026-04-15: feat(ai): Anthropic prompt caching for Claude routes (#94)
+## 2026-06-08: fix(schedule): タイムゾーン安全な日付ヘルパー（off-by-one 修正）
 
-- **What**: feat(ai): Anthropic prompt caching for Claude routes (#94)
-- **Why**: ## Summary - Mark system prompts with `cache_control: { type: 'ephemeral' }` in `generate-section` (streaming + non-streaming), `generate-schedule`, and `ClaudeClient` so repeated calls against the same subsidy context can reuse the cached  
-- **Source**: PR #96
+- **What**: fix(schedule): タイムゾーン安全な日付ヘルパー（off-by-one 修正）
+- **Why**: `lib/schedule/utils.ts` の日付ヘルパーが、UTC より西のタイムゾーンで**カレンダー日が1日ずれる**バグを修正します。
+- **Source**: PR #118
 
-## 2025-11-23: enhance: Implement password reset with Resend (#89)
+## 2026-06-07: fix(security): npm audit 脆弱性解消（critical×1 + high×5 含む 15件）
 
-- **What**: enhance: Implement password reset with Resend (#89)
-- **Why**: OWASP準拠のパスワードリセット機能を実装しました。ユーザーがパスワードを忘れた際に、Resendによるメール送信でセルフリカバリーできる機能を提供し、サポート負荷を削減します。
-- **Source**: PR #90
+- **What**: fix(security): npm audit 脆弱性解消（critical×1 + high×5 含む 15件）
+- **Why**: `npm audit fix`（`--force` なし／**非破壊的修正のみ**）で脆弱性を解消しました。すべて既存の `package.json` semver 範囲内で解決できたため、**変更は `package-lock.json` のみ**（直接依存のレンジ変更なし）。
+- **Source**: PR #111
 
-## 2025-11-07: test: Add E2E and integration tests for Claude API
+## 2026-06-07: feat(ui): improve list loading and error states
 
-- **What**: test: Add E2E and integration tests for Claude API
-- **Why**: Issue #87 の対応として、Claude API を活用した補助金申請機能（スケジュール生成・書類生成）の E2E テストおよび統合テストを実装しました。
-- **Source**: PR #88
+- **What**: feat(ui): improve list loading and error states
+- **Why**: - Replaced spinner-only loading on favorites and applications list pages with card/grid skeletons. - Kept existing list data visible during refetches with `aria-busy` and reduced opacity to reduce flicker. - Replaced favorites page `alert()
+- **Source**: PR #108
 
-## 2025-11-06: test: add comprehensive test coverage for organization management APIs (#72)
+## 2026-06-07: refactor(ui): replace native dialogs with toasts
 
-- **What**: test: add comprehensive test coverage for organization management APIs (#72)
-- **Why**: This PR adds comprehensive test coverage for 4 organization management API endpoints that were previously untested:
-- **Source**: PR #86
+- **What**: refactor(ui): replace native dialogs with toasts
+- **Why**: ## Summary - Add a reusable ConfirmDialog with focus trapping, Escape/backdrop close, and destructive action styling - Add a global react-hot-toast provider and replace in-scope native alert/confirm calls with toast notifications and confir
+- **Source**: PR #107
 
-## 2025-11-06: enhance: Add audit logging for critical operations (#71)
+## 2026-06-07: fix(ui): add organization creation page
 
-- **What**: enhance: Add audit logging for critical operations (#71)
-- **Why**: 重要な操作（削除・更新・権限変更）の監査ログを記録し、コンプライアンス対応とセキュリティインシデント調査を可能にする機能を実装しました。
-- **Source**: PR #85
+- **What**: fix(ui): add organization creation page
+- **Why**: Issue #97 の対応として、`/organizations/new` のデッドリンクを解消し、ログイン後に新しい組織を作成できる導線を追加しました。
+- **Source**: PR #106
 
-## 2025-11-06: fix: Prevent authenticated users from accessing login/register pages (#80)
+## 2026-06-07: feat(ui): 登録フォームのリアルタイムバリデーション＋都道府県47件化
 
-- **What**: fix: Prevent authenticated users from accessing login/register pages (#80)
-- **Why**: 認証済みユーザーが `/login` および `/register` ページにアクセスした際、自動的に `/dashboard` にリダイレクトする機能を追加しました。
-- **Source**: PR #84
+- **What**: feat(ui): 登録フォームのリアルタイムバリデーション＋都道府県47件化
+- **Why**: ## Summary - add field-level realtime validation for required register fields using zod - show inline red-border error states on change, blur, and submit without duplicate password messaging - expand the prefecture select to all 47 prefectu
+- **Source**: PR #105

@@ -1,61 +1,37 @@
 # ib-sec-mcp Design Decisions
 
-## 2026-06-04: Unify live CP and historical Flex positions via reconciliation view
+## 2026-06-04: fix(test): use FastMCP 3 get_resource_templates in account resource test
 
-- **What**: Unify live CP and historical Flex positions via reconciliation view
-- **Why**: Live Client Portal positions and historical Flex snapshots are treated as complementary sources; the repo now exposes a reconciliation view instead of forcing one source of truth.
-- **Source**: PR #150
+- **What**: fix(test): use FastMCP 3 get_resource_templates in account resource test
+- **Why**: ## Problem Running the full suite on integrated `main` surfaced 2 failures in `tests/mcp/test_resources.py::TestAccountResource` that each contributing PR's isolated CI did not catch:
+- **Source**: PR #154
 
-## 2026-06-04: Add position-decision synthesis tool
+## 2026-06-04: feat(events): add interest-rate (macro) event feed to get_upcoming_events
 
-- **What**: Add position-decision synthesis tool
-- **Why**: Advisor output now combines positions, analytics, sentiment, and upcoming events into an MCP tool for decision support rather than isolated data fetches.
-- **Source**: PR #149
+- **What**: feat(events): add interest-rate (macro) event feed to get_upcoming_events
+- **Why**: Resolves #152 (follow-up from #131 / #151). `get_upcoming_events` previously sourced only **earnings** and **ex-dividend** events per symbol from yfinance. Interest-rate (macro) events were deferred because there is no per-symbol macro sour
+- **Source**: PR #153
 
-## 2026-06-04: Integrate earnings, ex-dividend, and macro event feeds into daily checks
+## 2026-06-04: docs(reference): rewrite mcp-tools-reference to cover all modules with correct counts
 
-- **What**: Integrate earnings, ex-dividend, and macro event feeds into daily checks
-- **Why**: Upcoming events became a first-class input for daily checks and position decisions, including interest-rate events in `get_upcoming_events`.
-- **Source**: PR #151/#153
+- **What**: docs(reference): rewrite mcp-tools-reference to cover all modules with correct counts
+- **Why**: Rewrites `docs/mcp-tools-reference.md` so it covers **all** tool modules with the correct, post-consolidation counts. Resolves #125.
+- **Source**: PR #146
 
-## 2026-06-04: Add portfolio time-series and benchmark-relative tracking
+## 2026-06-04: docs(sync): fix module/tool/command counts in architecture, CHANGELOG and .claude docs
 
-- **What**: Add portfolio time-series and benchmark-relative tracking
-- **Why**: Portfolio snapshots now support TWR/cumulative time series and benchmark-relative analysis.
-- **Source**: PR #148
+- **What**: docs(sync): fix module/tool/command counts in architecture, CHANGELOG and .claude docs
+- **Why**: Syncs documentation counts to actual values and backfills the CHANGELOG. Resolves #127 (Wave 4, docs-only, file-isolated).
+- **Source**: PR #145
 
-## 2026-05-01: feat: add earnings calendar MCP tool
+## 2026-06-04: test(mcp): add tests for portfolio/position/sentiment tools + middleware & resources
 
-- **What**: feat: add earnings calendar MCP tool
-- **Why**: ## Summary - add `get_earnings_calendar` FastMCP tool backed by yfinance calendar data - load symbols from the latest `PositionStore` snapshot when symbols are omitted - return per-symbol error entries and filter events by `days_ahead` - ad
-- **Source**: PR #115
+- **What**: test(mcp): add tests for portfolio/position/sentiment tools + middleware & resources
+- **Why**: Resolves #124 (Wave 3, `test` / `parallel-safe`).
+- **Source**: PR #144
 
-## 2026-04-20: maintenance: FastMCP 3系へ追従し内部API依存テストを解消する
+## 2026-06-04: test(mcp): add tests for market-data tools (stock_data, options, technical, market/etf comparison)
 
-- **What**: maintenance: FastMCP 3系へ追従し内部API依存テストを解消する
-- **Why**: ## Summary - upgrade the optional `mcp` dependency and lockfile from FastMCP 2.x to FastMCP 3.x - replace MCP tests that depended on `_tool_manager`, `get_tools()`, `get_resources()`, and `get_resource_templates()` with public FastMCP APIs
-- **Source**: PR #112
-
-## 2026-04-11: fix(api): paginate positions and preserve connection errors in CPClient
-
-- **What**: fix(api): paginate positions and preserve connection errors in CPClient
-- **Why**: Addresses two unresolved review comments from PR #98 (chatgpt-codex-connector):
-- **Source**: PR #105
-
-## 2026-03-21: test: add integration test suite for Client Portal API with Paper Trading
-
-- **What**: test: add integration test suite for Client Portal API with Paper Trading
-- **Why**: - Add `tests/integration/` with 24 integration tests for the Client Portal API using Paper Trading account - Tests cover connection, live orders, order lifecycle (place/modify/cancel), and DB sync - All tests auto-skip when Gateway is not r
-- **Source**: PR #102
-
-## 2026-03-21: feat(orders): add order placement and management via Client Portal API
-
-- **What**: feat(orders): add order placement and management via Client Portal API
-- **Why**: Implements order placement, modification, and cancellation via IB Client Portal Gateway API with multiple safety mechanisms (#97).
-- **Source**: PR #101
-
-## 2026-03-21: feat(sync): add limit order DB sync with live IB orders via CP API
-
-- **What**: feat(sync): add limit order DB sync with live IB orders via CP API
-- **Why**: - Add `ib_sec_mcp/storage/order_sync.py` with IB → local DB sync logic - Add `sync_limit_orders` MCP tool for manual sync trigger - Matching by `symbol + limit_price + order_type` with IB as source of truth - Graceful handling when Gateway
-- **Source**: PR #100
+- **What**: test(mcp): add tests for market-data tools (stock_data, options, technical, market/etf comparison)
+- **Why**: Resolves #123 (Wave 3, `test` / `parallel-safe`).
+- **Source**: PR #143

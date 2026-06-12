@@ -1,15 +1,17 @@
 # market-lens-studio Knowledge Base
 
 ## Overview
+
 - Repo: knishioka/market-lens-studio
 - Primary language (GitHub): Python
 - License: none
 - Default branch: main
 - Created: 2025-11-14
-- Updated: 2026-06-04
-- Collected: 2026-06-05
+- Updated: 2026-06-11
+- Collected: 2026-06-12
 
 ## Tech Stack
+
 - package.json: not found (or not accessible via GitHub contents API)
 - pyproject.toml: present
 - requirements.txt: present
@@ -17,23 +19,12 @@
 ## Architecture / Patterns
 
 - (No clear patterns inferred from README/dependencies in this snapshot)
-- Headless publishing hardening
-- Duplicate-post prevention
 
 ## Tech Decisions (from PRs/commits)
 
-- [2026-06-04] Deny ScheduleWakeup during headless note runs -- Morning automation now blocks wakeup scheduling so headless runs cannot silently end before publishing. (source: PR #279)
-- [2026-05-30] Bound morning suggest with a hard wall-clock timeout -- Automation now fails boundedly instead of hanging or drifting beyond its publishing window. (source: PR #275)
-- [2026-05-30] Prevent duplicate posts and surface the real failure reason -- CI/write-article handling now favors idempotency and diagnosable failures over retrying into duplicate publication. (source: PR #277)
-- [2026-05-29] fix(note): enforce suggest --auto mandate compliance and headless safety -- 2026-05-29 朝の自動運用（launchd → `claude -p "/note:suggest --auto"`）が**記事を公開せず停止**した。エラーではなく、ワークフロー設計の穴2点の合わせ技： (source: PR #273)
-- [2026-05-28] fix(automation): detect summary table success logs -- ## Summary - Expand notify_workflow_failure.sh phase-row detection to handle new markdown summary rows like `| 5. Publishing |`. - Treat `Workflow Complete`, `Published Article: https://note.com/`, `Draft -> Notion synced`, and `public publ (source: PR #270)
-- [2026-05-27] feat(automation): add morning launchd status dashboard -- ## Summary - Add purpose headers to the three launchd plist templates for Layer 1 / 1.5 / 1.7. - Enhance `scripts/dev/list_morning_jobs.sh` with fixed layer names, schedules, launchd state, last exit code, and purpose text. - Add `scripts/d (source: PR #268)
-- [2026-05-27] fix: accept new codex auth doctor output -- ## Summary - update setup_codex_fallback.sh auth check to accept legacy `auth: OK`, new `auth is configured`, and `stored auth mode` outputs - add mocked setup tests for authenticated and logged-out Codex doctor scenarios - refresh automati (source: PR #265)
-- [2026-05-27] feat(automation): add Codex fallback Wave D orchestrator -- ## Summary - add shared morning lock helpers and wire Layer 1 / Layer 1.5 scripts through them - add shared Slack notifier with same-day layer/type dedup plus Wave D payload templates - add publish retry policy, phase runner, idempotency ch (source: PR #261)
-- [2026-05-27] feat(quality): add Codex fact-check quality gates -- ## Summary - Add Tier 1 deterministic article lint for NG words, markdown/caption/image/source/data/numeric checks - Add Tier 2 Codex fact-check wrapper with schema output and mock mode - Add fact-check result merger that preserves Claude-c (source: PR #260)
-
-## Competitive Landscape
-
-- [2026-05-29] AI market-research tools are shifting toward continuous intelligence: always-on source monitoring, signal surfacing, and cited synthesis rather than one-off report generation. Feature candidates: watchlist-based daily signal digest, source freshness score, and persisted evidence packs for each generated note article. Sources: ToolRadar 2026 guide (updated 2026-05), Sushidata 2026 AI market research review (2026-04).
-- [2026-05-29] Financial research competition is moving down-market: Google expanded AI-powered Google Finance to 100+ countries on 2026-04-08, with natural-language market questions and AI research. Differentiation should emphasize Japan-market workflow depth, note/X publishing automation, audit trail, and deterministic quality gates rather than generic stock Q&A. Source: Google Product Blog (2026-04-08).
-- [2026-05-29] Agentic finance research highlights governance risks: autonomous financial agents need interpretability, supervisory observability, and human override because market actions can amplify systemic and compliance risk. Feature candidates: run-level trace viewer, "why this claim" citations, and human approval gates for publication after high-impact claims. Sources: arXiv Agentic AI in Finance survey (2026-04-23), TechRadar agent-security report (2026-05-25).
+- [2026-06-11] fix(notion): Notion 実エラー文言にフェイルセーフが反応しないバグを修正 -- 2026-06-11 朝の本番インシデントで発覚: `sync_to_notion.py` の optional プロパティ・フォールバックが、Notion の**実際のエラー文言** `"Skeleton is not a property that exists."` にマッチせず、同期がハードフェイルしていました。 (source: PR #292)
+- [2026-06-11] feat(automation): フォールバック公開経路にも render check を追加 -- Step 6.2.6 のレンダリングチェック（#290）は `/note:write` ワークフロー内でのみ実行され、launchd のフォールバック公開経路では一切走らないギャップがありました。両経路に**非ブロッキング・ログのみ**の render check を追加します。 (source: PR #291)
+- [2026-06-10] feat(note): Playwright による公開ページの決定的レンダリングチェック (Step 6.2.6) -- 既存の品質ゲート（fact-check / quality-review / lint_article）はすべて **Markdown ソース**を検証しており、「note.com が実際にどう描画したか」は誰も見ていませんでした。公開直後に headless Playwright で公開ページを開き、レンダリング結果を機械的に検証する Step 6.2.6 を追加します。 (source: PR #290)
+- [2026-06-10] feat(note): sub-agent を sonnet-4-6 へ更新 + 複数シンボルの並列取得（上限3） -- 1. **モデル更新**: note パイプラインの全サブエージェント11個のモデルピンを `claude-sonnet-4-5` → `claude-sonnet-4-6` に更新（価格は $3/$15 で同一のため notify_slack のコスト定数は不変、コメントのみ更新）。CI は `--model sonnet` エイリアスのため変更不要。 2. **複数シンボルの並列取得**: 未使用だった `parallel_fetcher.py` を活用し、シンボル2つ以 (source: PR #289)
+- [2026-06-10] feat(diagram): generation_insights の diagram_budget_overrides を消費 (#287) -- Issue #287 の実装。PR #286（自動学習ループ）で `build_generation_insights.py` が算出する `diagram_budget_overrides`（画像枚数バケット×エンゲージメント中央値由来）を、消費側の `suggest_diagrams.py` に配線します。#284 とのコンフリクト回避のため #286 では見送っていた最後のピースです。 (source: PR #288)
+- [2026-06-10] feat(note): 自動学習ループ — generation insights を毎実行時に再計算して還流 (PDCA改善 Phase 4) -- 「意図的にやらずとも勝手に改善していく」仕組み（PDCA改善計画 Phase 4/4・最終）。収集済みだが未消費だったエンゲージメント実績・生成メタデータ・fact-check 警告を、**毎実行時に決定的に再計算**して suggest/write に還流します。 (source: PR #286)

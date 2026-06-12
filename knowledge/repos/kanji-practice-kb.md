@@ -9,7 +9,7 @@
 - Default branch: main
 - Created: 2025-12-30
 - Updated: 2026-05-14
-- Collected: 2026-05-29
+- Collected: 2026-06-12
 
 ## Tech Stack
 
@@ -26,9 +26,14 @@
 
 ## Tech Decisions (from PRs/commits)
 
-- [2026-05-14] feat(print): customize first page header fields -- 1ページ目ヘッダーの名前欄・日付欄について、表示/非表示とラベル文言を設定パネルから変更できるようにしました。既存設定ロード時はデフォルト値を migration で補完し、2ページ目以降のヘッダー表示は従来どおり維持しています。 (source: PR #34)
-- [2026-05-02] feat: harness pack (AGENTS.md / verify.sh / PR template) — Phase B PoC -- knishioka/openclaw-workspace-knishioka-pm#21 (Phase B PoC) の harness pack を kanji-practice に配備する。 workspace 側で整備した SSOT テンプレ (AGENTS.md / PR template / verify.sh) を本リポに写し、 Codex auto-resolve の振る舞い検証用に最初の運用リポにする。 (source: PR #32)
-- [2026-04-25] feat: 例文写経の練習行を全マス書き取り対象に -- 例文写経モードの練習行はこれまで「ターゲット漢字のセルだけ書き取り用の白マス、それ以外は薄字の固定文字を表示（読む対象）」という構成だった。 しかし例文には対象漢字以外にも漢字・ひらがな・カタカナが含まれており、これらもついでに書写練習できれば、1問あたりの運筆練習量を大幅に増やせる。 (source: PR #30)
-- [2026-04-25] feat: 例文写経モードの練習行数を可変化（デフォルト2行・最大3行） -- 例文写経モード（PrintMode='sentence'）は従来「お手本1行 + 練習1行」の固定構成で、同じ例文を 1 回しか書写できなかった。学習理論上、写経による定着には 2〜3 回の反復が効果的（`.claude/rules/education/learning-theory.md`）。本 PR は A4 1 ページに最低 2 問が収まる制約を保ったまま、例文の繰り返し書写を可能にする。 (source: PR #29)
-- [2026-04-24] fix: Klee Oneフォントをindex.htmlのlinkタグで読み込む（#27の修正） -- PR #27 で `src/index.css` に `@import url(...)` で Klee One を読み込んだが、CSS 仕様上 `@import` は他のすべてのルールより前に配置されている必要があり、`@import "tailwindcss"` の後ろに書かれていたため**本番で無効化**されていた。 (source: PR #28)
-- [2026-04-24] fix: 教科書体フォント(Klee One)をWebフォントとして読み込む -- 漢字練習プリントの漢字がゴシック体で表示される問題を修正。`.font-textbook` クラスは Klee One を `local()` のみで指定していたため、フォント未インストール環境（多くの macOS 標準環境含む）では `serif` フォールバックや OS 標準フォントに落ち、教科書体になっていなかった。 (source: PR #27)
+- [2026-04-20] feat: 学習プリセット（9級読み・9級書き取り・8級先取り）を追加 -- ## Summary - add learning preset definitions plus pure apply/match helpers for the three learner flows - add a learning preset selector to the settings panel while keeping existing manual controls intact - add unit tests covering preset def (source: PR #26)
+- [2026-04-12] fix: 写経モードのふりがなをルビ注釈方式でゼロフォールバック化 -- 写経モードの例文ふりがなが「フォールバック」推測に依存しており、活用形・音訓選択を誤った読み（例: `何の用？` → `なにのもちいる`）が大量に出ていた問題を根本解決。 (source: PR #24)
+- [2026-04-11] feat: a11y改善（lang=ja / slider aria-label / 選択状態 / skip link） -- - `<html lang="en">` → `<html lang="ja">` に修正（日本語UIに適切な言語属性） - ページ数・練習マス数・マスサイズの各rangeスライダーに `aria-label` を付与 - 学年選択・プリント種類・ガイドラインのトグルボタンに `aria-pressed` 属性を追加 - Skip link（設定へスキップ / プレビューへスキップ）を追加し、キーボードユーザーの操作性を向上 (source: PR #23)
+- [2026-04-11] fix: ページ数が問題生成後にリセットされる問題を修正 -- ## Summary - 問題生成ロジックが`App.tsx`と`SettingsPanel`に重複していた構造を一元化 - `App.tsx`の重複ロジック（`excludedKanji`未対応）を削除し、storeの`regenerate`アクション経由に変更 - `partialize`で一時的データ（`questions`, `generationCounter`）の永続化を除外 (source: PR #22)
+- [2026-03-22] fix: ふりがなフォールバックの送りがな・熟語コンテキスト改善 -- - フォールバック時に辞書形の送りがな込み読みがそのまま付く問題を修正（例: 速く→速(はやい)を速(はや)に） - `okuriganaExamples` の語幹データを活用して送りがな部分を除去 - 隣接する未割り当て漢字がある場合、音読みを優先する熟語コンテキスト判定を追加 - 不足していた例語データ（気持ち、試合、田植え）を追加 (source: PR #19)
+- [2026-03-09] fix: 3モードの問題間マージン最適化で問題数増加 -- - sentence(例文写経)、homophone(同音異字)、readingWriting(読み書き統合)の3モードで問題間マージンを最適化 - 各モード+1問/ページ: sentence 4→5問、homophone 5→6問、readingWriting 5→6問 - A4ページ内の余白(22〜30mm)を有効活用し、印刷効率を向上 (source: PR #18)
+
+## Competitive Landscape
+
+- [2026-06-12] Kanji learning products continue to split between SRS-first study systems and writing-first practice. Ringotan positions itself around handwriting detection plus SRS, while Kanji Study combines SRS, flashcards, quizzes, writing challenges, and custom sets. Feature candidate: keep the printable worksheet strength, but add optional SRS export/import metadata so generated sheets can follow a review schedule instead of being one-off PDFs. Sources: Google Play Ringotan (updated 2025-11-17), Google Play Kanji Study (accessed 2026-06-12).
+- [2026-06-12] Recent Japanese-learning app roundups emphasize tool rotation by skill bottleneck rather than one app for everything, with Renshuu-style customizable paths and WaniKani/Bunpro-style specialized flows still prominent. Feature candidate: learner presets should evolve into named study paths with clear bottlenecks (write, read, homophones, sentence copywork) rather than generic grade selectors only. Sources: Class Central Japanese apps report (2026-06-10), Clozemaster Japanese apps report (2026-03).

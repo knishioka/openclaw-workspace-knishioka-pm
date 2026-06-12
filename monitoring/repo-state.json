@@ -1,11 +1,11 @@
 {
-  "generated_at_utc": "2026-06-05T11:00:00Z",
-  "previous_generated_at_utc": "2026-05-29T11:00:00Z",
+  "generated_at_utc": "2026-06-12T11:00:00Z",
+  "previous_generated_at_utc": "2026-06-05T11:00:00Z",
   "summary": {
-    "updated_repo_count": 22,
+    "updated_repo_count": 18,
     "research_focus": [
-      "knishioka/math-worksheet",
-      "knishioka/freee-mcp"
+      "knishioka/kanji-practice",
+      "knishioka/ib-sec-mcp"
     ]
   },
   "repos": {
@@ -15,18 +15,18 @@
       "category": "education",
       "status": "active",
       "source_updated_at": "2026-05-14T05:17:23Z",
-      "last_collected": "2026-06-05",
+      "last_collected": "2026-06-12",
       "knowledge_file": "knowledge/repos/kanji-practice-kb.md",
       "decisions_file": "knowledge/decisions/kanji-practice-decisions.md",
-      "competitive_research_at": "2026-05-22"
+      "competitive_research_at": "2026-06-12"
     },
     "knishioka/math-worksheet": {
       "section": "repos",
       "priority": "high",
       "category": "education",
       "status": "active",
-      "source_updated_at": "2026-06-01T05:44:06Z",
-      "last_collected": "2026-06-05",
+      "source_updated_at": "2026-06-11T10:22:50Z",
+      "last_collected": "2026-06-12",
       "knowledge_file": "knowledge/repos/math-worksheet-kb.md",
       "decisions_file": "knowledge/decisions/math-worksheet-decisions.md",
       "competitive_research_at": "2026-06-05"
@@ -37,10 +37,10 @@
       "category": "mcp",
       "status": "active",
       "source_updated_at": "2026-06-04T10:41:11Z",
-      "last_collected": "2026-06-05",
+      "last_collected": "2026-06-12",
       "knowledge_file": "knowledge/repos/ib-sec-mcp-kb.md",
       "decisions_file": "knowledge/decisions/ib-sec-mcp-decisions.md",
-      "competitive_research_at": "2026-05-22"
+      "competitive_research_at": "2026-06-12"
     },
     "knishioka/freee-mcp": {
       "section": "repos",
@@ -48,7 +48,7 @@
       "category": "mcp",
       "status": "active",
       "source_updated_at": "2026-05-06T00:50:44Z",
-      "last_collected": "2026-06-05",
+      "last_collected": "2026-06-12",
       "knowledge_file": "knowledge/repos/freee-mcp-kb.md",
       "decisions_file": "knowledge/decisions/freee-mcp-decisions.md",
       "competitive_research_at": "2026-06-05"
@@ -59,7 +59,7 @@
       "category": "mcp",
       "status": "active",
       "source_updated_at": "2026-05-23T11:50:16Z",
-      "last_collected": "2026-06-05",
+      "last_collected": "2026-06-12",
       "knowledge_file": "knowledge/repos/cost-management-mcp-kb.md",
       "decisions_file": "knowledge/decisions/cost-management-mcp-decisions.md",
       "competitive_research_at": null
@@ -69,19 +69,30 @@
       "priority": "high",
       "category": "mcp",
       "status": "active",
-      "source_updated_at": "2026-06-05T01:45:05Z",
-      "last_collected": "2026-06-05",
+      "source_updated_at": "2026-06-10T07:25:31Z",
+      "last_collected": "2026-06-12",
       "knowledge_file": "knowledge/repos/ai-books-kb.md",
       "decisions_file": "knowledge/decisions/ai-books-decisions.md",
       "competitive_research_at": "2026-05-29"
+    },
+    "knishioka/ai-english-daily-podcast": {
+      "section": "repos",
+      "priority": "medium",
+      "category": "education",
+      "status": "active",
+      "source_updated_at": "2026-06-11T21:14:24Z",
+      "last_collected": "2026-06-12",
+      "knowledge_file": "knowledge/repos/ai-english-daily-podcast-kb.md",
+      "decisions_file": "knowledge/decisions/ai-english-daily-podcast-decisions.md",
+      "competitive_research_at": null
     },
     "knishioka/english-note-maker": {
       "section": "repos",
       "priority": "low",
       "category": "education",
       "status": "active",
-      "source_updated_at": "2026-05-31T02:25:20Z",
-      "last_collected": "2026-06-05",
+      "source_updated_at": "2026-06-12T09:18:49Z",
+      "last_collected": "2026-06-12",
       "knowledge_file": "knowledge/repos/english-note-maker-kb.md",
       "decisions_file": "knowledge/decisions/english-note-maker-decisions.md",
       "competitive_research_at": null
@@ -92,7 +103,7 @@
       "category": "mcp",
       "status": "abandoned",
       "source_updated_at": "2025-08-03T03:40:41Z",
-      "last_collected": "2026-06-05",
+      "last_collected": "2026-06-12",
       "knowledge_file": "knowledge/repos/td-mcp-server-kb.md",
       "decisions_file": "knowledge/decisions/td-mcp-server-decisions.md",
       "competitive_research_at": null
@@ -103,7 +114,7 @@
       "category": "tool",
       "status": "abandoned",
       "source_updated_at": "2025-06-30T00:57:21Z",
-      "last_collected": "2026-06-05",
+      "last_collected": "2026-06-12",
       "knowledge_file": "knowledge/repos/meditation-chrome-extension-kb.md",
       "decisions_file": "knowledge/decisions/meditation-chrome-extension-decisions.md",
       "competitive_research_at": null
@@ -113,8 +124,8 @@
       "priority": "low",
       "category": "education",
       "status": "abandoned",
-      "source_updated_at": "2025-06-17T23:30:10Z",
-      "last_collected": "2026-06-05",
+      "source_updated_at": "2026-06-08T22:06:35Z",
+      "last_collected": "2026-06-12",
       "knowledge_file": "knowledge/repos/remotion-math-education-kb.md",
       "decisions_file": "knowledge/decisions/remotion-math-education-decisions.md",
       "competitive_research_at": null
@@ -124,8 +135,8 @@
       "priority": "high",
       "category": "tool",
       "status": "active",
-      "source_updated_at": "2026-06-04T01:14:09Z",
-      "last_collected": "2026-06-05",
+      "source_updated_at": "2026-06-11T02:12:57Z",
+      "last_collected": "2026-06-12",
       "knowledge_file": "knowledge/repos/market-lens-studio-kb.md",
       "decisions_file": "knowledge/decisions/market-lens-studio-decisions.md",
       "competitive_research_at": "2026-05-29"
@@ -135,8 +146,8 @@
       "priority": "medium",
       "category": "tool",
       "status": "active",
-      "source_updated_at": "2026-05-31T10:23:21Z",
-      "last_collected": "2026-06-05",
+      "source_updated_at": "2026-06-11T12:36:10Z",
+      "last_collected": "2026-06-12",
       "knowledge_file": "knowledge/repos/workflow-engine-kb.md",
       "decisions_file": "knowledge/decisions/workflow-engine-decisions.md",
       "competitive_research_at": null
@@ -147,7 +158,7 @@
       "category": "fintech",
       "status": "active",
       "source_updated_at": "2026-03-09T00:04:58Z",
-      "last_collected": "2026-06-05",
+      "last_collected": "2026-06-12",
       "knowledge_file": "knowledge/repos/household-finance-kb.md",
       "decisions_file": "knowledge/decisions/household-finance-decisions.md",
       "competitive_research_at": null
@@ -158,7 +169,7 @@
       "category": "web",
       "status": "active",
       "source_updated_at": "2026-06-04T12:40:21Z",
-      "last_collected": "2026-06-05",
+      "last_collected": "2026-06-12",
       "knowledge_file": "knowledge/repos/ut-gymnastics-kb.md",
       "decisions_file": "knowledge/decisions/ut-gymnastics-decisions.md",
       "competitive_research_at": null
@@ -168,21 +179,10 @@
       "priority": "low",
       "category": "tool",
       "status": "active",
-      "source_updated_at": "2026-04-15T23:05:02Z",
-      "last_collected": "2026-06-05",
+      "source_updated_at": "2026-06-08T00:09:44Z",
+      "last_collected": "2026-06-12",
       "knowledge_file": "knowledge/repos/jgrants-app-kb.md",
       "decisions_file": "knowledge/decisions/jgrants-app-decisions.md",
-      "competitive_research_at": null
-    },
-    "knishioka/ai-english-daily-podcast": {
-      "section": "repos",
-      "priority": "medium",
-      "category": "education",
-      "status": "active",
-      "source_updated_at": "2026-06-04T21:11:34Z",
-      "last_collected": "2026-06-05",
-      "knowledge_file": "knowledge/repos/ai-english-daily-podcast-kb.md",
-      "decisions_file": "knowledge/decisions/ai-english-daily-podcast-decisions.md",
       "competitive_research_at": null
     },
     "knishioka/1000haku": {
@@ -190,8 +190,8 @@
       "priority": "medium",
       "category": "tool",
       "status": "active",
-      "source_updated_at": "2026-06-05T08:51:35Z",
-      "last_collected": "2026-06-05",
+      "source_updated_at": "2026-06-11T10:02:39Z",
+      "last_collected": "2026-06-12",
       "knowledge_file": "knowledge/repos/1000haku-kb.md",
       "decisions_file": "knowledge/decisions/1000haku-decisions.md",
       "competitive_research_at": null
@@ -202,123 +202,10 @@
       "category": "web",
       "status": "active",
       "source_updated_at": "2026-06-05T00:37:19Z",
-      "last_collected": "2026-06-05",
+      "last_collected": "2026-06-12",
       "knowledge_file": "knowledge/repos/kagoshima-community-kl-kb.md",
       "decisions_file": "knowledge/decisions/kagoshima-community-kl-decisions.md",
       "competitive_research_at": null
-    },
-    "D-stats/nobull-ai": {
-      "section": "private_repos",
-      "priority": "medium",
-      "category": "tool",
-      "status": "active",
-      "source_updated_at": "2026-05-17T02:45:13Z",
-      "last_collected": "2026-06-05",
-      "knowledge_file": "knowledge/repos/nobull-ai-kb.md",
-      "decisions_file": "knowledge/decisions/nobull-ai-decisions.md",
-      "competitive_research_at": null
-    },
-    "D-stats/ens-homepage": {
-      "section": "private_repos",
-      "priority": "medium",
-      "category": "web",
-      "status": "active",
-      "source_updated_at": "2026-05-17T02:45:57Z",
-      "last_collected": "2026-06-05",
-      "knowledge_file": "knowledge/repos/ens-homepage-kb.md",
-      "decisions_file": "knowledge/decisions/ens-homepage-decisions.md",
-      "competitive_research_at": null
-    },
-    "D-stats/ds-homepage": {
-      "section": "private_repos",
-      "priority": "medium",
-      "category": "web",
-      "status": "active",
-      "source_updated_at": "2026-05-14T14:06:27Z",
-      "last_collected": "2026-06-05",
-      "knowledge_file": "knowledge/repos/ds-homepage-kb.md",
-      "decisions_file": "knowledge/decisions/ds-homepage-decisions.md",
-      "competitive_research_at": null
-    },
-    "D-stats/team-spark-ai": {
-      "section": "private_repos",
-      "priority": "medium",
-      "category": "tool",
-      "status": "active",
-      "source_updated_at": "2026-06-05T08:42:18Z",
-      "last_collected": "2026-06-05",
-      "knowledge_file": "knowledge/repos/team-spark-ai-kb.md",
-      "decisions_file": "knowledge/decisions/team-spark-ai-decisions.md",
-      "competitive_research_at": null
-    }
-  },
-  "updated_at_utc": "2026-06-05T11:00:00Z",
-  "knowledge_extract": {
-    "knishioka/kanji-practice": {
-      "last_collected_at": "2026-06-05"
-    },
-    "knishioka/math-worksheet": {
-      "last_collected_at": "2026-06-05"
-    },
-    "knishioka/ib-sec-mcp": {
-      "last_collected_at": "2026-06-05"
-    },
-    "knishioka/freee-mcp": {
-      "last_collected_at": "2026-06-05"
-    },
-    "knishioka/cost-management-mcp": {
-      "last_collected_at": "2026-06-05"
-    },
-    "knishioka/ai-books": {
-      "last_collected_at": "2026-06-05"
-    },
-    "knishioka/english-note-maker": {
-      "last_collected_at": "2026-06-05"
-    },
-    "knishioka/td-mcp-server": {
-      "last_collected_at": "2026-06-05"
-    },
-    "knishioka/meditation-chrome-extension": {
-      "last_collected_at": "2026-06-05"
-    },
-    "knishioka/remotion-math-education": {
-      "last_collected_at": "2026-06-05"
-    },
-    "knishioka/market-lens-studio": {
-      "last_collected_at": "2026-06-05"
-    },
-    "knishioka/workflow-engine": {
-      "last_collected_at": "2026-06-05"
-    },
-    "knishioka/household-finance": {
-      "last_collected_at": "2026-06-05"
-    },
-    "knishioka/ut-gymnastics": {
-      "last_collected_at": "2026-06-05"
-    },
-    "knishioka/jgrants-app": {
-      "last_collected_at": "2026-06-05"
-    },
-    "knishioka/ai-english-daily-podcast": {
-      "last_collected_at": "2026-06-05"
-    },
-    "knishioka/1000haku": {
-      "last_collected_at": "2026-06-05"
-    },
-    "knishioka/kagoshima-community-kl": {
-      "last_collected_at": "2026-06-05"
-    },
-    "D-stats/nobull-ai": {
-      "last_collected_at": "2026-06-05"
-    },
-    "D-stats/ens-homepage": {
-      "last_collected_at": "2026-06-05"
-    },
-    "D-stats/ds-homepage": {
-      "last_collected_at": "2026-06-05"
-    },
-    "D-stats/team-spark-ai": {
-      "last_collected_at": "2026-06-05"
     }
   }
 }

@@ -9,7 +9,7 @@
 - Default branch: main
 - Created: 2025-06-12
 - Updated: 2025-06-30
-- Collected: 2026-05-29
+- Collected: 2026-06-12
 
 ## Tech Stack
 
@@ -25,8 +25,4 @@
 
 ## Tech Decisions (from PRs/commits)
 
-- [2025-06-30] feat: Convert to fully offline Chrome extension with local audio -- (Why not stated in PR/commit body) (source: commit a0ceed1)
-- [2025-06-12] Update README to reflect current project status -- (Why not stated in PR/commit body) (source: commit 6cdf29c)
-- [2025-06-12] Add comprehensive documentation and TTS implementation -- (Why not stated in PR/commit body) (source: commit 8dd0c4f)
-- [2025-06-12] Implement core meditation extension infrastructure -- (Why not stated in PR/commit body) (source: commit 595c578)
-- [2025-06-12] Initial project setup with documentation -- (Why not stated in PR/commit body) (source: commit 5ebc74b)
+- (No non-routine design decisions detected in recent PRs/commits)

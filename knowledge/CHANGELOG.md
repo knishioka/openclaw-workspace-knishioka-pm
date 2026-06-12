@@ -1,54 +1,43 @@
-# Knowledge Changelog - 2026-06-05
+# Knowledge Changelog - 2026-06-12
 
-Only new findings since 2026-05-29 are listed.
-
-## knishioka/ib-sec-mcp
-
-- [2026-06-04] Unify live CP and historical Flex positions via reconciliation view (PR #150)
-- [2026-06-04] Add position-decision synthesis tool (PR #149)
-- [2026-06-04] Integrate earnings, ex-dividend, and macro event feeds into daily checks (PR #151/#153)
-- [2026-06-04] Add portfolio time-series and benchmark-relative tracking (PR #148)
+Only new findings since 2026-06-05 are listed.
 
 ## knishioka/ai-books
 
-- [2026-06-05] Adopt retro-ADRs and ADR process (PR #100)
-- [2026-06-05] Use module map and testing-guarantees inventory as contribution guide (PR #99)
-- [2026-06-05] Map KOA210 operating-outside interest expense to AMF00330 and defer KOA220/240 (PR #97)
-- [2026-06-05] Add hooks, guardrails, and project subagents for dev workflow (PR #101/#102)
-- [2026-06-05] Eliminate general-ledger N+1 queries in whole-book path (PR #95)
-
-## knishioka/ai-english-daily-podcast
-
-- [2026-06-05] Maintain daily episode generation cadence (commits a43cd98..01c2d0c)
-
-## knishioka/english-note-maker
-
-- [2026-05-31] Expand cloze vocabulary and variation (PR #36)
+- [2026-06-10] Add production smoke checks for deployed web viewer and automatic issue creation on failures (PR #177)
+- [2026-06-10] Expose e-Tax filing preflight as an MCP tool with optional local XSD validation (PR #176)
+- [2026-06-10] Supply KOA210 filer header fields from a local TOML profile (PR #172)
+- [2026-06-10] Centralize e-Tax data-completeness and mapping dry-run checks before filing (PR #170)
 
 ## knishioka/market-lens-studio
 
-- [2026-06-04] Deny ScheduleWakeup during headless note runs (PR #279)
-- [2026-05-30] Bound morning suggest with a hard wall-clock timeout (PR #275)
-- [2026-05-30] Prevent duplicate posts and surface the real failure reason (PR #277)
+- [2026-06-11] Match real Notion optional-property errors so fallback sync does not hard-fail on missing optional fields (PR #292)
+- [2026-06-11] Add render checks to fallback publishing path, closing the gap with the `/note:write` workflow (PR #291)
+- [2026-06-10] Add deterministic Playwright render checks against published note pages (PR #290)
+- [2026-06-10] Feed generation insights back into diagram suggestion budgets for the PDCA loop (PR #286/#288)
 
 ## knishioka/workflow-engine
 
-- [2026-05-31] Add keyless Vertex AI image generation endpoint (PR #155)
-- [2026-05-31] Send reference images via stdin (PR #156)
-- [2026-05-30] Restrict manual workflow invocation by source IP (PR #154)
+- [2026-06-11] Use an AWS billing role for cloud cost reporting (commit-derived decision)
+- [2026-06-11] Add AWS cross-account role setup docs and provider routing CLI cleanup (commit-derived decisions)
+
+## knishioka/jgrants-app
+
+- [2026-06-08] Fix schedule date helpers to avoid timezone-driven off-by-one calendar dates (PR #118)
+- [2026-06-07] Resolve npm audit vulnerabilities without direct dependency range changes (PR #111)
+- [2026-06-07] Improve list loading/error states and replace native dialogs with toast/confirm UI (PR #107/#108)
 
 ## knishioka/ut-gymnastics
 
-- [2026-06-04] Standardize API domains with zod, services, guards, and wrapper (PR #172/#176/#177/#178)
-- [2026-06-04] Make production-build E2E a merge gate (PR #185/#188)
-- [2026-06-04] Invalidate cache after mutations across pages (PR #190)
-- [2026-06-03] Replace role magic numbers with UserRole constants (PR #170)
+- [2026-06-04] Continue API domain standardization across news, albums, and tags using zod/service/guard/wrapper pattern (PR #176/#177/#178)
+- [2026-06-04] Fix optimized production image 404s (PR #189)
+- [2026-06-03] Add app-segment error/loading boundaries and architecture onboarding docs (PR #162/#169)
 
 ## Competitive Research Findings
 
-- math-worksheet: 2026 education/worksheet tools are moving toward AI-assisted generation, curriculum/objective metadata, answer keys, and progress tracking; research risk suggests preserving productive struggle with hints/worked-space rather than student-facing answer generation.
-- freee-mcp: Official hosted freee-mcp now covers about 270 operations across five domains, so differentiation should shift to safer local workflows, audit/dry-run behavior, release-note watch, and schema-drift tests.
-- freee-mcp: MCP TypeScript SDK production guidance remains v1.x while v2 is pre-alpha toward Q3 2026; add v2 compatibility watch before migrating.
+- kanji-practice: Writing-first competitors combine handwriting detection with SRS, while broader Japanese apps emphasize customizable study paths. Feature candidate: add review-schedule metadata/export and evolve presets into named bottleneck-based study paths.
+- ib-sec-mcp: MCP Python SDK v2.0.0a1 is now in alpha for the upcoming 2026-07-28 spec changes; stable remains v1.27.2. Feature candidate: pin `mcp<2` now and plan a compatibility spike before the stable v2 release.
+- ib-sec-mcp: IBKR MCP alternatives are converging on account/position/market-data/order coverage. Differentiation should emphasize dry-run/order confirmation, reconciliation, benchmark-relative analytics, event feeds, and audit logs.
 
 ## Staleness Warnings
 

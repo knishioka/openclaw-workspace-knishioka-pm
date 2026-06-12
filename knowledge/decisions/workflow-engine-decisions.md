@@ -1,55 +1,37 @@
 # workflow-engine Design Decisions
 
-## 2026-05-31: Add keyless Vertex AI image generation endpoint
+## 2026-06-11: Use AWS billing role for cloud cost reporting
 
-- **What**: Add keyless Vertex AI image generation endpoint
-- **Why**: Image generation moved toward keyless Vertex AI access, reducing secret handling for generated media workflows.
-- **Source**: PR #155
+- **What**: Use AWS billing role for cloud cost reporting
+- **Why**: ## Summary - Replace the stored AWS Cost Explorer access key path with GCP runtime SA OIDC -> AWS STS `AssumeRoleWithWebIdentity`. - Configure Cloud Run deploys with `AWS_COST_ROLE_ARN=arn:aws:iam::980831117329:role/nishioka-hermes-cloud-co
+- **Source**: PR #164
 
-## 2026-05-31: Send reference images via stdin
+## 2026-06-11: fix(deploy): run service as workflow-runner SA and stop clobbering env vars
 
-- **What**: Send reference images via stdin
-- **Why**: Reference image transfer avoids shell argument length limits by using stdin instead of argv.
-- **Source**: PR #156
+- **What**: fix(deploy): run service as workflow-runner SA and stop clobbering env vars
+- **Why**: The auto-deploy for #162 (run 27334264476) failed: revision `workflow-runner-00165-cvl` crashed at startup with `403 storage.objects.get` on `gs://nishioka-workflow-engine-state/config/workflows.yaml`. Root cause is **not** the merged code
+- **Source**: PR #163
 
-## 2026-05-30: Restrict manual workflow invocation by source IP
+## 2026-06-11: feat(cloud-cost): add group_by enum (service|sku|day) for finer cost analysis
 
-- **What**: Restrict manual workflow invocation by source IP
-- **Why**: Manual workflow execution now uses an allowlist guard to reduce accidental or unauthorized invocation.
-- **Source**: PR #154
+- **What**: feat(cloud-cost): add group_by enum (service|sku|day) for finer cost analysis
+- **Why**: Follow-up to #161. The personal-agent (Hermes on mm) hit the granularity ceiling of `/cloud-cost` in a real conversation: it could see a Vertex AI spike (¥784 of a ¥795 month, concentrated on 4 days) but could **not** answer "was this image
+- **Source**: PR #162
 
-## 2026-05-11: feat(actions): bundle multi-item LINE notifications via batch mode
+## 2026-06-10: feat(cloud-cost): read-only /cloud-cost endpoint (AWS CE + GCP billing export)
 
-- **What**: feat(actions): bundle multi-item LINE notifications via batch mode
-- **Why**: ファミリーカレンダーで一度に多数の予定変更が起きた際、現状はイベントごとに個別の LINE push が走り、`max_per_execution=10` の rate limiter で10件目以降が失敗する（2026-05-11 06:00 UTC で実際に発生）。
-- **Source**: PR #152
+- **What**: feat(cloud-cost): read-only /cloud-cost endpoint (AWS CE + GCP billing export)
+- **Why**: Hermes Agent（Telegram経由のパーソナルエージェント、Mac mini `mm` 上で稼働）から「今月のAWS/GCPの費用は？」に答えられるようにする。クラウド認証情報をエージェント側ホストに置かないため、**workflow-engine を認証境界（credential proxy）にする** — `/generate-image` が確立した「高権限アクセスはサーバー側、呼び出し側はキーを持たない」パターンの踏襲です。
+- **Source**: PR #161
 
-## 2026-05-02: feat(notion): auto-close Notion tasks when their GitHub PR is merged
+## 2026-06-06: fix(gmail): harden /gmail/bookings (sender-spoofing, thread-safety, retry, path)
 
-- **What**: feat(notion): auto-close Notion tasks when their GitHub PR is merged
-- **Why**: ## Summary - Adds new trigger `notion_pr_tasks` and action `notion_close_task_if_pr_merged` that periodically scan the Notion `tasks` DB for incomplete tasks with GitHub PR URLs and mark them Done once the PR is merged/closed. - Cleans up t
-- **Source**: PR #151
+- **What**: fix(gmail): harden /gmail/bookings (sender-spoofing, thread-safety, retry, path)
+- **Why**: マージ済み #158/#159 への gemini/codex レビュー指摘に対応するフォローアップ。
+- **Source**: PR #160
 
-## 2026-04-28: fix(github_pr_to_notion): skip Notion task creation for merged/closed PRs
+## 2026-06-06: fix(gmail): build read-only Gmail service directly (no userinfo scope)
 
-- **What**: fix(github_pr_to_notion): skip Notion task creation for merged/closed PRs
-- **Why**: - Trigger fetch から action 実行までの間に PR が merge/close されると、古い `open` スナップショットで Notion task が作られてしまう問題を修正 - `GitHubPRToNotionAction` に optional config `github_account` を追加。設定時は LLM 解析前に `GET /repos/{owner}/{repo}/pulls/{number}` で PR 最新状態を再 fet
-- **Source**: PR #149
-
-## 2026-04-20: fix(github_pr_events): prevent duplicate Notion tasks and skip merged PRs
-
-- **What**: fix(github_pr_events): prevent duplicate Notion tasks and skip merged PRs
-- **Why**: ## Summary - `GitHub PR → Notion` ワークフローで同じ PR から Notion タスクが2個作られる問題と、cron 起動時に既に merged/closed の PR でもタスクが作られる問題を修正 - 新規テスト4件追加 (全1265件 pass)
-- **Source**: PR #147
-
-## 2026-04-16: fix(scripts): migrate sync_and_deploy.py from Secret Manager to GCS tokens.json
-
-- **What**: fix(scripts): migrate sync_and_deploy.py from Secret Manager to GCS tokens.json
-- **Why**: After the Secret Manager → GCS migration (89f7552, 630be37), `scripts/sync_and_deploy.py` was left pointing at the obsolete Secret Manager API. Re-running it would update Secret Manager versions while Cloud Run kept reading the unchanged GC
-- **Source**: PR #144
-
-## 2026-03-18: perf(state): add in-memory TTL cache for GCS state reads
-
-- **What**: perf(state): add in-memory TTL cache for GCS state reads
-- **Why**: - Add module-level state cache with 45s TTL to eliminate redundant GCS reads on warm Cloud Run instances - 90%+ of executions (no new items) now hit cache instead of GCS - Returns deep copies to prevent mutation of cached data - Cache updat
-- **Source**: PR #142
+- **What**: fix(gmail): build read-only Gmail service directly (no userinfo scope)
+- **Why**: ## 背景 初回デプロイ後、`/gmail/bookings` が `gmail_init_failed`（`KeyError: 'email'`）になった。
+- **Source**: PR #159

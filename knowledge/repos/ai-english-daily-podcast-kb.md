@@ -7,8 +7,8 @@
 - License: none
 - Default branch: main
 - Created: 2026-04-13
-- Updated: 2026-06-04
-- Collected: 2026-06-05
+- Updated: 2026-06-11
+- Collected: 2026-06-12
 
 ## Tech Stack
 
@@ -18,8 +18,13 @@
 
 ## Architecture / Patterns
 
-- Daily generated content publishing cadence
+- (No clear patterns inferred from README/dependencies in this snapshot)
 
 ## Tech Decisions (from PRs/commits)
 
-- [2026-06-05] Maintain daily episode generation cadence -- Recent commits added one episode per day from 2026-05-30 through 2026-06-05, indicating the repository is operating as a scheduled content pipeline. (source: commits a43cd98..01c2d0c)
+- [2026-06-11] feat: add 2026-06-12 episode -- (Why not stated in PR/commit body) (source: commit d819a0d)
+- [2026-06-11] feat: add 2026-06-12 episode -- (Why not stated in PR/commit body) (source: commit 6a39056)
+- [2026-06-10] feat: add 2026-06-11 episode -- (Why not stated in PR/commit body) (source: commit 65a8ca5)
+- [2026-06-09] feat: add 2026-06-10 episode -- (Why not stated in PR/commit body) (source: commit ae86052)
+- [2026-06-09] feat: add 2026-06-10 episode -- (Why not stated in PR/commit body) (source: commit ed9703a)
+- [2026-06-08] feat: add 2026-06-09 episode -- (Why not stated in PR/commit body) (source: commit f638f7c)

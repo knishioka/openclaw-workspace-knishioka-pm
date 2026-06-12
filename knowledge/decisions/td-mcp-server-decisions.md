@@ -1,37 +1,37 @@
 # td-mcp-server Design Decisions
 
-## 2025-08-03: Fix test expectations for new tool count
+## 2025-08-02: Add mypy configuration and fix major type errors
 
-- **What**: Fix test expectations for new tool count
+- **What**: Add mypy configuration and fix major type errors
 - **Why**: Not explicitly stated in PR/commit body (see source)
-- **Source**: commit 208b033
+- **Source**: commit 4fb9db6
 
-## 2025-08-03: Improve MCP tool descriptions for better AI comprehension
+## 2025-08-01: Use pre-commit in CI for consistent linting
 
-- **What**: Improve MCP tool descriptions for better AI comprehension
+- **What**: Use pre-commit in CI for consistent linting
 - **Why**: Not explicitly stated in PR/commit body (see source)
-- **Source**: commit 14c52b4
+- **Source**: commit 0572edd
 
-## 2025-08-03: Improve workflow retrieval to handle large IDs
+## 2025-08-01: Fix all lint errors and ensure code quality compliance
 
-- **What**: Improve workflow retrieval to handle large IDs
+- **What**: Fix all lint errors and ensure code quality compliance
 - **Why**: Not explicitly stated in PR/commit body (see source)
-- **Source**: commit f8c726f
+- **Source**: commit 737d115
 
-## 2025-08-02: Fix test expectations for new tool count
+## 2025-08-01: Add new MCP tools for project analysis and diagnostics
 
-- **What**: Fix test expectations for new tool count
+- **What**: Add new MCP tools for project analysis and diagnostics
 - **Why**: Not explicitly stated in PR/commit body (see source)
-- **Source**: commit 5a2394b
+- **Source**: commit 27a7fc5
 
-## 2025-08-02: Temporarily disable mypy in CI to unblock development
+## 2025-08-01: Trigger CI with formatting fixes
 
-- **What**: Temporarily disable mypy in CI to unblock development
+- **What**: Trigger CI with formatting fixes
 - **Why**: Not explicitly stated in PR/commit body (see source)
-- **Source**: commit c8063cb
+- **Source**: commit 8c53388
 
-## 2025-07-12: Add gitleaks for Treasure Data API key protection
+## 2025-08-01: Add search and URL analysis tools for improved MCP functionality
 
-- **What**: Add gitleaks for Treasure Data API key protection
+- **What**: Add search and URL analysis tools for improved MCP functionality
 - **Why**: Not explicitly stated in PR/commit body (see source)
-- **Source**: commit e3015c7
+- **Source**: commit 559c0a7
