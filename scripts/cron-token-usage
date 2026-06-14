@@ -1,0 +1,188 @@
+#!/usr/bin/env python3
+"""Summarize token usage of the monitoring cron jobs.
+
+Pulls per-run usage from `openclaw cron runs --id <id>` for the knishioka-pm
+agent's jobs and aggregates tokens over a window, split by:
+  - CLOUD providers (openai / anthropic / ...) — the tokens that actually cost money
+  - LOCAL providers (ollama) — free compute; also the tokens you DIDN'T spend on
+    cloud by offloading monitoring to a local model
+
+So the report doubles as a scoreboard for the local-LLM offload strategy: a big
+local number next to a small cloud number means the offload is paying off.
+
+Data source fields (per finished run): model, provider, usage{input_tokens,
+output_tokens, total_tokens}, durationMs, status.
+"""
+
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import json
+import subprocess
+import sys
+from collections import defaultdict
+from pathlib import Path
+from typing import Any
+
+
+AGENT = "knishioka-pm"
+LOCAL_PROVIDERS = {"ollama"}
+OUTPUT = Path("monitoring/cron-token-usage.md")
+
+
+def now_ms() -> int:
+    return int(dt.datetime.now(dt.timezone.utc).timestamp() * 1000)
+
+
+def run_openclaw(args: list[str], timeout: int = 60) -> Any:
+    proc = subprocess.run(["openclaw", *args], capture_output=True, text=True, timeout=timeout)
+    if proc.returncode != 0:
+        raise RuntimeError(f"openclaw {' '.join(args)} exit {proc.returncode}: {proc.stderr.strip()[:200]}")
+    start = proc.stdout.find("{")
+    if start < 0:
+        raise RuntimeError(f"openclaw {' '.join(args)}: no JSON in output")
+    return json.loads(proc.stdout[start:])
+
+
+def list_jobs(agent: str) -> list[dict[str, Any]]:
+    data = run_openclaw(["cron", "list", "--json"])
+    jobs = data.get("jobs", data) if isinstance(data, dict) else data
+    if not agent:
+        return list(jobs)
+    return [j for j in jobs if j.get("agentId") == agent]
+
+
+def job_runs(job_id: str, limit: int) -> list[dict[str, Any]]:
+    try:
+        data = run_openclaw(["cron", "runs", "--id", job_id, "--limit", str(limit)])
+    except Exception as exc:
+        print(f"warn: runs for {job_id}: {exc}", file=sys.stderr)
+        return []
+    return data.get("entries", []) if isinstance(data, dict) else []
+
+
+def deliver_whatsapp(to: str, text: str, timeout: int = 60) -> bool:
+    try:
+        proc = subprocess.run(
+            ["openclaw", "message", "send", "--channel", "whatsapp", "--target", to, "--message", text],
+            capture_output=True, text=True, timeout=timeout,
+        )
+    except Exception as exc:
+        print(f"deliver: {exc!r}", file=sys.stderr)
+        return False
+    return proc.returncode == 0
+
+
+def fmt(n: int) -> str:
+    return f"{n:,}"
+
+
+def main(argv: list[str] | None = None) -> int:
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--agent", default=AGENT)
+    p.add_argument("--days", type=int, default=14)
+    p.add_argument("--limit", type=int, default=100, help="Max runs to scan per job")
+    p.add_argument("--names", nargs="*", default=None, help="Restrict to these job names (default: agent's monitoring jobs)")
+    p.add_argument("--output", type=Path, default=OUTPUT)
+    p.add_argument("--to", default=None)
+    p.add_argument("--deliver", action="store_true")
+    args = p.parse_args(argv)
+
+    cutoff = now_ms() - args.days * 86400 * 1000
+    jobs = list_jobs(args.agent)
+    if args.names:
+        jobs = [j for j in jobs if j.get("name") in set(args.names)]
+
+    per_job = []
+    for j in jobs:
+        jid, name = j.get("id"), j.get("name")
+        if not jid:
+            continue
+        # Tokens are bucketed per-run by that run's OWN provider, so a job that
+        # migrated mid-window (cloud → local) is split correctly instead of
+        # being collapsed to a single provider.
+        agg = {
+            "name": name, "runs": 0, "ok": 0, "err": 0, "dur_ms": 0,
+            "cloud_tok": 0, "local_tok": 0, "models": set(),
+        }
+        seen_runs = set()
+        for e in job_runs(jid, args.limit):
+            if e.get("action") != "finished":
+                continue
+            ts = e.get("runAtMs") or e.get("ts") or 0
+            if ts < cutoff:
+                continue
+            key = e.get("runId") or ts
+            if key in seen_runs:
+                continue
+            seen_runs.add(key)
+            agg["runs"] += 1
+            agg["ok" if e.get("status") == "ok" else "err"] += 1
+            provider = e.get("provider") or "?"
+            model = e.get("model") or "?"
+            agg["models"].add(f"{provider}:{model}")
+            total = int((e.get("usage") or {}).get("total_tokens") or 0)
+            if provider in LOCAL_PROVIDERS:
+                agg["local_tok"] += total
+            else:
+                agg["cloud_tok"] += total
+            agg["dur_ms"] += int(e.get("durationMs") or 0)
+        if agg["runs"]:
+            agg["total"] = agg["cloud_tok"] + agg["local_tok"]
+            per_job.append(agg)
+
+    per_job.sort(key=lambda a: a["cloud_tok"], reverse=True)
+    cloud_total = sum(a["cloud_tok"] for a in per_job)
+    local_total = sum(a["local_tok"] for a in per_job)
+    runs_total = sum(a["runs"] for a in per_job)
+
+    lines = [
+        f"# Monitoring cron token usage — last {args.days}d",
+        "",
+        f"- generated_utc: {dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')}",
+        f"- agent: {args.agent} | jobs with runs: {len(per_job)} | total runs: {runs_total}",
+        f"- **CLOUD total (paid): {fmt(cloud_total)} tok**",
+        f"- **LOCAL total (free / offloaded): {fmt(local_total)} tok**",
+        "",
+        "| job | models (provider:model) | runs | ok | err | cloud_tok | local_tok |",
+        "| --- | --- | ---: | ---: | ---: | ---: | ---: |",
+    ]
+    for a in per_job:
+        models = ", ".join(sorted(a["models"]))
+        lines.append(
+            f"| {a['name']} | {models} | {a['runs']} | {a['ok']} | {a['err']} "
+            f"| {fmt(a['cloud_tok'])} | {fmt(a['local_tok'])} |"
+        )
+    lines += [
+        "",
+        "_CLOUD = 実際に課金されるトークン。LOCAL = ローカルollamaで処理した分（無料 / クラウドに払わずに済んだ分）。_",
+        "_1ジョブに複数モデルが並ぶ場合、期間内でモデルが切り替わった（例: cloud→local 移行 or フォールバック）ことを示す。_",
+    ]
+    report = "\n".join(lines)
+
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(report + "\n")
+
+    # Compact WhatsApp digest.
+    cloud_jobs = [a for a in per_job if a["cloud_tok"] > 0]
+    local_jobs = [a for a in per_job if a["local_tok"] > 0]
+    top_cloud = ", ".join(f"{a['name']}={fmt(a['cloud_tok'])}" for a in cloud_jobs[:3]) or "なし"
+    digest = (
+        f"📊 監視cron トークン使用 (直近{args.days}日)\n"
+        f"☁️ cloud(課金): {fmt(cloud_total)} tok / {len(cloud_jobs)}ジョブ\n"
+        f"✅ local(節約): {fmt(local_total)} tok / {len(local_jobs)}ジョブ\n"
+        f"cloud上位: {top_cloud}"
+    )
+
+    delivered = False
+    if args.deliver and args.to:
+        delivered = deliver_whatsapp(args.to, digest)
+
+    print(report)
+    print(f"\n[cloud={fmt(cloud_total)} local={fmt(local_total)} runs={runs_total} delivered={delivered} wrote={args.output}]")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

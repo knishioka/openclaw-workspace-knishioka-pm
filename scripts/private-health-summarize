@@ -1,0 +1,124 @@
+#!/usr/bin/env python3
+"""Summarize private-repo health locally and deliver it to WhatsApp.
+
+This is the PRODUCTION CONSUMER of the ollama-summary-eval benchmark: it picks
+the model the benchmark currently recommends and uses it (locally, via Ollama)
+to turn monitoring/private-health.json into a short RED/YELLOW digest.
+
+Privacy: the input contains private repo names. They are sent ONLY to the LOCAL
+Ollama host and to the operator's own WhatsApp — never to a cloud model. (The
+benchmark that picks the model runs on synthetic golden data, so the cloud judge
+never sees real repo names.) Output goes only to a gitignored file.
+
+The prompt and TSV formatting are imported from scripts/ollama-summary-eval so
+the production summary uses the EXACT format the benchmark scored.
+"""
+
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import importlib.util
+import os
+import subprocess
+import sys
+from importlib.machinery import SourceFileLoader
+from pathlib import Path
+from typing import Any
+
+
+HERE = Path(__file__).resolve().parent
+
+
+def load_eval_module() -> Any:
+    loader = SourceFileLoader("ollama_summary_eval", str(HERE / "ollama-summary-eval"))
+    spec = importlib.util.spec_from_loader("ollama_summary_eval", loader)
+    mod = importlib.util.module_from_spec(spec)
+    loader.exec_module(mod)
+    return mod
+
+
+def now_local_iso() -> str:
+    return dt.datetime.now().astimezone().isoformat(timespec="seconds")
+
+
+def deliver_whatsapp(to: str, text: str, timeout: int = 60) -> bool:
+    try:
+        proc = subprocess.run(
+            ["openclaw", "message", "send", "--channel", "whatsapp", "--target", to, "--message", text],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+    except (subprocess.TimeoutExpired, FileNotFoundError) as exc:
+        print(f"deliver: failed to spawn openclaw ({exc!r})", file=sys.stderr)
+        return False
+    if proc.returncode != 0:
+        print(f"deliver: openclaw exit {proc.returncode}: {proc.stderr.strip()[:200]}", file=sys.stderr)
+        return False
+    return True
+
+
+def main(argv: list[str] | None = None) -> int:
+    ev = load_eval_module()
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--host", default=os.environ.get("OLLAMA_HOST", ev.DEFAULT_HOST))
+    parser.add_argument("--health-file", type=Path, default=Path("monitoring/private-health.json"))
+    parser.add_argument("--report", type=Path, default=ev.OUTPUT_REPORT)
+    parser.add_argument("--default-model", default="gemma4:31b-mlx")
+    parser.add_argument("--model", default=None, help="Override the model instead of the benchmark recommendation")
+    parser.add_argument("--output", type=Path, default=Path("monitoring/private-health-summary.md"))
+    parser.add_argument("--to", default=os.environ.get("KNISHIOKA_ALERT_TO"))
+    parser.add_argument("--no-deliver", action="store_true")
+    parser.add_argument("--num-ctx", type=int, default=8192)
+    parser.add_argument("--timeout", type=int, default=300)
+    args = parser.parse_args(argv)
+
+    if not args.health_file.is_file():
+        print(f"FAILED: missing {args.health_file}", file=sys.stderr)
+        return 1
+    rows = ev.normalize_health_rows(__import__("json").loads(args.health_file.read_text()))
+
+    model = args.model or ev.read_recommended_model(args.report, args.default_model)
+
+    if not rows:
+        summary = "Summary: RED 0 / YELLOW 0 / GREEN 0\nUrgent: なし\nWatch: なし\nStable: 監視対象リポなし\nNext: 監視対象を追加する"
+        seconds = 0.0
+    else:
+        ev.unload_models(args.host, [model])
+        prompt = ev.build_prompt(ev.health_tsv(rows))
+        res = ev.run_model(args.host, model, prompt, args.num_ctx, args.timeout)
+        ev.unload_models(args.host, [model])
+        if not res["ok"]:
+            print(f"FAILED: ollama summarize error: {res['error']}", file=sys.stderr)
+            return 1
+        summary = res["summary"]
+        seconds = res["seconds"]
+
+    exp = ev.expected(rows)
+    counts = exp["counts"]
+    header = f"🩺 Private repo health ({dt.date.today().isoformat()}) — via {model}"
+    body = f"{header}\n\n{summary}"
+
+    # Persist (gitignored — contains private repo names).
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(
+        f"<!-- generated {now_local_iso()} model={model} seconds={seconds} "
+        f"counts={counts} -->\n\n{body}\n"
+    )
+
+    delivered = False
+    if not args.no_deliver:
+        if not args.to:
+            print("deliver: no --to / KNISHIOKA_ALERT_TO set; skipping delivery", file=sys.stderr)
+        else:
+            delivered = deliver_whatsapp(args.to, body)
+
+    print(body)
+    print(f"\n[model={model} counts={counts} delivered={delivered} wrote={args.output}]")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,136 @@
+#!/usr/bin/env python3
+"""Collect private-repo health into monitoring/private-health.json — pure script.
+
+This replaces the multi-step agent loop that the private-repo-check cron used to
+drive. Running scripts/repo-health over each repo and assembling the array needs
+NO LLM intelligence (it is all gh/jq), so doing it in the agent forced a small
+local model to orchestrate ~10 tool calls and it kept failing over to a cloud
+model. Here the whole job is one deterministic command; the cron's agent just
+invokes it and returns DONE, so there is nothing to fall back from.
+
+Output is the FULL nested repo-health schema (status, security.dependabot_alerts,
+ci.last_status, activity.days_inactive, issues.open_count, pull_requests.open_count)
+so private-health-summary can ground its reasons in dependabot/ci.
+
+Privacy: writes only to the gitignored monitoring/private-health.json.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+from typing import Any
+
+
+def _ensure_pyyaml() -> None:
+    """Re-exec under a PyYAML-capable interpreter if the current one lacks it.
+
+    Cron launches with PATH=/opt/homebrew/bin:... where `python3` is the
+    Homebrew interpreter, which on this host has NO PyYAML — so `import yaml`
+    would crash the job at startup (the same trap ds-pm's cron-watchdog wrapper
+    guards against). /usr/bin/python3 (system) and the mise python both ship
+    PyYAML; fall back to `uv run --with pyyaml` if neither is found.
+    """
+    try:
+        import yaml  # noqa: F401
+        return
+    except ModuleNotFoundError:
+        pass
+    if os.environ.get("_PRC_REEXEC") == "1":
+        sys.exit("FAILED: re-exec interpreter still lacks PyYAML")
+    here = os.path.abspath(__file__)
+    env_flag = {"_PRC_REEXEC": "1"}
+    for cand in ("/usr/bin/python3", "python3.13", "python3.12", "python3.11"):
+        path = cand if os.path.isabs(cand) else shutil.which(cand)
+        if not path or not os.path.exists(path):
+            continue
+        if subprocess.run([path, "-c", "import yaml"], capture_output=True).returncode == 0:
+            os.execve(path, [path, here, *sys.argv[1:]], {**os.environ, **env_flag})
+    uv = shutil.which("uv")
+    if uv:
+        os.execve(uv, [uv, "run", "--with", "pyyaml", "python3", here, *sys.argv[1:]], {**os.environ, **env_flag})
+    sys.exit("FAILED: no PyYAML-capable interpreter found (tried /usr/bin/python3, python3.x, uv)")
+
+
+_ensure_pyyaml()
+import yaml  # noqa: E402
+
+HERE = Path(__file__).resolve().parent
+REPO_HEALTH = HERE / "repo-health"
+
+
+def active_private_repos(repos_yaml: Path) -> list[str]:
+    data = yaml.safe_load(repos_yaml.read_text())
+    out = []
+    for r in data.get("private_repos", []):
+        if str(r.get("status", "")).lower() == "on-hold":
+            continue
+        owner, name = r.get("owner"), r.get("name")
+        if owner and name:
+            out.append(f"{owner}/{name}")
+    return out
+
+
+def collect_one(repo: str, timeout: int) -> dict[str, Any] | None:
+    try:
+        proc = subprocess.run(
+            [str(REPO_HEALTH), repo],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired:
+        print(f"warn: {repo}: repo-health timed out", file=sys.stderr)
+        return None
+    if proc.returncode != 0:
+        print(f"warn: {repo}: repo-health exit {proc.returncode}: {proc.stderr.strip()[:160]}", file=sys.stderr)
+        return None
+    try:
+        return json.loads(proc.stdout)
+    except json.JSONDecodeError as exc:
+        print(f"warn: {repo}: bad JSON ({exc})", file=sys.stderr)
+        return None
+
+
+def main(argv: list[str] | None = None) -> int:
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--repos", type=Path, default=Path("config/repos.yaml"))
+    p.add_argument("--output", type=Path, default=Path("monitoring/private-health.json"))
+    p.add_argument("--timeout", type=int, default=120, help="Per-repo repo-health timeout (s)")
+    args = p.parse_args(argv)
+
+    repos = active_private_repos(args.repos)
+    if not repos:
+        print("FAILED: no active private repos found", file=sys.stderr)
+        return 1
+
+    rows: list[dict[str, Any]] = []
+    failed: list[str] = []
+    for repo in repos:
+        row = collect_one(repo, args.timeout)
+        if row is None:
+            failed.append(repo)
+        else:
+            rows.append(row)
+
+    if not rows:
+        print(f"FAILED: all {len(repos)} repos failed", file=sys.stderr)
+        return 1
+
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(rows, ensure_ascii=False, indent=2) + "\n")
+
+    counts: dict[str, int] = {}
+    for r in rows:
+        counts[r.get("status", "UNKNOWN")] = counts.get(r.get("status", "UNKNOWN"), 0) + 1
+    print(f"wrote {args.output}: {len(rows)} repos {counts}" + (f" (failed: {failed})" if failed else ""))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

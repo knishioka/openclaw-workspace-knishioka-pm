@@ -363,9 +363,11 @@ jobs:
       # 深夜帯に実行（mbpは常時起動のためローカルollamaが確実に使われ、長時間ランも無害）。
       expr: 0 3 * * 3
     thinking: low
-    # ローカルollama(mbp/Tailscale)を主・cloudをフォールバックに使いトークンを節約。
-    # ローカル30Bはツールコール・ループが遅いため timeout を広く取る（週1・深夜可なので許容）。
-    timeout_seconds: 1800
+    # 収集は scripts/private-repo-collect が決定論的に全部やる（gh/jq のみ・LLM不要）。
+    # agent は1コマンド叩いて DONE するだけなので、多段ツールループが無く、
+    # 小型ローカルモデルでもフォールバックせず確実に完走する（旧構成は 30B が
+    # 7リポ分のツールループを捌けず gpt-5.x へフォールバックし課金が発生していた）。
+    timeout_seconds: 600
     model: ollama/qwen3-coder:30b
     delivery:
       mode: none
@@ -375,28 +377,34 @@ jobs:
     message: |
       Private repo health check.
 
-      重要: このジョブの出力は一切コミットしない。
+      これは「収集」だけのジョブ。要約・配信は後段の private-health-summary が行う。
 
       手順:
-      1) config/repos.yaml の private_repos: セクションを読む
-      2) status: on-hold のリポは除外
-      3) 各リポに対して scripts/repo-health {owner}/{name} を実行
-      4) 結果を monitoring/private-health.json に書き出す（上書き）
-        フォーマット: [{repo, status, days_inactive, open_issues, ci_status, ...}, ...]
-      5) git add も git commit もしない
-      6) monitoring/private-health.json を書き終えたら、それで完了。以下を厳守する:
-         - サマリーや整形は一切不要。jq / ruby / python / node などのスクリプトを書いて実行してはならない。
-         - 追加のツール呼び出し・再読み込み・再チェックをしない。
-         - 最後に「DONE」とだけ一言返して即座に終了する。
-      （成果物は private-health.json のみ。要約はどこにも配信されないため作る必要がない。）
+      1) cd /Users/ken/.openclaw/workspace-knishioka-pm
+      2) python3 scripts/private-repo-collect を実行
+         - config/repos.yaml の private_repos（on-hold 除外）に repo-health を回し、
+           フルJSON(ネスト)を monitoring/private-health.json に書き出す
+         - 出力は gitignored。git add / commit / push はしない
+      3) python の exit code を見るだけでよい。exit 0 なら成功。
+
+      重要:
+      - step 2 のあと、追加のツール呼び出し・再読み込み・整形を一切しない。
+        自分で repo-health をループしたり jq/python で組み直したりしてはならない
+        （それをやると 30B が暴走して cloud にフォールバックする。スクリプトに任せる）。
+      - 最後に「DONE」または「FAILED」とだけ一言返して即座に終了する。
   - name: ollama-summary-eval
-    description: Daily local Ollama model comparison for repo-health summaries
+    description: Ollama model comparison for repo-health summaries (hybrid scoring, golden set)
     schedule:
       kind: cron
-      # private-repo-check(水03:00)の後に走らせる。その他の日は最新private-healthで同一条件比較。
-      expr: 45 3 * * *
+      # 毎週水曜 04:00 KUL に発火するが、--skip-if-unchanged により
+      # 「ゴールデンセット / モデル一覧 / judgeモデル / 採点版」の fingerprint が
+      # 前回実走と同じで、かつ前回から --max-stale-days(=14) 未満なら no-op する。
+      # 実質「変更時＋約2週ごと」。temperature=0 で同入力は毎回同結果になる無駄打ちを排除。
+      expr: 0 4 * * 3
     thinking: low
-    timeout_seconds: 900
+    # 実走日はゴールデン7ケース×4モデル×judge3サンプルのクラウド審査を含むため長め。
+    # SKIP日は数秒で終わる。
+    timeout_seconds: 3600
     model: ollama/qwen3-coder:30b
     delivery:
       mode: none
@@ -404,23 +412,26 @@ jobs:
       to: "${KNISHIOKA_ALERT_TO}"
       best_effort: true
     message: |
-      Ollama summary model evaluation.
+      Ollama summary model evaluation (hybrid scoring).
 
-      重要:
-      - このジョブは private リポ名を含むため、結果は gitignored の monitoring/ollama-summary-eval.jsonl にのみ保存する。
+      概要:
+      - 入力は匿名合成のゴールデンセット scripts/eval-cases/cases.json（private リポ名を含まない）。
+        private-health.json への依存は廃止。
+      - 採点はハイブリッド: 決定論チェック(0-6) + クラウドLLM審査(0-4) = 0-10。
+        審査モデルは候補と別のクラウド強モデル(既定 openai/gpt-5.4)を openclaw 経由で呼ぶ。
+      - 結果は gitignored の monitoring/ollama-summary-eval.jsonl にのみ追記。
       - git add / git commit / git push は実行しない。
-      - Ollama native API の検証が目的。OpenAI互換 /v1 は使わない。
 
       手順:
       1) cd /Users/ken/.openclaw/workspace-knishioka-pm
-      2) python3 scripts/ollama-summary-eval run を実行
-         - qwen3-coder:30b / gemma4:31b-mlx / glm4:9b / qwen3.5:4b-mlx を比較
-         - 各モデルは keep_alive=0 で前後にアンロード
-         - num_ctx=8192 / think=false / temperature=0
-      3) python の exit code を見るだけでよい。成果物
-         (monitoring/ollama-summary-eval.jsonl) が書けていれば成功。
+      2) python3 scripts/ollama-summary-eval run --skip-if-unchanged を実行
+         - 候補: qwen3-coder:30b / gemma4:31b-mlx / glm4:9b / qwen3.5:4b-mlx
+         - 各モデルは keep_alive=0 で前後にアンロード / num_ctx=8192 / think=false / temperature=0
+         - fingerprint 一致かつ前回実走<14日なら "SKIP: ..." を出して即終了する（正常）
+      3) python の exit code を見るだけでよい。exit 0 なら成功
+         （SKIP も実走完了も exit 0）。
 
-      重要（ローカル30Bの暴走防止 / private-repo-check と同じ縛り）:
+      重要（ローカル30Bの暴走防止）:
       - step 2 のあと、追加のツール呼び出し・再読み込み・jsonl の再パース・整形を
         一切しない。jq / ruby / python / node でサマリーを作ってはならない。
       - 最後に「DONE」または「FAILED」とだけ一言返して即座に終了する。
@@ -444,10 +455,81 @@ jobs:
       Ollama summary model weekly review.
 
       重要:
-      - private リポ名を含むため、集計結果は gitignored の monitoring/ollama-summary-eval-report.md にのみ保存する。
+      - 集計結果は gitignored の monitoring/ollama-summary-eval-report.md にのみ保存する。
       - git add / git commit / git push は実行しない。
 
       手順:
       1) cd /Users/ken/.openclaw/workspace-knishioka-pm
-      2) python3 scripts/ollama-summary-eval report --days 7 を実行
-      3) 生成された monitoring/ollama-summary-eval-report.md の recommended_for_repo_health_summary とモデル別スコアを短く返す。
+      2) python3 scripts/ollama-summary-eval report --days 21 を実行
+         （eval は実質隔週実行のため、7日窓だと実走が無い週は空になる。21日窓にする）
+      3) 生成された monitoring/ollama-summary-eval-report.md の
+         recommended_for_repo_health_summary とモデル別 avg_total/avg_det/avg_llm、
+         および「Hardest cases」を短く返す。
+  - name: private-health-summary
+    description: Weekly local-model summary of private repo health, delivered to WhatsApp
+    schedule:
+      kind: cron
+      # private-repo-check(水03:00) と ollama-summary-eval(水04:00) の後に走る。
+      # private-health.json は週1更新なので、要約も週1で十分（同データの再要約を避ける）。
+      expr: 0 5 * * 3
+    thinking: low
+    timeout_seconds: 600
+    model: ollama/qwen3-coder:30b
+    delivery:
+      # 配信はスクリプトが openclaw message send で直接行うため、cron 側は none（二重送信回避）。
+      mode: none
+      channel: whatsapp
+      to: "${KNISHIOKA_ALERT_TO}"
+      best_effort: true
+    message: |
+      Private repo health summary (推奨ローカルモデル → WhatsApp).
+
+      これは ollama-summary-eval ベンチが選んだ推奨ローカルモデルを実際に使う「出口」ジョブ。
+      private リポ名はローカル ollama と自分の WhatsApp にのみ送る（cloud には一切出さない）。
+
+      手順:
+      1) cd /Users/ken/.openclaw/workspace-knishioka-pm
+      2) python3 scripts/private-health-summarize --to "${KNISHIOKA_ALERT_TO}" を実行
+         - monitoring/private-health.json を読み、推奨モデル（無ければ gemma4:31b-mlx）で
+           RED/YELLOW 要約を生成 → WhatsApp 配信 → monitoring/private-health-summary.md 保存
+         - 推奨モデルは monitoring/ollama-summary-eval-report.md から自動で読む
+         - git add / commit / push はしない
+      3) python の exit code を見るだけでよい。exit 0 なら成功。
+
+      重要（ローカル30Bの暴走防止）:
+      - step 2 のあと、追加のツール呼び出し・再読み込み・整形を一切しない。
+        jq / ruby / python / node で要約を作り直してはならない（配信はスクリプトが済ませている）。
+      - 最後に「DONE」または「FAILED」とだけ一言返して即座に終了する。
+  - name: monitoring-token-report
+    description: Weekly token-usage summary of the monitoring cron jobs (cloud vs local), to WhatsApp
+    schedule:
+      kind: cron
+      # 毎週月曜 08:00 KUL。前週の監視ジョブが出したトークン量を集計して配信。
+      expr: 0 8 * * 1
+    thinking: low
+    timeout_seconds: 300
+    model: ollama/qwen3-coder:30b
+    delivery:
+      # 配信はスクリプトが openclaw message send で直接行うため none（二重送信回避）。
+      mode: none
+      channel: whatsapp
+      to: "${KNISHIOKA_ALERT_TO}"
+      best_effort: true
+    message: |
+      Monitoring cron token-usage report.
+
+      監視cron(knishioka-pm)が直近で使ったトークンを、cloud(課金) と local(無料/節約) に
+      分けて集計し、WhatsApp に配信する。どのジョブがcloudに落ちている/課金しているかを可視化する。
+
+      手順:
+      1) cd /Users/ken/.openclaw/workspace-knishioka-pm
+      2) python3 scripts/cron-token-usage --days 7 --deliver --to "${KNISHIOKA_ALERT_TO}" を実行
+         - openclaw cron runs から各ジョブの usage を集計
+         - run単位で provider を見て cloud/local に振り分け（移行/フォールバックも正しく分割）
+         - monitoring/cron-token-usage.md に保存 + WhatsApp 配信
+         - git add / commit / push はしない
+      3) python の exit code を見るだけでよい。exit 0 なら成功。
+
+      重要（ローカル30Bの暴走防止）:
+      - step 2 のあと、追加のツール呼び出し・整形を一切しない。
+      - 最後に「DONE」または「FAILED」とだけ一言返して即座に終了する。
