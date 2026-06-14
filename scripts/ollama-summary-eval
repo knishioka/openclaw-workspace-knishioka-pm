@@ -349,7 +349,10 @@ def evaluate_deterministic(text: str, exp: dict[str, Any], rows: list[dict[str, 
 
     # 8. no hallucinated repo slug (every owner/name token must be a real input)
     allowed = all_input_names(rows)
-    slugs = {s for s in SLUG_RE.findall(text)}
+    # A real GitHub "owner/name" never has a dot in the owner segment, so a
+    # dotted first segment means a URL/path (github.com/owner, gitlab.com/x) —
+    # not a hallucinated repo slug. Drop those before the membership check.
+    slugs = {s for s in SLUG_RE.findall(text) if "." not in s.split("/", 1)[0]}
     hallucinated = sorted(s for s in slugs if s not in allowed and s.rsplit("/", 1)[-1] not in allowed)
     checks["no_hallucinated_repo"] = not hallucinated
 
@@ -512,7 +515,7 @@ def run_model(host: str, model: str, prompt: str, num_ctx: int, timeout: int) ->
             "tok_s": round(eval_count / (eval_duration / 1e9), 2) if eval_duration else None,
             "summary": text,
         }
-    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+    except Exception as exc:  # noqa: BLE001 — unattended batch: record the failed model and continue
         return {
             "ok": False,
             "error": repr(exc),
@@ -600,7 +603,10 @@ def run_eval(args: argparse.Namespace) -> int:
 
             det_score = det["det_score"] if det else 0.0
             llm_score = judge["llm_score"] if (judge and judge["ok"]) else None
-            total = round(det_score + llm_score, 3) if llm_score is not None else None
+            # Under --no-judge there is no LLM component, so the deterministic
+            # score IS the total (out of DET_MAX); only treat None as "unscored"
+            # when judging was requested but failed.
+            total = round(det_score + llm_score, 3) if llm_score is not None else (det_score if args.no_judge else None)
 
             record = {
                 "ts": ts,
@@ -617,7 +623,7 @@ def run_eval(args: argparse.Namespace) -> int:
                 "det_score": det_score,
                 "llm_score": llm_score,
                 "total_score": total,
-                "total_max": TOTAL_MAX,
+                "total_max": DET_MAX if args.no_judge else TOTAL_MAX,
             }
             records.append(record)
             with args.output.open("a") as f:

@@ -87,6 +87,11 @@ def collect_one(repo: str, timeout: int) -> dict[str, Any] | None:
     except subprocess.TimeoutExpired:
         print(f"warn: {repo}: repo-health timed out", file=sys.stderr)
         return None
+    except OSError as exc:
+        # repo-health missing / not executable / unlaunchable — skip this repo
+        # rather than aborting the whole collection loop.
+        print(f"warn: {repo}: failed to execute repo-health ({exc})", file=sys.stderr)
+        return None
     if proc.returncode != 0:
         print(f"warn: {repo}: repo-health exit {proc.returncode}: {proc.stderr.strip()[:160]}", file=sys.stderr)
         return None
