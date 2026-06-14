@@ -15,8 +15,11 @@ monitoring/health-trend.jsonl
 monitoring/last-suggested.json
 monitoring/active-session.json
 monitoring/private-health.json
+monitoring/private-health-summary.md
 monitoring/ollama-summary-eval.jsonl
 monitoring/ollama-summary-eval-report.md
+monitoring/ollama-summary-eval.fingerprint.json
+monitoring/cron-token-usage.md
 monitoring/issue-tracker.jsonl
 monitoring/site-qa-history.jsonl
 

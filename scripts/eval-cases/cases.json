@@ -1,0 +1,416 @@
+{
+  "_comment": "Golden test set for ollama-summary-eval. SYNTHETIC/anonymized repos only (no private names) so the set is committable and safe to send to a cloud judge. Each case provides `rows` in the same schema as monitoring/private-health.json; the harness computes the ground truth from `rows` via expected(). Add hard cases here to make the eval more discriminating. Editing this file changes the fingerprint and triggers a re-run.",
+  "schema_version": 2,
+  "cases": [
+    {
+      "name": "easy-single-red",
+      "description": "Baseline: 1 RED (clear urgent via dependabot alerts), no YELLOW, several GREEN. Most models should ace this.",
+      "rows": [
+        {
+          "repo": "acme/payments-api",
+          "status": "RED",
+          "security": { "dependabot_alerts": 4 },
+          "ci": { "last_status": "failure" },
+          "activity": { "days_inactive": 9 },
+          "issues": { "open_count": 12 },
+          "pull_requests": { "open_count": 3 }
+        },
+        {
+          "repo": "acme/web-dashboard",
+          "status": "GREEN",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 1 },
+          "issues": { "open_count": 4 },
+          "pull_requests": { "open_count": 1 }
+        },
+        {
+          "repo": "acme/mobile-app",
+          "status": "GREEN",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 2 },
+          "issues": { "open_count": 2 },
+          "pull_requests": { "open_count": 0 }
+        },
+        {
+          "repo": "acme/docs-site",
+          "status": "GREEN",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 5 },
+          "issues": { "open_count": 1 },
+          "pull_requests": { "open_count": 0 }
+        },
+        {
+          "repo": "acme/infra-tf",
+          "status": "GREEN",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 3 },
+          "issues": { "open_count": 0 },
+          "pull_requests": { "open_count": 0 }
+        }
+      ]
+    },
+    {
+      "name": "multi-red-alert-tiebreak",
+      "description": "Three REDs. Urgent must be the RED with the most dependabot alerts (alerts outrank ci and inactivity in urgency_key). Catches models that just pick the first RED.",
+      "rows": [
+        {
+          "repo": "globex/auth-service",
+          "status": "RED",
+          "security": { "dependabot_alerts": 2 },
+          "ci": { "last_status": "failure" },
+          "activity": { "days_inactive": 40 },
+          "issues": { "open_count": 8 },
+          "pull_requests": { "open_count": 2 }
+        },
+        {
+          "repo": "globex/billing-core",
+          "status": "RED",
+          "security": { "dependabot_alerts": 11 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 4 },
+          "issues": { "open_count": 5 },
+          "pull_requests": { "open_count": 1 }
+        },
+        {
+          "repo": "globex/notify-worker",
+          "status": "RED",
+          "security": { "dependabot_alerts": 1 },
+          "ci": { "last_status": "failure" },
+          "activity": { "days_inactive": 60 },
+          "issues": { "open_count": 3 },
+          "pull_requests": { "open_count": 0 }
+        },
+        {
+          "repo": "globex/ui-kit",
+          "status": "YELLOW",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "skipped" },
+          "activity": { "days_inactive": 20 },
+          "issues": { "open_count": 6 },
+          "pull_requests": { "open_count": 4 }
+        },
+        {
+          "repo": "globex/landing",
+          "status": "GREEN",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 2 },
+          "issues": { "open_count": 1 },
+          "pull_requests": { "open_count": 0 }
+        },
+        {
+          "repo": "globex/analytics",
+          "status": "GREEN",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 7 },
+          "issues": { "open_count": 2 },
+          "pull_requests": { "open_count": 1 }
+        }
+      ]
+    },
+    {
+      "name": "alerts-vs-ci-priority",
+      "description": "Two REDs: one with ci=failure but 0 alerts, one with 7 alerts but ci=success. urgency_key ranks alerts above ci, so urgent = the 7-alerts repo. Tests precise tiebreak ordering and security-first reasoning.",
+      "rows": [
+        {
+          "repo": "initech/gateway",
+          "status": "RED",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "failure" },
+          "activity": { "days_inactive": 3 },
+          "issues": { "open_count": 9 },
+          "pull_requests": { "open_count": 2 }
+        },
+        {
+          "repo": "initech/datastore",
+          "status": "RED",
+          "security": { "dependabot_alerts": 7 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 1 },
+          "issues": { "open_count": 2 },
+          "pull_requests": { "open_count": 0 }
+        },
+        {
+          "repo": "initech/cron-jobs",
+          "status": "GREEN",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 6 },
+          "issues": { "open_count": 1 },
+          "pull_requests": { "open_count": 0 }
+        },
+        {
+          "repo": "initech/portal",
+          "status": "GREEN",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 4 },
+          "issues": { "open_count": 3 },
+          "pull_requests": { "open_count": 1 }
+        }
+      ]
+    },
+    {
+      "name": "many-yellow-watch-completeness",
+      "description": "1 RED, 5 YELLOW, 2 GREEN. The Watch line must list ALL five YELLOW repos. Catches models that truncate or drop YELLOW entries.",
+      "rows": [
+        {
+          "repo": "umbrella/core-api",
+          "status": "RED",
+          "security": { "dependabot_alerts": 3 },
+          "ci": { "last_status": "failure" },
+          "activity": { "days_inactive": 15 },
+          "issues": { "open_count": 10 },
+          "pull_requests": { "open_count": 2 }
+        },
+        {
+          "repo": "umbrella/search",
+          "status": "YELLOW",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "skipped" },
+          "activity": { "days_inactive": 25 },
+          "issues": { "open_count": 7 },
+          "pull_requests": { "open_count": 3 }
+        },
+        {
+          "repo": "umbrella/recommend",
+          "status": "YELLOW",
+          "security": { "dependabot_alerts": 1 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 30 },
+          "issues": { "open_count": 4 },
+          "pull_requests": { "open_count": 1 }
+        },
+        {
+          "repo": "umbrella/ingest",
+          "status": "YELLOW",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "none" },
+          "activity": { "days_inactive": 18 },
+          "issues": { "open_count": 5 },
+          "pull_requests": { "open_count": 0 }
+        },
+        {
+          "repo": "umbrella/scheduler",
+          "status": "YELLOW",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 22 },
+          "issues": { "open_count": 2 },
+          "pull_requests": { "open_count": 2 }
+        },
+        {
+          "repo": "umbrella/reporting",
+          "status": "YELLOW",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "skipped" },
+          "activity": { "days_inactive": 28 },
+          "issues": { "open_count": 6 },
+          "pull_requests": { "open_count": 1 }
+        },
+        {
+          "repo": "umbrella/static-cdn",
+          "status": "GREEN",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 2 },
+          "issues": { "open_count": 0 },
+          "pull_requests": { "open_count": 0 }
+        },
+        {
+          "repo": "umbrella/edge-fn",
+          "status": "GREEN",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 5 },
+          "issues": { "open_count": 1 },
+          "pull_requests": { "open_count": 0 }
+        }
+      ]
+    },
+    {
+      "name": "all-green-no-urgent",
+      "description": "Zero RED, zero YELLOW, all GREEN. There is no real urgent repo; a good summary says so (なし/特になし) rather than inventing a crisis. Tests over-alerting.",
+      "rows": [
+        {
+          "repo": "hooli/api-core",
+          "status": "GREEN",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 1 },
+          "issues": { "open_count": 2 },
+          "pull_requests": { "open_count": 1 }
+        },
+        {
+          "repo": "hooli/frontend",
+          "status": "GREEN",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 2 },
+          "issues": { "open_count": 3 },
+          "pull_requests": { "open_count": 0 }
+        },
+        {
+          "repo": "hooli/mobile",
+          "status": "GREEN",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 4 },
+          "issues": { "open_count": 1 },
+          "pull_requests": { "open_count": 0 }
+        },
+        {
+          "repo": "hooli/infra",
+          "status": "GREEN",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 3 },
+          "issues": { "open_count": 0 },
+          "pull_requests": { "open_count": 0 }
+        },
+        {
+          "repo": "hooli/ml-pipeline",
+          "status": "GREEN",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 6 },
+          "issues": { "open_count": 2 },
+          "pull_requests": { "open_count": 1 }
+        },
+        {
+          "repo": "hooli/docs",
+          "status": "GREEN",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 8 },
+          "issues": { "open_count": 1 },
+          "pull_requests": { "open_count": 0 }
+        }
+      ]
+    },
+    {
+      "name": "empty-no-repos",
+      "description": "No repos at all. Counts must be RED 0 / YELLOW 0 / GREEN 0 and the summary must NOT invent any repo name. Tests hallucination and graceful degenerate handling.",
+      "rows": []
+    },
+    {
+      "name": "large-mixed-status-priority",
+      "description": "12 repos, 2 RED / 4 YELLOW / 6 GREEN, plus GREEN repos that have noisy ci=failure. Urgent must be a RED; ci-noisy GREEN repos must NOT be put on Watch. Tests counting at scale + status priority over ci noise.",
+      "rows": [
+        {
+          "repo": "stark/reactor-api",
+          "status": "RED",
+          "security": { "dependabot_alerts": 6 },
+          "ci": { "last_status": "failure" },
+          "activity": { "days_inactive": 12 },
+          "issues": { "open_count": 14 },
+          "pull_requests": { "open_count": 3 }
+        },
+        {
+          "repo": "stark/suit-firmware",
+          "status": "RED",
+          "security": { "dependabot_alerts": 2 },
+          "ci": { "last_status": "failure" },
+          "activity": { "days_inactive": 50 },
+          "issues": { "open_count": 7 },
+          "pull_requests": { "open_count": 1 }
+        },
+        {
+          "repo": "stark/jarvis-nlp",
+          "status": "YELLOW",
+          "security": { "dependabot_alerts": 1 },
+          "ci": { "last_status": "skipped" },
+          "activity": { "days_inactive": 21 },
+          "issues": { "open_count": 5 },
+          "pull_requests": { "open_count": 2 }
+        },
+        {
+          "repo": "stark/comms",
+          "status": "YELLOW",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 26 },
+          "issues": { "open_count": 3 },
+          "pull_requests": { "open_count": 1 }
+        },
+        {
+          "repo": "stark/telemetry",
+          "status": "YELLOW",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "none" },
+          "activity": { "days_inactive": 19 },
+          "issues": { "open_count": 4 },
+          "pull_requests": { "open_count": 0 }
+        },
+        {
+          "repo": "stark/ui-shell",
+          "status": "YELLOW",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "skipped" },
+          "activity": { "days_inactive": 24 },
+          "issues": { "open_count": 2 },
+          "pull_requests": { "open_count": 3 }
+        },
+        {
+          "repo": "stark/billing",
+          "status": "GREEN",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "failure" },
+          "activity": { "days_inactive": 3 },
+          "issues": { "open_count": 1 },
+          "pull_requests": { "open_count": 0 }
+        },
+        {
+          "repo": "stark/auth",
+          "status": "GREEN",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "failure" },
+          "activity": { "days_inactive": 4 },
+          "issues": { "open_count": 2 },
+          "pull_requests": { "open_count": 1 }
+        },
+        {
+          "repo": "stark/cdn-edge",
+          "status": "GREEN",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 1 },
+          "issues": { "open_count": 0 },
+          "pull_requests": { "open_count": 0 }
+        },
+        {
+          "repo": "stark/data-lake",
+          "status": "GREEN",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 6 },
+          "issues": { "open_count": 1 },
+          "pull_requests": { "open_count": 0 }
+        },
+        {
+          "repo": "stark/scheduler",
+          "status": "GREEN",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 5 },
+          "issues": { "open_count": 0 },
+          "pull_requests": { "open_count": 0 }
+        },
+        {
+          "repo": "stark/docs-portal",
+          "status": "GREEN",
+          "security": { "dependabot_alerts": 0 },
+          "ci": { "last_status": "success" },
+          "activity": { "days_inactive": 9 },
+          "issues": { "open_count": 1 },
+          "pull_requests": { "open_count": 0 }
+        }
+      ]
+    }
+  ]
+}
