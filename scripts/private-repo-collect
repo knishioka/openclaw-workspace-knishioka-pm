@@ -134,6 +134,14 @@ def main(argv: list[str] | None = None) -> int:
     for r in rows:
         counts[r.get("status", "UNKNOWN")] = counts.get(r.get("status", "UNKNOWN"), 0) + 1
     print(f"wrote {args.output}: {len(rows)} repos {counts}" + (f" (failed: {failed})" if failed else ""))
+
+    # A repo we couldn't health-check would otherwise vanish from the summary,
+    # hiding exactly the kind of failure this job exists to surface. Keep the
+    # partial data but exit non-zero so the cron marks the run failed (and the
+    # failure-alert eventually fires) instead of silently reporting all-clear.
+    if failed:
+        print(f"PARTIAL: {len(failed)}/{len(repos)} repos could not be checked: {failed}", file=sys.stderr)
+        return 1
     return 0
 
 

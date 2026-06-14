@@ -637,20 +637,25 @@ def run_eval(args: argparse.Namespace) -> int:
 
     unload_models(host, models + args.extra_unload_models)
 
-    # Persist fingerprint of this real run for the staleness gate.
+    scored = [r for r in records if r["total_score"] is not None]
+    if not scored:
+        # Judge unavailable → every record is unscored. Do NOT cache the
+        # freshness fingerprint, or --skip-if-unchanged would skip retries for
+        # up to --max-stale-days and leave the recommendation stale/missing.
+        # Return non-zero so the cron surfaces the unscored run.
+        print("best=n/a (no scored records — judge unavailable; fingerprint NOT cached, will retry)", file=sys.stderr)
+        return 1
+
+    # Only cache the fingerprint for a genuinely scored run.
     args.fingerprint_file.parent.mkdir(parents=True, exist_ok=True)
     args.fingerprint_file.write_text(json.dumps({"fingerprint": fingerprint, "ts": ts}, ensure_ascii=False) + "\n")
 
-    scored = [r for r in records if r["total_score"] is not None]
-    if scored:
-        by_model: dict[str, list[float]] = {}
-        for r in scored:
-            by_model.setdefault(r["model"], []).append(r["total_score"])
-        ranked = sorted(by_model.items(), key=lambda kv: statistics.mean(kv[1]), reverse=True)
-        best, best_scores = ranked[0]
-        print(f"best={best} avg_total={statistics.mean(best_scores):.2f}/10 (cases={len(best_scores)})")
-    else:
-        print("best=n/a (no scored records — judge unavailable?)")
+    by_model: dict[str, list[float]] = {}
+    for r in scored:
+        by_model.setdefault(r["model"], []).append(r["total_score"])
+    ranked = sorted(by_model.items(), key=lambda kv: statistics.mean(kv[1]), reverse=True)
+    best, best_scores = ranked[0]
+    print(f"best={best} avg_total={statistics.mean(best_scores):.2f}/10 (cases={len(best_scores)})")
     return 0
 
 
