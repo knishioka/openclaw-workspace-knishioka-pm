@@ -30,6 +30,38 @@ AGENT = "knishioka-pm"
 LOCAL_PROVIDERS = {"ollama"}
 OUTPUT = Path("monitoring/cron-token-usage.md")
 
+# Rough USD cost estimation for the CLOUD jobs.
+#
+# Caveat (read before trusting the $ numbers): the per-run usage object reports
+# input_tokens / output_tokens as only a few hundred each, while total_tokens is
+# tens of thousands — the bulk is reasoning / cached tokens that are NOT exposed
+# as a clean in/out split. So we cannot do exact "in_rate*in + out_rate*out"
+# accounting. Instead we bracket each job with a RANGE:
+#   low  = total_tokens priced entirely at the model's INPUT rate  (cheapest case)
+#   high = total_tokens priced entirely at the model's OUTPUT rate (dearest case)
+# For reasoning models the true cost leans toward `high` (reasoning bills at the
+# output rate), so treat `high` as the realistic upper-middle figure.
+#
+# Rates are USD per 1M tokens, current as of 2026-06. Keyed by a substring of the
+# run's `model` field; first match wins. Update here when pricing changes.
+PRICING_PER_M = [
+    ("gpt-5.5", (5.00, 30.00)),
+    ("gpt-5.4", (2.50, 15.00)),
+    ("sonnet-4-6", (3.00, 15.00)),
+    ("sonnet", (3.00, 15.00)),
+    ("opus", (5.00, 25.00)),
+]
+PRICING_DEFAULT = (2.50, 15.00)  # fall back to mid-tier rates for unknown models
+
+
+def model_rates(model: str) -> tuple[float, float]:
+    """Return (input_rate, output_rate) USD-per-1M for a model name."""
+    m = (model or "").lower()
+    for needle, rates in PRICING_PER_M:
+        if needle in m:
+            return rates
+    return PRICING_DEFAULT
+
 
 def now_ms() -> int:
     return int(dt.datetime.now(dt.timezone.utc).timestamp() * 1000)
@@ -105,6 +137,7 @@ def main(argv: list[str] | None = None) -> int:
         agg = {
             "name": name, "runs": 0, "ok": 0, "err": 0, "dur_ms": 0,
             "cloud_tok": 0, "local_tok": 0, "models": set(),
+            "cost_low": 0.0, "cost_high": 0.0,
         }
         seen_runs = set()
         for e in job_runs(jid, args.limit):
@@ -127,6 +160,9 @@ def main(argv: list[str] | None = None) -> int:
                 agg["local_tok"] += total
             else:
                 agg["cloud_tok"] += total
+                in_rate, out_rate = model_rates(model)
+                agg["cost_low"] += total / 1_000_000 * in_rate
+                agg["cost_high"] += total / 1_000_000 * out_rate
             agg["dur_ms"] += int(e.get("durationMs") or 0)
         if agg["runs"]:
             agg["total"] = agg["cloud_tok"] + agg["local_tok"]
@@ -136,28 +172,38 @@ def main(argv: list[str] | None = None) -> int:
     cloud_total = sum(a["cloud_tok"] for a in per_job)
     local_total = sum(a["local_tok"] for a in per_job)
     runs_total = sum(a["runs"] for a in per_job)
+    cost_low_total = sum(a["cost_low"] for a in per_job)
+    cost_high_total = sum(a["cost_high"] for a in per_job)
+    # Naive monthly extrapolation from the window (window scaled to 30 days).
+    month_factor = 30 / args.days if args.days else 0
+    mo_low = cost_low_total * month_factor
+    mo_high = cost_high_total * month_factor
 
     lines = [
         f"# Monitoring cron token usage — last {args.days}d",
         "",
         f"- generated_utc: {dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')}",
         f"- agent: {args.agent} | jobs with runs: {len(per_job)} | total runs: {runs_total}",
-        f"- **CLOUD total (paid): {fmt(cloud_total)} tok**",
+        f"- **CLOUD total (paid): {fmt(cloud_total)} tok ≈ ${cost_low_total:.2f}–{cost_high_total:.2f}**",
         f"- **LOCAL total (free / offloaded): {fmt(local_total)} tok**",
+        f"- est. monthly cloud cost (×{month_factor:.1f}): **${mo_low:.2f}–{mo_high:.2f}/mo**",
         "",
-        "| job | models (provider:model) | runs | ok | err | cloud_tok | local_tok |",
-        "| --- | --- | ---: | ---: | ---: | ---: | ---: |",
+        "| job | models (provider:model) | runs | ok | err | cloud_tok | local_tok | est_cost_usd |",
+        "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for a in per_job:
         models = ", ".join(sorted(a["models"]))
+        cost = f"${a['cost_low']:.2f}–{a['cost_high']:.2f}" if a["cloud_tok"] else "—"
         lines.append(
             f"| {a['name']} | {models} | {a['runs']} | {a['ok']} | {a['err']} "
-            f"| {fmt(a['cloud_tok'])} | {fmt(a['local_tok'])} |"
+            f"| {fmt(a['cloud_tok'])} | {fmt(a['local_tok'])} | {cost} |"
         )
     lines += [
         "",
         "_CLOUD = 実際に課金されるトークン。LOCAL = ローカルollamaで処理した分（無料 / クラウドに払わずに済んだ分）。_",
         "_1ジョブに複数モデルが並ぶ場合、期間内でモデルが切り替わった（例: cloud→local 移行 or フォールバック）ことを示す。_",
+        "_est_cost_usd = レンジ推定。usage が in/out を正確に分離しないため、low=全トークンを入力単価 / "
+        "high=全トークンを出力単価で計算した下限〜上限。reasoning モデルは high 寄りが実態。単価は 2026-06 時点。_",
     ]
     report = "\n".join(lines)
 
@@ -170,7 +216,8 @@ def main(argv: list[str] | None = None) -> int:
     top_cloud = ", ".join(f"{a['name']}={fmt(a['cloud_tok'])}" for a in cloud_jobs[:3]) or "なし"
     digest = (
         f"📊 監視cron トークン使用 (直近{args.days}日)\n"
-        f"☁️ cloud(課金): {fmt(cloud_total)} tok / {len(cloud_jobs)}ジョブ\n"
+        f"☁️ cloud(課金): {fmt(cloud_total)} tok ≈ ${cost_low_total:.2f}–{cost_high_total:.2f} / {len(cloud_jobs)}ジョブ\n"
+        f"   (月換算 ≈ ${mo_low:.2f}–{mo_high:.2f})\n"
         f"✅ local(節約): {fmt(local_total)} tok / {len(local_jobs)}ジョブ\n"
         f"cloud上位: {top_cloud}"
     )

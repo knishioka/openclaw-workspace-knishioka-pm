@@ -119,6 +119,16 @@ jobs:
     message: |
       Focus task: GitHub Issue を作成し、Codex で自動解決して draft PR を作成する。
 
+      == Pre-flight（最初に必ず実行）==
+      -1) Codex auth プリフライト:
+        bash /Users/ken/.openclaw/workspace-knishioka-pm/scripts/codex-preflight.sh
+        - exit 0 → 続行。
+        - exit 非0（Codex ログイン切れ）→ **Issue 作成も auto-resolve も一切行わない**。
+          GitHub Issue を新規作成すると孤児（auto_resolve: failed）になり、過去 #193 / #35 / #164
+          で実際に発生したため。reports/latest-focus.md に "Codex auth down — skipped (要 codex login)"
+          と1行記録し、issue-tracker.jsonl には追記せず、サマリーに「Codex 認証切れのため今回は
+          スキップ。`codex login` が必要」と明記して**正常終了（run を error にしない）**。
+
       == Pre-check ==
       0) monitoring/issue-tracker.jsonl を読み、以下を判定:
         a) open な PM作成 Issue が3件以上 → Issue 作成を一時停止。溜まっている Issue のサマリーを返す。
