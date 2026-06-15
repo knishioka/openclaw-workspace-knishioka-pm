@@ -1,34 +1,50 @@
-# Focus Task Report — 2026-06-11
+# Focus Task Report — 2026-06-15
 
-As of: 2026-06-11
+As of: 2026-06-15
 Summary: 0 issues created, 0 PRs created
 
->> Dynamic frequency decision:
-  open PM-created issues tracked in monitoring/issue-tracker.jsonl = 1 (`english-note-maker` #35), so the hard stop did not trigger
-  30-day resolve rate = 3/7 = 42.9%, so this run skipped new issue creation and switched to priority review only
-  last 4 focus-task perspective ratio = PM:Dev 1:3
-  feature-priority override not triggered; the last 4 focus-task runs already included 1 feature issue
+>> Pre-check result:
+  open PM-created issues tracked in monitoring/issue-tracker.jsonl = 3 (`freee-mcp` #193, `english-note-maker` #35, `cost-management-mcp` #164), so the hard stop triggered
+  total open tracker items = 5 including QA backlog (`kanji-practice` #31, #35)
+  30-day resolve rate = 2/6 = 33.3%, which would also force priority-review mode even without the hard stop
+  last 4 focus-task perspective ratio = PM:Dev 3:3
+  feature-priority override not triggered; the last 4 focus-task runs already included feature work
 
->> Open issue priority review:
+>> Open backlog summary:
   P1: knishioka/cost-management-mcp #164 `maintenance: complete TypeScript 6 migration without deprecated moduleResolution`
     perspective: dev
     subtype: maintenance
-    reason: active Dependabot PR #160 is still open, repo is otherwise healthy, and the fix scope is narrow and current
+    created: 2026-06-08
+    reason: newest unresolved dev issue on an active MCP repo; TypeScript 6 migration remains blocked and still has the clearest path to unlock the queue
 
   P2: knishioka/freee-mcp #193 `maintenance: make the TypeScript 6 upgrade branch CI-green`
     perspective: dev
     subtype: maintenance
-    reason: open Dependabot PR #190 is still blocked on TypeScript 6 compatibility, but the branch has been stale since 2026-05-11
+    created: 2026-05-25
+    reason: same TS6 adoption theme, older than #164, and still unresolved after the previous auto-resolve failed before playbook start
 
   P3: knishioka/english-note-maker #35 `feature: persist and manage custom sentence examples for repeat classroom use`
     perspective: pm
     subtype: feature
-    reason: product value is clear, but the repo is green and the issue is less urgent than the active dependency-maintenance items
+    created: 2026-05-25
+    reason: still the only open PM-side product issue, but urgency is lower than the blocked dev maintenance items above
 
->> Tech radar / backlog notes:
-  no new radar scan executed in this run because the pre-check forced priority-review mode before candidate generation
-  the strongest carry-over theme remains TypeScript 6 adoption in MCP repos; both open Developer-side issues are still valid
+  P4: knishioka/kanji-practice #35 `bugfix: 低学年プリントの例語に学年範囲外の漢字を出さない`
+    perspective: qa
+    subtype: bugfix
+    created: 2026-05-24
+    reason: education-quality issue remains open, but it is outside the PM/dev balancing gate used for this cron's hard stop
 
->> Blockers:
-  the low 30-day resolve rate is being driven by unresolved auto-resolve failures on 2026-05-25 and 2026-06-08
-  the recorded failure mode was `codex login status` not authenticated before `scripts/codex-resolve.sh` could start
+  P5: knishioka/kanji-practice #31 `bugfix: hide Debug overlay entrypoint from production preview`
+    perspective: qa
+    subtype: bugfix
+    created: 2026-04-26
+    reason: oldest open tracker item, but lower impact than the TypeScript migration backlog and already deprioritized in earlier runs
+
+>> Tech radar / carry-over:
+  no new PM/dev candidate scan executed because the hard stop triggered before backlog generation
+  the carry-over theme is still TypeScript 6 adoption across MCP repos; both open dev issues point to the same migration wave and should be cleared before new issue creation resumes
+
+>> Blocking pattern:
+  the unresolved PM/dev backlog is concentrated in runs where `scripts/codex-resolve.sh` aborted before playbook start
+  recorded failure mode: `codex login status` was not authenticated on 2026-05-25 and 2026-06-08
