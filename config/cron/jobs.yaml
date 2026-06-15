@@ -543,3 +543,73 @@ jobs:
       重要（ローカル30Bの暴走防止）:
       - step 2 のあと、追加のツール呼び出し・整形を一切しない。
       - 最後に「DONE」または「FAILED」とだけ一言返して即座に終了する。
+  - name: pr-review-collect
+    description: Collect the reviews on my last-7-day PRs (all orgs) into gitignored JSON
+    schedule:
+      kind: cron
+      # 毎晩 深夜02:30 KUL。mbpローカルollamaが空く深夜帯。収集は gh のみで
+      # LLM不要なので、後段の要約(03:15)の前に確実に終わる。
+      expr: 30 2 * * *
+    thinking: low
+    # 収集は scripts/pr-review-collect が決定論的に全部やる（gh/python のみ・LLM不要）。
+    # @me の全orgのPRに対し reviews/comments エンドポイントを叩くだけなので、
+    # 30B が暴走して cloud にフォールバックする多段ループが無い。
+    timeout_seconds: 900
+    model: ollama/qwen3-coder:30b
+    delivery:
+      mode: none
+      channel: whatsapp
+      to: "${KNISHIOKA_ALERT_TO}"
+      best_effort: true
+    message: |
+      PR review collection（収集だけ。要約・配信は後段の pr-review-summary が行う）。
+
+      手順:
+      1) cd /Users/ken/.openclaw/workspace-knishioka-pm
+      2) python3 scripts/pr-review-collect --days 7 を実行
+         - gh search prs --author @me --created ">=7日前" で全orgのPRを列挙し、
+           各PRの reviews / inline comments / conversation comments を取得、
+           bot/AI判定して monitoring/pr-reviews.json に集約する
+         - 自分のコメント（返信）は除外。出力は gitignored
+         - git add / commit / push はしない
+      3) python の exit code を見るだけでよい。exit 0 なら成功。
+
+      重要（ローカル30Bの暴走防止）:
+      - step 2 のあと、追加のツール呼び出し・再読み込み・整形を一切しない。
+        自分で gh をループしたり jq/python で組み直したりしてはならない（スクリプトに任せる）。
+      - 最後に「DONE」または「FAILED」とだけ一言返して即座に終了する。
+  - name: pr-review-summary
+    description: Local-model trend summary of reviews on my recent PRs, delivered to WhatsApp
+    schedule:
+      kind: cron
+      # pr-review-collect(02:30) の後に走る。深夜帯でmbpローカルollamaが空いている。
+      expr: 15 3 * * *
+    thinking: low
+    timeout_seconds: 600
+    model: ollama/qwen3-coder:30b
+    delivery:
+      # 配信はスクリプトが openclaw message send で直接行うため none（二重送信回避）。
+      mode: none
+      channel: whatsapp
+      to: "${KNISHIOKA_ALERT_TO}"
+      best_effort: true
+    message: |
+      PR review trend summary（ローカル qwen3-coder → WhatsApp）。
+
+      これは pr-review-collect が集めた monitoring/pr-reviews.json を、ローカル ollama で
+      「レビュー傾向」に要約する出口ジョブ。レビュー本文（業務orgのPRを含む）はローカル
+      ollama と自分の WhatsApp にのみ送る（cloud には一切出さない）。
+
+      手順:
+      1) cd /Users/ken/.openclaw/workspace-knishioka-pm
+      2) python3 scripts/pr-review-summarize --to "${KNISHIOKA_ALERT_TO}" を実行
+         - monitoring/pr-reviews.json を読み、qwen3-coder:30b（keep_alive=0/temp=0）で
+           Top指摘カテゴリ / 活発なAIレビュアー / 繰り返し / Next を生成
+         - WhatsApp 配信 → monitoring/pr-review-summary.md 保存
+         - git add / commit / push はしない
+      3) python の exit code を見るだけでよい。exit 0 なら成功。
+
+      重要（ローカル30Bの暴走防止）:
+      - step 2 のあと、追加のツール呼び出し・再読み込み・整形を一切しない。
+        jq / ruby / python / node で要約を作り直してはならない（配信はスクリプトが済ませている）。
+      - 最後に「DONE」または「FAILED」とだけ一言返して即座に終了する。

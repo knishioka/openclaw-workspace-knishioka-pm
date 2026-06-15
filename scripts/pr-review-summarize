@@ -1,0 +1,202 @@
+#!/usr/bin/env python3
+"""Summarize PR-review TRENDS locally (Ollama) and deliver to WhatsApp.
+
+Phase 2 of the pr-review-trend pipeline. Reads the gitignored
+monitoring/pr-reviews.json produced by scripts/pr-review-collect, feeds an
+aggregated digest to the LOCAL Ollama model in ONE chat call, and turns it into
+a short Japanese trend report: what kinds of feedback the AI reviewers keep
+raising on my PRs this week.
+
+Design (same guardrails as scripts/private-health-summarize):
+  - ONE generate call. The script owns all formatting/truncation so the 30B
+    never has to orchestrate; the cron agent just runs this and returns DONE.
+  - keep_alive=0 unload before & after, temperature=0 → deterministic.
+  - Runs deep at night when the mbp Ollama host is idle.
+
+Privacy: review text (incl. work-org PRs) goes ONLY to the LOCAL Ollama host and
+the operator's own WhatsApp. Output md is gitignored. Nothing reaches a cloud
+model.
+"""
+
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import importlib.util
+import json
+import os
+import subprocess
+import sys
+import time
+from importlib.machinery import SourceFileLoader
+from pathlib import Path
+from typing import Any
+
+HERE = Path(__file__).resolve().parent
+# Reuse the eval module's Ollama plumbing (host default, unload, post_json).
+_loader = SourceFileLoader("ollama_summary_eval", str(HERE / "ollama-summary-eval"))
+_spec = importlib.util.spec_from_loader("ollama_summary_eval", _loader)
+ev = importlib.util.module_from_spec(_spec)
+_loader.exec_module(ev)
+
+# Total review-text budget fed to the model. Big enough for a week of AI
+# reviews, small enough to stay well inside num_ctx with the instructions.
+MAX_DIGEST_CHARS = 24000
+
+
+def now_local_iso() -> str:
+    return dt.datetime.now().astimezone().isoformat(timespec="seconds")
+
+
+def build_digest(data: dict[str, Any]) -> str:
+    """Flatten the collected reviews into a compact text digest for the model."""
+    lines: list[str] = []
+    t = data.get("totals") or {}
+    lines.append(
+        f"集計: PR {t.get('prs') or 0}件 / レビュー付き {t.get('prs_with_reviews') or 0}件 / "
+        f"レビュー項目 {t.get('review_items') or 0}件 (直近{data.get('window_days') or 7}日)"
+    )
+    ai = t.get("ai_reviewers") or {}
+    if ai:
+        lines.append("AIレビュアー件数: " + ", ".join(f"{k}={v}" for k, v in ai.items()))
+    lines.append("")
+    for pr in data.get("prs", []):
+        fb = pr.get("feedback", [])
+        if not fb:
+            continue
+        lines.append(f"## {pr['repo']}#{pr['number']} {pr.get('title') or ''}".rstrip())
+        for it in fb:
+            tag = "AI" if it.get("is_ai") else ("bot" if it.get("is_bot") else "human")
+            head = f"- [{tag}:{it['author']}/{it['kind']}"
+            if it.get("state"):
+                head += f"/{it['state']}"
+            if it.get("path"):
+                head += f" {it['path']}"
+            head += "]"
+            body = (it.get("body") or "").replace("\n", " ").strip()
+            lines.append(f"{head} {body}".rstrip())
+        lines.append("")
+    digest = "\n".join(lines)
+    if len(digest) > MAX_DIGEST_CHARS:
+        digest = digest[:MAX_DIGEST_CHARS] + "\n…[digest truncated]"
+    return digest
+
+
+def build_prompt(digest: str) -> str:
+    return (
+        "あなたは開発レビューのアナリストです。以下は、ある開発者が直近1週間で作成した"
+        "プルリクエストに届いたレビュー(AI/bot/人間)の一覧です。これを読み、レビューの"
+        "『傾向』を日本語で簡潔に分析してください。個々のPRの説明ではなく、横断した傾向を"
+        "抽出すること。\n\n"
+        "次のフォーマットで、各項目1-3行・合計15行以内で出力:\n"
+        "Top指摘カテゴリ: (例: テスト不足 / エラーハンドリング / 型付け / 命名 など多い順に3-5個、各々おおよその件数や該当領域)\n"
+        "活発なAIレビュアー: (どのbotがどんな指摘を多くしているか)\n"
+        "繰り返し: (複数PRで再発している同種の指摘があれば)\n"
+        "Next: (来週意識すると指摘を減らせる具体アクション1-2個)\n\n"
+        "余計な前置き・後書きは書かない。日本語で。\n\n"
+        f"=== レビュー一覧 ===\n{digest}\n"
+    )
+
+
+def run_ollama(host: str, model: str, prompt: str, num_ctx: int, num_predict: int, timeout: int) -> dict[str, Any]:
+    payload = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "stream": False,
+        "think": False,
+        "keep_alive": "0",
+        "options": {"temperature": 0, "num_ctx": num_ctx, "num_predict": num_predict},
+    }
+    started = time.time()
+    try:
+        body = ev.post_json(host, "/api/chat", payload, timeout)
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": repr(exc), "seconds": round(time.time() - started, 2), "summary": ""}
+    text = ((body.get("message") or {}).get("content") or "").strip()
+    return {
+        "ok": bool(text),
+        "error": None if text else "empty_response",
+        "seconds": round(time.time() - started, 2),
+        "summary": text,
+    }
+
+
+def deliver_whatsapp(to: str, text: str, timeout: int = 60) -> bool:
+    try:
+        proc = subprocess.run(
+            ["openclaw", "message", "send", "--channel", "whatsapp", "--target", to, "--message", text],
+            capture_output=True, text=True, timeout=timeout,
+        )
+    except (subprocess.TimeoutExpired, FileNotFoundError) as exc:
+        print(f"deliver: failed to spawn openclaw ({exc!r})", file=sys.stderr)
+        return False
+    if proc.returncode != 0:
+        print(f"deliver: openclaw exit {proc.returncode}: {proc.stderr.strip()[:200]}", file=sys.stderr)
+        return False
+    return True
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--host", default=os.environ.get("OLLAMA_HOST", ev.DEFAULT_HOST))
+    parser.add_argument("--input", type=Path, default=Path("monitoring/pr-reviews.json"))
+    parser.add_argument("--output", type=Path, default=Path("monitoring/pr-review-summary.md"))
+    parser.add_argument("--model", default="qwen3-coder:30b")
+    parser.add_argument("--num-ctx", type=int, default=16384)
+    parser.add_argument("--num-predict", type=int, default=700)
+    parser.add_argument("--timeout", type=int, default=600)
+    parser.add_argument("--to", default=os.environ.get("KNISHIOKA_ALERT_TO"))
+    parser.add_argument("--no-deliver", action="store_true")
+    args = parser.parse_args(argv)
+
+    if not args.input.is_file():
+        print(f"FAILED: missing {args.input} (run scripts/pr-review-collect first)", file=sys.stderr)
+        return 1
+    data = json.loads(args.input.read_text())
+    t = data.get("totals") or {}
+
+    if not t.get("review_items"):
+        summary = (
+            "Top指摘カテゴリ: 直近のレビュー項目なし\n"
+            "活発なAIレビュアー: なし\n"
+            "繰り返し: なし\n"
+            "Next: レビューがまだ付いていない。マージ前にAIレビュー設定を確認する"
+        )
+        seconds = 0.0
+    else:
+        ev.unload_models(args.host, [args.model])
+        res = run_ollama(args.host, args.model, build_prompt(build_digest(data)), args.num_ctx, args.num_predict, args.timeout)
+        ev.unload_models(args.host, [args.model])
+        if not res["ok"]:
+            print(f"FAILED: ollama error: {res['error']}", file=sys.stderr)
+            return 1
+        summary = res["summary"]
+        seconds = res["seconds"]
+
+    header = (
+        f"🔎 PRレビュー傾向 ({dt.date.today().isoformat()}, 直近{data.get('window_days') or 7}日) — via {args.model}\n"
+        f"PR {t.get('prs') or 0}件 / レビュー付き {t.get('prs_with_reviews') or 0}件 / 項目 {t.get('review_items') or 0}件"
+    )
+    body = f"{header}\n\n{summary}"
+
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(
+        f"<!-- generated {now_local_iso()} model={args.model} seconds={seconds} "
+        f"prs={t.get('prs') or 0} items={t.get('review_items') or 0} -->\n\n{body}\n"
+    )
+
+    delivered = False
+    if not args.no_deliver:
+        if not args.to:
+            print("deliver: no --to / KNISHIOKA_ALERT_TO set; skipping delivery", file=sys.stderr)
+        else:
+            delivered = deliver_whatsapp(args.to, body)
+
+    print(body)
+    print(f"\n[model={args.model} seconds={seconds} delivered={delivered} wrote={args.output}]")
+    print("DONE")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

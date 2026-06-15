@@ -22,6 +22,8 @@ monitoring/ollama-summary-eval.fingerprint.json
 monitoring/cron-token-usage.md
 monitoring/issue-tracker.jsonl
 monitoring/site-qa-history.jsonl
+monitoring/pr-reviews.json
+monitoring/pr-review-summary.md
 
 # Learner context (private)
 config/learner-context.yaml
@@ -71,3 +73,6 @@ tmp/
 
 # Spillover from other workspaces (manual quarantine, move to correct workspace later)
 _di-spillover/
+
+# Local cron build secrets (PII: WhatsApp alert number)
+config/cron/secrets.env

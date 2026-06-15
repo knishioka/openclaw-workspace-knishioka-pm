@@ -1,0 +1,223 @@
+#!/usr/bin/env python3
+"""Collect the reviews landing on MY recent PRs into monitoring/pr-reviews.json.
+
+Phase 1 of the pr-review-trend pipeline (the summary/delivery is phase 2,
+scripts/pr-review-summarize). This is the DETERMINISTIC collector: it is pure
+`gh` + python with NO LLM, mirroring scripts/private-repo-collect.
+
+Why a script and not an agent loop: gathering N PRs x 3 review endpoints is
+~150 `gh api` calls of plain orchestration with zero reasoning. Driving that
+from a small local model (qwen3-coder:30b) forces a long tool loop that the 30B
+cannot sustain and it falls over to a cloud model (billed). Here the whole walk
+is one command; the cron agent just runs it and returns DONE.
+
+What it gathers, for every PR `@me` authored in the last N days, across ALL orgs:
+  - formal reviews            (gh api .../pulls/{n}/reviews)         APPROVE / CHANGES_REQUESTED / COMMENT + body
+  - inline review comments     (gh api .../pulls/{n}/comments)        per-file line comments
+  - PR conversation comments   (gh api .../issues/{n}/comments)       where bots like CodeRabbit post their digest
+Self-authored items are dropped (those are my own replies, not reviews received).
+Each reviewer is tagged is_bot / is_ai so phase 2 can analyse AI-review trends.
+
+Privacy: PRs span work orgs (D-stats, datainformed-jp). The review text is
+written ONLY to the gitignored monitoring/pr-reviews.json and, in phase 2, sent
+ONLY to the LOCAL Ollama host + the operator's own WhatsApp — never to a cloud
+model.
+"""
+
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import json
+import subprocess
+import sys
+from pathlib import Path
+from typing import Any
+
+# Bot logins whose reviews are AI code review, not CI/automation noise. Matched
+# case-insensitively against the login with any trailing "[bot]" stripped.
+AI_REVIEWER_LOGINS = {
+    "copilot",
+    "copilot-pull-request-reviewer",
+    "coderabbitai",
+    "codex",
+    "chatgpt-codex-connector",
+    "sourcery-ai",
+    "sweep-ai",
+    "ellipsis-dev",
+    "gemini-code-assist",
+    "cursor",
+    "greptile-apps",
+    "qodo-merge-pro",
+    "codeant-ai",
+}
+# Body truncation so one chatty bot digest cannot dominate the phase-2 prompt.
+MAX_BODY_CHARS = 800
+
+
+def run_gh_json(args: list[str], timeout: int = 60) -> Any:
+    """Run a `gh` command expected to emit JSON; return parsed value or None."""
+    try:
+        proc = subprocess.run(
+            ["gh", *args], capture_output=True, text=True, timeout=timeout
+        )
+    except (subprocess.TimeoutExpired, FileNotFoundError) as exc:
+        print(f"gh: failed to run {args[:2]}: {exc!r}", file=sys.stderr)
+        return None
+    if proc.returncode != 0:
+        # 404 (e.g. PR moved) / transient: log and skip, never abort the batch.
+        print(f"gh: exit {proc.returncode} for {args[:3]}: {proc.stderr.strip()[:160]}", file=sys.stderr)
+        return None
+    out = proc.stdout.strip()
+    if not out:
+        return None
+    try:
+        return json.loads(out)
+    except json.JSONDecodeError:
+        # `gh api --paginate` concatenates one JSON array per page (e.g.
+        # "[...][...]"), which is not a single valid document. Stitch the pages
+        # back together with a raw_decode loop instead of silently dropping
+        # everything past the first page.
+        decoder = json.JSONDecoder()
+        merged: list[Any] = []
+        idx, length = 0, len(out)
+        try:
+            while idx < length:
+                while idx < length and out[idx].isspace():
+                    idx += 1
+                if idx >= length:
+                    break
+                obj, idx = decoder.raw_decode(out, idx)
+                merged.extend(obj) if isinstance(obj, list) else merged.append(obj)
+            return merged
+        except json.JSONDecodeError as exc:
+            print(f"gh: bad JSON for {args[:3]}: {exc}", file=sys.stderr)
+            return None
+
+
+def classify(login: str) -> dict[str, bool]:
+    base = login.lower()
+    is_bot = base.endswith("[bot]")
+    if is_bot:
+        base = base[: -len("[bot]")]
+    return {"is_bot": is_bot, "is_ai": base in AI_REVIEWER_LOGINS}
+
+
+def trunc(text: str | None) -> str:
+    text = (text or "").strip()
+    return text if len(text) <= MAX_BODY_CHARS else text[:MAX_BODY_CHARS] + " …[truncated]"
+
+
+def collect_feedback(owner: str, repo: str, number: int, me: str) -> list[dict[str, Any]]:
+    """Return all non-self review feedback items on one PR."""
+    items: list[dict[str, Any]] = []
+
+    def add(login: str | None, kind: str, body: str | None, state: str | None = None, path: str | None = None) -> None:
+        login = login or "unknown"
+        if login.lower() == me.lower():
+            return  # my own reply, not a review I received
+        body = trunc(body)
+        if not body and not state:
+            return
+        rec = {"author": login, "kind": kind, "body": body, **classify(login)}
+        if state:
+            rec["state"] = state
+        if path:
+            rec["path"] = path
+        items.append(rec)
+
+    base = f"repos/{owner}/{repo}"
+    for rev in run_gh_json(["api", f"{base}/pulls/{number}/reviews", "--paginate"]) or []:
+        add((rev.get("user") or {}).get("login"), "review", rev.get("body"), state=rev.get("state"))
+    for c in run_gh_json(["api", f"{base}/pulls/{number}/comments", "--paginate"]) or []:
+        add((c.get("user") or {}).get("login"), "inline", c.get("body"), path=c.get("path"))
+    for c in run_gh_json(["api", f"{base}/issues/{number}/comments", "--paginate"]) or []:
+        add((c.get("user") or {}).get("login"), "comment", c.get("body"))
+    return items
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--days", type=int, default=7, help="look back this many days")
+    parser.add_argument("--author", default="@me")
+    parser.add_argument("--limit", type=int, default=100, help="max PRs from gh search")
+    parser.add_argument("--output", type=Path, default=Path("monitoring/pr-reviews.json"))
+    args = parser.parse_args(argv)
+
+    # `gh api user -q` returns a bare string, not JSON — fetch plainly.
+    try:
+        me = subprocess.run(["gh", "api", "user", "-q", ".login"], capture_output=True, text=True, timeout=30).stdout.strip()
+    except Exception as exc:  # noqa: BLE001
+        print(f"FAILED: cannot resolve gh login: {exc!r}", file=sys.stderr)
+        return 1
+    if not me:
+        print("FAILED: empty gh login", file=sys.stderr)
+        return 1
+
+    since = (dt.datetime.now().astimezone() - dt.timedelta(days=args.days)).date().isoformat()
+    prs = run_gh_json([
+        "search", "prs",
+        "--author", args.author,
+        "--created", f">={since}",
+        "--json", "number,title,repository,createdAt,url,state,isDraft",
+        "--limit", str(args.limit),
+    ])
+    if prs is None:
+        print("FAILED: gh search prs returned nothing", file=sys.stderr)
+        return 1
+
+    pr_records: list[dict[str, Any]] = []
+    reviewer_counts: dict[str, int] = {}
+    ai_reviewer_counts: dict[str, int] = {}
+    total_items = 0
+    for pr in prs:
+        nameWithOwner = (pr.get("repository") or {}).get("nameWithOwner") or ""
+        if "/" not in nameWithOwner:
+            continue
+        owner, repo = nameWithOwner.split("/", 1)
+        number = pr["number"]
+        items = collect_feedback(owner, repo, number, me)
+        for it in items:
+            reviewer_counts[it["author"]] = reviewer_counts.get(it["author"], 0) + 1
+            if it["is_ai"]:
+                ai_reviewer_counts[it["author"]] = ai_reviewer_counts.get(it["author"], 0) + 1
+        total_items += len(items)
+        pr_records.append({
+            "repo": nameWithOwner,
+            "number": number,
+            "title": pr.get("title") or "",
+            "url": pr.get("url") or "",
+            "created_at": pr.get("createdAt") or "",
+            "state": pr.get("state") or "",
+            "is_draft": pr.get("isDraft", False),
+            "feedback": items,
+        })
+        print(f"  {nameWithOwner}#{number}: {len(items)} review item(s)", file=sys.stderr)
+
+    reviewed = sum(1 for r in pr_records if r["feedback"])
+    payload = {
+        "generated_at": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
+        "author": me,
+        "window_days": args.days,
+        "since": since,
+        "totals": {
+            "prs": len(pr_records),
+            "prs_with_reviews": reviewed,
+            "review_items": total_items,
+            "reviewers": dict(sorted(reviewer_counts.items(), key=lambda kv: -kv[1])),
+            "ai_reviewers": dict(sorted(ai_reviewer_counts.items(), key=lambda kv: -kv[1])),
+        },
+        "prs": pr_records,
+    }
+
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(payload, ensure_ascii=False, indent=2))
+    print(
+        f"DONE: {len(pr_records)} PRs ({reviewed} reviewed), {total_items} review items, "
+        f"{len(ai_reviewer_counts)} AI reviewer(s) → {args.output}"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
