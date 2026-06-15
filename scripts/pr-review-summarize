@@ -51,12 +51,12 @@ def now_local_iso() -> str:
 def build_digest(data: dict[str, Any]) -> str:
     """Flatten the collected reviews into a compact text digest for the model."""
     lines: list[str] = []
-    t = data.get("totals", {})
+    t = data.get("totals") or {}
     lines.append(
-        f"集計: PR {t.get('prs', 0)}件 / レビュー付き {t.get('prs_with_reviews', 0)}件 / "
-        f"レビュー項目 {t.get('review_items', 0)}件 (直近{data.get('window_days', 7)}日)"
+        f"集計: PR {t.get('prs') or 0}件 / レビュー付き {t.get('prs_with_reviews') or 0}件 / "
+        f"レビュー項目 {t.get('review_items') or 0}件 (直近{data.get('window_days') or 7}日)"
     )
-    ai = t.get("ai_reviewers", {})
+    ai = t.get("ai_reviewers") or {}
     if ai:
         lines.append("AIレビュアー件数: " + ", ".join(f"{k}={v}" for k, v in ai.items()))
     lines.append("")
@@ -64,7 +64,7 @@ def build_digest(data: dict[str, Any]) -> str:
         fb = pr.get("feedback", [])
         if not fb:
             continue
-        lines.append(f"## {pr['repo']}#{pr['number']} {pr.get('title', '')}".rstrip())
+        lines.append(f"## {pr['repo']}#{pr['number']} {pr.get('title') or ''}".rstrip())
         for it in fb:
             tag = "AI" if it.get("is_ai") else ("bot" if it.get("is_bot") else "human")
             head = f"- [{tag}:{it['author']}/{it['kind']}"
@@ -153,7 +153,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"FAILED: missing {args.input} (run scripts/pr-review-collect first)", file=sys.stderr)
         return 1
     data = json.loads(args.input.read_text())
-    t = data.get("totals", {})
+    t = data.get("totals") or {}
 
     if not t.get("review_items"):
         summary = (
@@ -174,15 +174,15 @@ def main(argv: list[str] | None = None) -> int:
         seconds = res["seconds"]
 
     header = (
-        f"🔎 PRレビュー傾向 ({dt.date.today().isoformat()}, 直近{data.get('window_days', 7)}日) — via {args.model}\n"
-        f"PR {t.get('prs', 0)}件 / レビュー付き {t.get('prs_with_reviews', 0)}件 / 項目 {t.get('review_items', 0)}件"
+        f"🔎 PRレビュー傾向 ({dt.date.today().isoformat()}, 直近{data.get('window_days') or 7}日) — via {args.model}\n"
+        f"PR {t.get('prs') or 0}件 / レビュー付き {t.get('prs_with_reviews') or 0}件 / 項目 {t.get('review_items') or 0}件"
     )
     body = f"{header}\n\n{summary}"
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
         f"<!-- generated {now_local_iso()} model={args.model} seconds={seconds} "
-        f"prs={t.get('prs', 0)} items={t.get('review_items', 0)} -->\n\n{body}\n"
+        f"prs={t.get('prs') or 0} items={t.get('review_items') or 0} -->\n\n{body}\n"
     )
 
     delivered = False

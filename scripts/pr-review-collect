@@ -73,9 +73,26 @@ def run_gh_json(args: list[str], timeout: int = 60) -> Any:
         return None
     try:
         return json.loads(out)
-    except json.JSONDecodeError as exc:
-        print(f"gh: bad JSON for {args[:3]}: {exc}", file=sys.stderr)
-        return None
+    except json.JSONDecodeError:
+        # `gh api --paginate` concatenates one JSON array per page (e.g.
+        # "[...][...]"), which is not a single valid document. Stitch the pages
+        # back together with a raw_decode loop instead of silently dropping
+        # everything past the first page.
+        decoder = json.JSONDecoder()
+        merged: list[Any] = []
+        idx, length = 0, len(out)
+        try:
+            while idx < length:
+                while idx < length and out[idx].isspace():
+                    idx += 1
+                if idx >= length:
+                    break
+                obj, idx = decoder.raw_decode(out, idx)
+                merged.extend(obj) if isinstance(obj, list) else merged.append(obj)
+            return merged
+        except json.JSONDecodeError as exc:
+            print(f"gh: bad JSON for {args[:3]}: {exc}", file=sys.stderr)
+            return None
 
 
 def classify(login: str) -> dict[str, bool]:
@@ -168,10 +185,10 @@ def main(argv: list[str] | None = None) -> int:
         pr_records.append({
             "repo": nameWithOwner,
             "number": number,
-            "title": pr.get("title", ""),
-            "url": pr.get("url", ""),
-            "created_at": pr.get("createdAt", ""),
-            "state": pr.get("state", ""),
+            "title": pr.get("title") or "",
+            "url": pr.get("url") or "",
+            "created_at": pr.get("createdAt") or "",
+            "state": pr.get("state") or "",
             "is_draft": pr.get("isDraft", False),
             "feedback": items,
         })

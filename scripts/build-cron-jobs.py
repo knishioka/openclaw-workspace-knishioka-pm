@@ -222,16 +222,18 @@ def _load_secrets_env(workspace_root: Path) -> None:
 
 
 _PHONE_RE = re.compile(r"^\+?[0-9]{7,15}$")
+# WhatsApp JIDs / group IDs are long digit strings (group IDs are ~18 digits and
+# can carry a legacy "<creator>-<timestamp>" hyphen), and are NOT length-bounded
+# like phone numbers — so they get their own pattern rather than _PHONE_RE.
+_WA_JID_LOCAL_RE = re.compile(r"^[0-9][0-9-]{4,29}$")
 _WA_TARGET_SUFFIXES = ("@g.us", "@s.whatsapp.net", "@c.us")
 
 
 def _looks_like_valid_target(to: str) -> bool:
-    local = to
     for suf in _WA_TARGET_SUFFIXES:
-        if local.endswith(suf):
-            local = local[: -len(suf)]
-            break
-    return bool(_PHONE_RE.match(local))
+        if to.endswith(suf):
+            return bool(_WA_JID_LOCAL_RE.match(to[: -len(suf)]))
+    return bool(_PHONE_RE.match(to))
 
 
 def _validate_targets(jobs: list[dict[str, Any]]) -> None:
@@ -253,9 +255,10 @@ def _validate_targets(jobs: list[dict[str, Any]]) -> None:
         if fa.get("to"):
             candidates.append(("failure_alert.to", fa["to"]))
         for where, val in candidates:
-            if "${" in val:
+            sval = str(val)
+            if "${" in sval:
                 continue
-            if not _looks_like_valid_target(val):
+            if not _looks_like_valid_target(sval):
                 bad.append(f"{job.get('name')}: {where}={val!r}")
     if bad:
         joined = "\n  ".join(bad)
