@@ -21,7 +21,7 @@
 
 | パス                               | 役割                                                               | git  |
 | ---------------------------------- | ------------------------------------------------------------------ | ---- |
-| `config/cron/jobs.yaml`            | 宣言的ソース（7 ジョブ）。**編集するのはここだけ**                 | 追跡 |
+| `config/cron/jobs.yaml`            | 宣言的ソース（11 ジョブ）。**編集するのはここだけ**                | 追跡 |
 | `scripts/build-cron-jobs.py`       | jobs.yaml → `build/cron/manifest.json` を生成（message_hash 付き） | 追跡 |
 | `scripts/verify-cron-playbooks.sh` | manifest とライブ登録内容を比較し drift を検出（読み取り専用）     | 追跡 |
 | `scripts/register-cron-jobs.sh`    | manifest をライブに適用。**既存ジョブは id を保ったまま edit**     | 追跡 |
@@ -42,13 +42,32 @@
 | -------------------- | ---------------------------------- | --------------- |
 | `KNISHIOKA_ALERT_TO` | WhatsApp 通知 / failure_alert 宛先 | `+81xxxxxxxxxx` |
 
-```bash
-export KNISHIOKA_ALERT_TO='+81...'   # build / register / verify --live の前に
+**永続化（推奨）**: 値は `config/cron/secrets.env`（**gitignore 済み**）に置く。
+`build-cron-jobs.py` が起動時に自動ロードするので、シェルでの `export` は不要。
+これにより「再ビルドのたびに手で export し忘れ／プレースホルダーを貼って誤登録」
+という事故が起きない（揮発する env への依存を排除）。
+
+```ini
+# config/cron/secrets.env （コミット厳禁）
+KNISHIOKA_ALERT_TO=+81...
 ```
 
-未設定のまま `build` / `register` / `verify --live` を実行すると、`${...}` が未解
-決である旨のエラーで停止する（literal なプレースホルダーを誤登録しない安全装
-置）。`verify --offline` と `build --check` は構造検証のみなので env なしで通る。
+一時的に別宛先で試したいときは `export` が優先される（`os.environ.setdefault`）：
+
+```bash
+export KNISHIOKA_ALERT_TO='+8190...'   # この回だけ secrets.env を上書き
+```
+
+**安全装置（二重）**:
+
+1. 未解決ガード: `${...}` が解決できない（env も secrets.env も無い）まま
+   `build` / `register` / `verify --live` すると、未解決エラーで停止する。
+2. プレースホルダーガード: 解決後の宛先が電話番号/WhatsApp ID の形でない
+   （`+81xxxxxxxxxx` のように英字を含む等）場合も `build` がエラーで停止する。
+   → `+81xxxxxxxxxx` のような literal を二度と黙って登録しない。
+
+`verify --offline` と `build --check` は構造検証のみだが、secrets.env があれば
+そちらも解決する（無くても env なしで通る）。
 
 ## 変更手順（編集 → 生成 → 検証 → commit）
 

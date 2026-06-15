@@ -196,9 +196,82 @@ def _normalize_job(
     }
 
 
+def _load_secrets_env(workspace_root: Path) -> None:
+    """Load config/cron/secrets.env into the environment (fills gaps only).
+
+    Secrets / PII (the WhatsApp alert number) must be in os.environ for
+    _expand_env to resolve ${...} references. Relying on the caller to `export`
+    them by hand is fragile: a forgotten or mistyped export silently bakes a
+    placeholder into the live registry (this is exactly how KNISHIOKA_ALERT_TO
+    became '+81xxxxxxxxxx'). Persisting them in this gitignored file makes every
+    build resolve correctly regardless of the shell. An explicit export still
+    wins (setdefault), so a one-off override stays possible.
+    """
+    env_file = workspace_root / "config" / "cron" / "secrets.env"
+    if not env_file.is_file():
+        return
+    for raw in env_file.read_text().splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, val = line.partition("=")
+        key = key.strip()
+        val = val.strip().strip('"').strip("'")
+        if key:
+            os.environ.setdefault(key, val)
+
+
+_PHONE_RE = re.compile(r"^\+?[0-9]{7,15}$")
+_WA_TARGET_SUFFIXES = ("@g.us", "@s.whatsapp.net", "@c.us")
+
+
+def _looks_like_valid_target(to: str) -> bool:
+    local = to
+    for suf in _WA_TARGET_SUFFIXES:
+        if local.endswith(suf):
+            local = local[: -len(suf)]
+            break
+    return bool(_PHONE_RE.match(local))
+
+
+def _validate_targets(jobs: list[dict[str, Any]]) -> None:
+    """Reject resolved delivery targets that look like an unfilled placeholder.
+
+    Guards the failure mode where ${KNISHIOKA_ALERT_TO} resolves to a docs
+    placeholder like '+81xxxxxxxxxx' (which IS set, so the unset-env check below
+    misses it) and gets silently registered. Only fully-resolved values are
+    checked; literals still containing '${' are caught by the unresolved-env
+    gate instead.
+    """
+    bad: list[str] = []
+    for job in jobs:
+        candidates: list[tuple[str, str]] = []
+        delivery = job.get("delivery") or {}
+        if delivery.get("to"):
+            candidates.append(("delivery.to", delivery["to"]))
+        fa = job.get("failure_alert") or {}
+        if fa.get("to"):
+            candidates.append(("failure_alert.to", fa["to"]))
+        for where, val in candidates:
+            if "${" in val:
+                continue
+            if not _looks_like_valid_target(val):
+                bad.append(f"{job.get('name')}: {where}={val!r}")
+    if bad:
+        joined = "\n  ".join(bad)
+        raise SystemExit(
+            "build-cron-jobs: delivery target(s) look like an unfilled "
+            "placeholder, not a real phone/WhatsApp id:\n  "
+            f"{joined}\n"
+            "  Fix config/cron/secrets.env (e.g. KNISHIOKA_ALERT_TO=+<digits>) "
+            "and rebuild. A real number must be all digits (optionally +-prefixed)."
+        )
+
+
 def build(
     workspace_root: Path, jobs_yaml_path: Path, allow_unset_env: bool = False
 ) -> dict[str, Any]:
+    _load_secrets_env(workspace_root)
     spec = _load_yaml(jobs_yaml_path)
     if spec.get("schema_version") != 1:
         raise SystemExit(
@@ -262,6 +335,9 @@ def build(
     dups = sorted(name for name, count in seen.items() if count > 1)
     if dups:
         raise SystemExit(f"build-cron-jobs: duplicate job names produced: {dups}")
+
+    # Reject placeholder-looking delivery targets before they reach the registry.
+    _validate_targets(expanded)
 
     try:
         generated_from = str(jobs_yaml_path.relative_to(workspace_root))
